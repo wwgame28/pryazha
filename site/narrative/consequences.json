@@ -1,0 +1,1292 @@
+{
+ "factions": {
+  "village": {
+   "name": "Провожающие",
+   "start": 0
+  },
+  "archive": {
+   "name": "Архив Неусыпных",
+   "start": 0
+  },
+  "ash": {
+   "name": "Пепельный Круг",
+   "start": 0
+  },
+  "weavers": {
+   "name": "Перевязчики",
+   "start": 5
+  },
+  "undead": {
+   "name": "Недопетые",
+   "start": 0
+  },
+  "forest": {
+   "name": "Лесной народ",
+   "start": -5
+  },
+  "rootless": {
+   "name": "Безродные",
+   "start": -10
+  }
+ },
+ "chapters": {
+  "1": {
+   "title": "Из воды",
+   "epigraph": "Река у Ольхового Брода много чего приносит. Обычно обратно.",
+   "where": "Ольховый Брод. Осень, первые заморозки."
+  },
+  "2": {
+   "title": "Проводы",
+   "epigraph": "Раз в год деревня в последний раз говорит имена вслух. Потом их не говорят никогда.",
+   "where": "Лес, Гурдымов Камень, брод в ночь Проводов."
+  },
+  "3": {
+   "title": "Печать изнутри",
+   "epigraph": "Тебе соврут трижды. Сложи враньё — получится правда.",
+   "where": "Склеп под Старым кладбищем. Башня, Стан, Руины."
+  },
+  "4": {
+   "title": "Белая кромка",
+   "epigraph": "Деревня есть, а дороги к ней будто никогда не было.",
+   "where": "Степь, Сухой Лог, Выцветь."
+  },
+  "5": {
+   "title": "Красная зима",
+   "epigraph": "Мир стоит на том, что больно отпустить. А на том, что стыдно вспомнить?",
+   "where": "Ольховый Брод. Тридцать пять лет спустя."
+  },
+  "6": {
+   "title": "Ночь Перевязки",
+   "epigraph": "Девятьсот сорок три имени. И одно — твоё, если ты его выбрал.",
+   "where": "Тихая Сторона. Нижний зал."
+  }
+ },
+ "npcs": {
+  "agafya": {
+   "name": "Агафья",
+   "faction": "village",
+   "rel": {
+    "trust": 3
+   }
+  },
+  "ivar": {
+   "name": "Ивар",
+   "faction": "village",
+   "rel": {
+    "respect": 1,
+    "hostility": 1
+   }
+  },
+  "vesna": {
+   "name": "Весна",
+   "faction": "village",
+   "rel": {
+    "trust": 1
+   }
+  },
+  "tur": {
+   "name": "Тур",
+   "faction": "village",
+   "rel": {}
+  },
+  "pelageya": {
+   "name": "Пелагея",
+   "faction": "village",
+   "rel": {}
+  },
+  "dunya": {
+   "name": "Дуня",
+   "faction": "village",
+   "rel": {}
+  },
+  "ulita": {
+   "name": "Улита",
+   "faction": "village",
+   "rel": {
+    "trust": 1
+   }
+  },
+  "prosha": {
+   "name": "Проша",
+   "faction": "village",
+   "rel": {}
+  },
+  "marya": {
+   "name": "Марья",
+   "faction": "village",
+   "rel": {}
+  },
+  "federot": {
+   "name": "Федот",
+   "faction": "village",
+   "rel": {
+    "hostility": 3,
+    "fear": 2
+   }
+  },
+  "gostena": {
+   "name": "Гостена",
+   "faction": "village",
+   "rel": {}
+  },
+  "yasna": {
+   "name": "Ясна",
+   "faction": "archive",
+   "rel": {
+    "trust": 1,
+    "respect": 1
+   }
+  },
+  "khrustalina": {
+   "name": "Хрусталина",
+   "faction": "archive",
+   "rel": {}
+  },
+  "ugar": {
+   "name": "Угар",
+   "faction": "ash",
+   "rel": {
+    "trust": 2
+   }
+  },
+  "iskra": {
+   "name": "Искра",
+   "faction": "ash",
+   "rel": {
+    "hostility": 1
+   }
+  },
+  "chad": {
+   "name": "Чад",
+   "faction": "ash",
+   "rel": {
+    "hostility": 2
+   }
+  },
+  "kudel": {
+   "name": "Кудель",
+   "faction": "weavers",
+   "rel": {
+    "trust": 2
+   }
+  },
+  "mirta": {
+   "name": "Мирта",
+   "faction": null,
+   "rel": {}
+  },
+  "morven": {
+   "name": "Морвен",
+   "faction": "undead",
+   "rel": {}
+  },
+  "ostap": {
+   "name": "Остап",
+   "faction": "undead",
+   "rel": {
+    "trust": 1
+   }
+  },
+  "efim": {
+   "name": "Ефим",
+   "faction": "undead",
+   "rel": {}
+  },
+  "gurdym": {
+   "name": "Гурдым",
+   "faction": "forest",
+   "rel": {}
+  },
+  "shurshok": {
+   "name": "Шуршок",
+   "faction": "forest",
+   "rel": {
+    "fear": 3
+   }
+  },
+  "mal": {
+   "name": "Малой",
+   "faction": "forest",
+   "rel": {}
+  },
+  "khrum": {
+   "name": "Хрум",
+   "faction": "forest",
+   "rel": {}
+  },
+  "stakh": {
+   "name": "Стах",
+   "faction": "rootless",
+   "rel": {
+    "hostility": 2
+   }
+  },
+  "krivoy": {
+   "name": "Кривой",
+   "faction": "rootless",
+   "rel": {}
+  },
+  "sivy": {
+   "name": "Сивый",
+   "faction": null,
+   "rel": {}
+  },
+  "inei": {
+   "name": "Иней",
+   "faction": null,
+   "rel": {}
+  },
+  "korney": {
+   "name": "Корней",
+   "faction": null,
+   "rel": {}
+  }
+ },
+ "social": {
+  "vesna": [
+   "agafya",
+   "ivar",
+   "tur",
+   "pelageya",
+   "dunya",
+   "ulita",
+   "federot",
+   "gostena"
+  ],
+  "agafya": [
+   "vesna",
+   "ivar"
+  ],
+  "ivar": [
+   "vesna",
+   "agafya",
+   "federot"
+  ],
+  "federot": [
+   "vesna",
+   "ivar",
+   "gostena",
+   "chad"
+  ],
+  "gostena": [
+   "vesna",
+   "stakh",
+   "khrustalina",
+   "khrum"
+  ],
+  "tur": [
+   "vesna"
+  ],
+  "pelageya": [
+   "vesna"
+  ],
+  "dunya": [
+   "vesna",
+   "sivy"
+  ],
+  "ulita": [
+   "vesna",
+   "shurshok"
+  ],
+  "prosha": [
+   "vesna"
+  ],
+  "shurshok": [
+   "gurdym",
+   "mal",
+   "khrum",
+   "ulita"
+  ],
+  "khrum": [
+   "shurshok",
+   "gostena"
+  ],
+  "gurdym": [
+   "shurshok"
+  ],
+  "mal": [
+   "shurshok",
+   "pelageya"
+  ],
+  "yasna": [
+   "khrustalina"
+  ],
+  "khrustalina": [
+   "yasna",
+   "gostena"
+  ],
+  "ugar": [
+   "iskra",
+   "chad"
+  ],
+  "iskra": [
+   "ugar",
+   "chad"
+  ],
+  "chad": [
+   "ugar",
+   "iskra",
+   "federot"
+  ],
+  "stakh": [
+   "krivoy",
+   "gostena"
+  ],
+  "krivoy": [
+   "stakh",
+   "khrustalina"
+  ],
+  "ostap": [
+   "morven",
+   "ulita"
+  ],
+  "morven": [
+   "ostap"
+  ],
+  "efim": [
+   "morven"
+  ],
+  "kudel": [
+   "mirta"
+  ],
+  "mirta": [
+   "kudel"
+  ]
+ },
+ "ears": {
+  "village": [
+   "vesna",
+   "ivar"
+  ],
+  "archive": [
+   "khrustalina",
+   "yasna"
+  ],
+  "ash": [
+   "ugar",
+   "chad"
+  ],
+  "forest": [
+   "gurdym",
+   "shurshok"
+  ],
+  "rootless": [
+   "stakh",
+   "krivoy"
+  ],
+  "weavers": [
+   "kudel"
+  ],
+  "undead": [
+   "morven",
+   "ostap"
+  ]
+ },
+ "deeds": {
+  "d_broke_promise": {
+   "title": "Не сдержал слово",
+   "rep": {
+    "village": -3
+   },
+   "rumor": "r_breaks_word",
+   "strength": 0.5
+  },
+  "d_sold_memory": {
+   "title": "Продал память Архиву",
+   "rep": {
+    "archive": 2,
+    "village": -2
+   }
+  },
+  "d_freed_shurshok": {
+   "title": "Отпустил гоблинёнка",
+   "rep": {
+    "forest": 10
+   },
+   "repAlways": true
+  },
+  "d_captured_shurshok": {
+   "title": "Привёл гоблинёнка в деревню на суд",
+   "rep": {
+    "forest": -15,
+    "village": 5
+   },
+   "repAlways": true,
+   "rumor": "r_goblin_captive"
+  },
+  "d_killed_gurdym": {
+   "title": "Убил Гурдыма",
+   "rep": {
+    "forest": -40,
+    "village": 5
+   },
+   "repAlways": true,
+   "rumor": "r_killed_troll",
+   "strength": 0.8
+  },
+  "d_eased_gurdym": {
+   "title": "Забрал у Гурдыма красную зиму",
+   "rep": {
+    "forest": 15
+   },
+   "repAlways": true
+  },
+  "d_spared_gurdym": {
+   "title": "Получил ключ миром",
+   "rep": {
+    "forest": 20
+   },
+   "repAlways": true
+  },
+  "d_read_names": {
+   "title": "Прочёл имена на Проводах",
+   "rep": {
+    "village": 10,
+    "undead": 5
+   },
+   "repAlways": true
+  },
+  "d_sold_names": {
+   "title": "Продал имена Архиву",
+   "rep": {
+    "village": -15,
+    "archive": 15
+   },
+   "repAlways": true,
+   "rumor": "r_sold_names",
+   "strength": 0.9
+  },
+  "d_took_names": {
+   "title": "Взял двенадцать имён в себя",
+   "rep": {
+    "village": -10,
+    "undead": 15
+   },
+   "repAlways": true,
+   "rumor": "r_names_in_hero",
+   "strength": 0.8
+  },
+  "d_hid_mitya": {
+   "title": "Утаил на Проводах имя Митрия",
+   "rel": {
+    "agafya": {
+     "trust": 2
+    },
+    "ivar": {
+     "respect": -1
+    }
+   }
+  },
+  "d_robbed_caravan": {
+   "title": "Ограбил обоз Архива",
+   "rep": {
+    "archive": -30,
+    "rootless": 20
+   },
+   "repAlways": true,
+   "rumor": "r_robbed_caravan",
+   "strength": 0.9
+  },
+  "d_bought_wife": {
+   "title": "Выкупил память о жене Стаха",
+   "rep": {
+    "rootless": 15,
+    "archive": 3
+   },
+   "repAlways": true
+  },
+  "d_told_stakh": {
+   "title": "Сказал Стаху, где Пелагея",
+   "rep": {
+    "rootless": 20
+   },
+   "repAlways": true
+  },
+  "d_betrayed_stakh": {
+   "title": "Сдал Безродных Архиву",
+   "rep": {
+    "archive": 15
+   },
+   "repAlways": true,
+   "rumor": "r_betrayed_stakh",
+   "strength": 0.9,
+   "npc": "stakh",
+   "faction": "rootless",
+   "betray": true
+  },
+  "d_stole_jars": {
+   "title": "Унёс детские склянки из Архива",
+   "rep": {
+    "archive": -25,
+    "weavers": 10
+   },
+   "repAlways": true,
+   "rumor": "r_stole_jars",
+   "strength": 0.7
+  },
+  "d_took_ugar_jar": {
+   "title": "Унёс склянку Угара",
+   "rep": {
+    "archive": -5
+   },
+   "repAlways": true
+  },
+  "d_named_efim": {
+   "title": "Назвал утопленника по имени у брода",
+   "rep": {
+    "undead": 15,
+    "village": -5
+   },
+   "repAlways": true,
+   "rumor": "r_speaks_to_dead",
+   "strength": 0.7
+  },
+  "d_killed_efim": {
+   "title": "Зарубил утопленника у брода",
+   "rep": {
+    "undead": -10,
+    "village": 5
+   },
+   "repAlways": true,
+   "rumor": "r_cut_the_drowned",
+   "strength": 0.6
+  },
+  "d_led_efim": {
+   "title": "Увёл утопленника узелком Агафьи",
+   "rep": {
+    "undead": 10
+   },
+   "repAlways": true
+  },
+  "d_helped_yard": {
+   "title": "Помог двору в Броде",
+   "rep": {
+    "village": 4
+   },
+   "repAlways": true
+  },
+  "d_shamed_tur": {
+   "title": "Рассказал всем, что Тур продал ремесло",
+   "rep": {
+    "village": -4
+   },
+   "rel": {
+    "tur": {
+     "hostility": 4,
+     "trust": -2
+    }
+   },
+   "rumor": "r_tur_sold"
+  },
+  "d_lied_council": {
+   "title": "Солгал на Сходе",
+   "rep": {},
+   "rel": {
+    "ivar": {
+     "respect": -2
+    }
+   }
+  },
+  "d_struck_federot": {
+   "title": "Ударил Федота",
+   "rep": {
+    "village": -6
+   },
+   "repAlways": true,
+   "rel": {
+    "federot": {
+     "hostility": 3,
+     "fear": 3
+    }
+   },
+   "rumor": "r_beat_federot"
+  },
+  "d_paid_federot": {
+   "title": "Заплатил Федоту за порванные сети",
+   "rel": {
+    "federot": {
+     "hostility": -2
+    }
+   }
+  },
+  "d_asked_ashes": {
+   "title": "Расспрашивал про пепелище",
+   "rel": {
+    "agafya": {
+     "fear": 1
+    }
+   }
+  }
+ },
+ "rumors": {
+  "r_wet_lures_dead": {
+   "text": "Мокрый мертвяков приманивает",
+   "truth": false,
+   "strength": 0.6,
+   "origin": [
+    "federot"
+   ],
+   "rep": {
+    "village": -8
+   }
+  },
+  "r_grave_digger": {
+   "text": "Мокрый сам по ночам могилы роет",
+   "truth": false,
+   "strength": 0.5,
+   "origin": [
+    "federot"
+   ],
+   "rep": {
+    "village": -6
+   }
+  },
+  "r_breaks_word": {
+   "text": "Мокрый слова не держит",
+   "truth": true,
+   "rep": {
+    "village": -4,
+    "rootless": -2
+   }
+  },
+  "r_goblin_captive": {
+   "text": "Мокрый гоблинёнка на верёвке в деревню привёл",
+   "truth": true,
+   "rep": {
+    "forest": -5
+   }
+  },
+  "r_killed_troll": {
+   "text": "Мокрый старого тролля зарубил",
+   "truth": true,
+   "rep": {
+    "forest": -10,
+    "village": 3
+   }
+  },
+  "r_sold_names": {
+   "text": "Мокрый наши имена Башне продал",
+   "truth": true,
+   "rep": {
+    "village": -6,
+    "weavers": -5
+   }
+  },
+  "r_names_in_hero": {
+   "text": "В мокром теперь двенадцать покойников разговаривают",
+   "truth": true,
+   "rep": {
+    "village": -4,
+    "ash": -6
+   }
+  },
+  "r_robbed_caravan": {
+   "text": "Обоз Башни на лесной дороге разбили, и мокрый там был",
+   "truth": true,
+   "rep": {
+    "archive": -10,
+    "village": -2
+   }
+  },
+  "r_betrayed_stakh": {
+   "text": "Мокрый своих Башне сдаёт",
+   "truth": true,
+   "rep": {
+    "rootless": -10,
+    "forest": -3
+   }
+  },
+  "r_stole_jars": {
+   "text": "Из Башни склянки пропали, детские",
+   "truth": true,
+   "rep": {
+    "archive": -5,
+    "weavers": 3
+   }
+  },
+  "r_speaks_to_dead": {
+   "text": "Мокрый с мертвяками по именам разговаривает",
+   "truth": true,
+   "rep": {
+    "village": -3,
+    "undead": 5
+   }
+  },
+  "r_cut_the_drowned": {
+   "text": "Мокрый утопленника у брода зарубил, и тот не встал",
+   "truth": true,
+   "rep": {
+    "village": 2
+   }
+  },
+  "r_tur_sold": {
+   "text": "Тур ремесло Башне продал, а дочку не спас",
+   "truth": true,
+   "rep": {}
+  },
+  "r_beat_federot": {
+   "text": "Мокрый Федота при всех ударил",
+   "truth": true,
+   "rep": {
+    "village": -3
+   }
+  }
+ },
+ "facts": {
+  "f_thread_wrist": {
+   "title": "Нитка на запястье",
+   "text": "Серая шерстяная нитка, ткачья вязка. Не развязывается и не рвётся. Агафья сказала: «не моя вязка»."
+  },
+  "f_two_knots": {
+   "title": "Два узелка в косе Агафьи",
+   "text": "Красный, свежий — про Митю. Под ним серый, старый. «Это не твоё»."
+  },
+  "f_ashes_phrase": {
+   "title": "«Всегда пустой был»",
+   "text": "Про пепелище у брода все говорят одними и теми же словами. Будто выучили."
+  },
+  "f_ashes_doll": {
+   "title": "Обгоревшая берестяная кукла",
+   "text": "В крапиве на пепелище. Детская. Кто-то делал её для девочки."
+  },
+  "f_ashes_ladle": {
+   "title": "Оплавленный черпак с буквой «М»",
+   "text": "Медный, для отваров. Буква выбита неровно, своей рукой."
+  },
+  "f_ashes_scrap": {
+   "title": "Клочок бересты: «держит»",
+   "text": "Обгорелый край списка. Угольное слово «держит» и половина чьей-то буквы."
+  },
+  "f_efim_name": {
+   "title": "Имя утопленника",
+   "text": "Утопленник у брода — Ефим, брат Федота. Отпущен прошлой весной."
+  },
+  "f_crypt_tight": {
+   "title": "«Тесно»",
+   "text": "Мёртвые у брода говорят одно слово: «тесно». Под кладбищем им не хватает места."
+  },
+  "f_red_winter_gurdym": {
+   "title": "Красная зима Гурдыма",
+   "text": "Тролль помнит зиму, когда река у брода стала красной: люди в огне и мальчик с факелом."
+  },
+  "f_shirts_m": {
+   "title": "Буква «М» на рубашках",
+   "text": "Пелагея каждую зиму шьёт рубашки на мальчика лет семи. На каждом вороте вышита «М»."
+  },
+  "f_agafya_knots": {
+   "title": "Агафья вяжет узелки",
+   "text": "Агафья умеет уводить мёртвых узелком. По обычаю Брода это грех."
+  },
+  "f_well_voices": {
+   "title": "Голоса в колодце",
+   "text": "На дне колодца кто-то смеётся: «Воды, Марфушка, воды!»"
+  }
+ },
+ "events": {
+  "ev_goblin_raid": {
+   "title": "Гоблины мстят за Гурдыма",
+   "toast": "Ночью гоблины перевернули поленницы и унесли ложки. Мстят за тролля.",
+   "effects": [
+    "rep:village:-3",
+    "spawn:goblin:village:x1"
+   ]
+  },
+  "ev_federot_cools": {
+   "title": "Федот остывает",
+   "effects": [
+    "rel:federot:hostility:-1"
+   ]
+  }
+ },
+ "items": {
+  "efim_spoon": {
+   "name": "ложка с буквой «Е»"
+  },
+  "efim_hook": {
+   "name": "крючок Ефима"
+  },
+  "net_mended": {
+   "name": "починенная сеть"
+  },
+  "pelageya_shirts": {
+   "name": "детские рубашки Пелагеи"
+  },
+  "well_chain": {
+   "name": "колодезная цепь"
+  },
+  "ashes_doll": {
+   "name": "обгоревшая берестяная кукла"
+  },
+  "red_pebble": {
+   "name": "красный камешек Гурдыма"
+  },
+  "ashes_scrap": {
+   "name": "клочок бересты со словом «держит»"
+  },
+  "efim_bow": {
+   "name": "лук Ефима (рябиновый, с выжженной «Е»)"
+  },
+  "tur_sword": {
+   "name": "отцов меч Тура"
+  }
+ },
+ "charms": {
+  "ember": {
+   "name": "Уголёк в ладонке",
+   "desc": "+15 % урона огнём на 8 минут",
+   "minutes": 8,
+   "mods": [
+    {
+     "stat": "fire%",
+     "value": 0.15
+    }
+   ]
+  },
+  "frost": {
+   "name": "Склянка Стыни",
+   "desc": "+15 % урона льдом и дольше заморозка на 8 минут",
+   "minutes": 8,
+   "mods": [
+    {
+     "stat": "ice%",
+     "value": 0.15
+    },
+    {
+     "stat": "freezeDur",
+     "value": 0.2
+    }
+   ]
+  },
+  "thread": {
+   "name": "Нитяной оберег",
+   "desc": "+20 % Отголосков на 10 минут",
+   "minutes": 10,
+   "mods": [
+    {
+     "stat": "echoFind%",
+     "value": 0.2
+    }
+   ]
+  },
+  "button": {
+   "name": "Чужая пуговица",
+   "desc": "+4 % шанса крита на 10 минут",
+   "minutes": 10,
+   "mods": [
+    {
+     "stat": "crit",
+     "value": 4
+    }
+   ]
+  },
+  "salt": {
+   "name": "Соль с порога",
+   "desc": "+10 к броне на 8 минут",
+   "minutes": 8,
+   "mods": [
+    {
+     "stat": "armor",
+     "value": 10
+    }
+   ]
+  }
+ },
+ "merchants": {
+  "vesna": {
+   "npc": "vesna",
+   "title": "«Последняя кружка»",
+   "faction": "village",
+   "hello": "Садись, мокрый. Кружка — за рассказ, ночлег — за серебро.",
+   "enemyLine": "Брод тебя не хочет, и я не хочу. Иди, пока не позвали мужиков.",
+   "restoreFaction": [
+    "помириться с деревней: Сход, помощь дворам, заступничество Агафьи или Ивара"
+   ],
+   "hostileLine": "Тебе я не налью.",
+   "restoreHostile": [
+    "загладить вину перед Весной"
+   ],
+   "stock": [
+    {
+     "id": "rest",
+     "type": "rest",
+     "title": "Комната до утра",
+     "desc": "восстановить силы и сохраниться",
+     "price": 10
+    },
+    {
+     "id": "hp",
+     "type": "potion",
+     "potion": "hp",
+     "title": "Горячий сбитень",
+     "price": 22
+    },
+    {
+     "id": "info",
+     "type": "info",
+     "title": "Что про меня болтают?",
+     "desc": "Весна знает всё, что знает Брод",
+     "price": 5
+    },
+    {
+     "id": "refute",
+     "type": "refute",
+     "title": "Пусть люди узнают правду",
+     "desc": "Весна перескажет твою сторону: ложный слух потеряет силу",
+     "price": 30
+    }
+   ],
+   "rules": [
+    {
+     "if": {
+      "rumor": "r_wet_lures_dead",
+      "rep_village_lt": 0
+     },
+     "close": "Пока про тебя такое болтают, дверь закрыта. Мне людей не пугай.",
+     "restore": [
+      "опровергни слух: пусть Агафья или Ивар скажут за тебя",
+      "разберись с утопленником у брода"
+     ]
+    },
+    {
+     "if": {
+      "debt_vesna_gt": 0,
+      "q_c1_council": "done"
+     },
+     "note": "Весна помнит про долг."
+    },
+    {
+     "if": {
+      "gordey": "release"
+     },
+     "special": [
+      "gordey_mug"
+     ]
+    }
+   ],
+   "specials": {
+    "gordey_mug": {
+     "type": "rest",
+     "title": "Кружка Гордея",
+     "desc": "Весна наливает бесплатно",
+     "price": 0
+    }
+   }
+  },
+  "gostena": {
+   "npc": "gostena",
+   "title": "лавка Гостены",
+   "faction": "village",
+   "hello": "Зелья, верёвки, соль. В долг не даю. Почти.",
+   "stock": [
+    {
+     "id": "hp",
+     "type": "potion",
+     "potion": "hp",
+     "title": "Зелье здоровья",
+     "price": 20
+    },
+    {
+     "id": "mp",
+     "type": "potion",
+     "potion": "mp",
+     "title": "Зелье маны",
+     "price": 20
+    },
+    {
+     "id": "salt",
+     "type": "charm",
+     "charm": "salt",
+     "title": "Соль с порога",
+     "desc": "+10 к броне на 8 минут",
+     "price": 18
+    },
+    {
+     "id": "hood",
+     "type": "helm",
+     "helm": 1,
+     "title": "Капюшон",
+     "price": 60
+    },
+    {
+     "id": "item",
+     "type": "item",
+     "rarity": "magic",
+     "title": "Вещь из-под прилавка",
+     "desc": "случайная волшебная вещь",
+     "price": 95,
+     "rare": true
+    }
+   ],
+   "rules": [
+    {
+     "if": {
+      "rumor": "r_wet_lures_dead"
+     },
+     "price": 1.2,
+     "note": "Гостена накинула: «за риск»."
+    },
+    {
+     "if": {
+      "rep_rootless_gte": 15
+     },
+     "secret": {
+      "line": "Для своих у меня есть ещё полка. Без лишних глаз.",
+      "mul": 1.3
+     },
+     "special": [
+      "fence_item"
+     ]
+    }
+   ],
+   "specials": {
+    "fence_item": {
+     "type": "item",
+     "rarity": "set",
+     "title": "Краденое с обоза",
+     "desc": "вещь из набора, без вопросов",
+     "price": 210
+    }
+   }
+  },
+  "tur": {
+   "npc": "tur",
+   "title": "кузня Тура",
+   "faction": "village",
+   "hello": "Чего надо? Только не жалей меня.",
+   "stock": [
+    {
+     "id": "w",
+     "type": "upgradeWeapon",
+     "title": "Перековать оружие",
+     "price": 0
+    },
+    {
+     "id": "a",
+     "type": "upgradeArmor",
+     "title": "Новый доспех",
+     "price": 0
+    },
+    {
+     "id": "helm3",
+     "type": "helm",
+     "helm": 3,
+     "title": "Железный шлем",
+     "price": 90
+    },
+    {
+     "id": "helm5",
+     "type": "helm",
+     "helm": 5,
+     "title": "Рогатый шлем",
+     "price": 160,
+     "rare": true
+    }
+   ],
+   "rules": [
+    {
+     "if": {
+      "trade_tur_open_not": true,
+      "q_s3_not": "done"
+     },
+     "close": "Беру молот — и не знаю, куда бить. Не кую я. Не могу.",
+     "restore": [
+      "помоги Туру вспомнить ремесло («Руки помнят»)"
+     ]
+    },
+    {
+     "if": {
+      "tur": "let_go"
+     },
+     "close": "Кузню я закрыл. Подметаю у Весны. Так спокойнее.",
+     "restore": [
+      "кузнец больше не работает; оружие найдётся у Безродных или в лавке"
+     ]
+    }
+   ]
+  },
+  "yasna": {
+   "npc": "yasna",
+   "title": "Башня Неусыпных",
+   "faction": "archive",
+   "hello": "Мы покупаем то, что вам тяжело нести. И продаём то, что помогает не терять.",
+   "enemyLine": "Архив вас больше не обслуживает. Простите. Это не личное. Это опись.",
+   "restoreFaction": [
+    "заплатить штраф Хрусталине",
+    "вернуть украденное",
+    "оказать Архиву услугу"
+   ],
+   "stock": [
+    {
+     "id": "sell",
+     "type": "sellMemory",
+     "title": "Продать воспоминание",
+     "desc": "15 серебром за каждую единицу веса. Память уйдёт, как при Забвении, но без дара.",
+     "perWeight": 15,
+     "price": 0
+    },
+    {
+     "id": "frost",
+     "type": "charm",
+     "charm": "frost",
+     "title": "Склянка Стыни",
+     "price": 40
+    },
+    {
+     "id": "mp",
+     "type": "potion",
+     "potion": "mp",
+     "title": "Ледяная вода",
+     "desc": "восстанавливает ману",
+     "price": 25
+    }
+   ],
+   "rules": [
+    {
+     "if": {
+      "trust_yasna_gte": 6
+     },
+     "secret": {
+      "line": "Чёрный ход открыт до утра. Хрусталине — ни слова.",
+      "mul": 1.5
+     }
+    }
+   ]
+  },
+  "ugar": {
+   "npc": "ugar",
+   "title": "костёр Угара",
+   "faction": "ash",
+   "hello": "Грейся, брат. Огонь всем даёт поровну.",
+   "stock": [
+    {
+     "id": "ember",
+     "type": "charm",
+     "charm": "ember",
+     "title": "Уголёк в ладонке",
+     "price": 35
+    },
+    {
+     "id": "hp",
+     "type": "potion",
+     "potion": "hp",
+     "title": "Печёная картошка с золой",
+     "desc": "лечит, как зелье",
+     "price": 18
+    }
+   ],
+   "rules": []
+  },
+  "kudel": {
+   "npc": "kudel",
+   "title": "узелки Кудели",
+   "faction": "weavers",
+   "hello": "Чего тебе, дитятко? Нитку? Нитку дам.",
+   "stock": [
+    {
+     "id": "thread",
+     "type": "charm",
+     "charm": "thread",
+     "title": "Нитяной оберег",
+     "price": 30
+    }
+   ],
+   "rules": []
+  },
+  "stakh": {
+   "npc": "stakh",
+   "title": "стоянка Безродных",
+   "faction": "rootless",
+   "ignoreFaction": false,
+   "hello": "Деньги покажи. Потом поговорим.",
+   "stock": [
+    {
+     "id": "item",
+     "type": "item",
+     "rarity": "magic",
+     "title": "С обоза",
+     "desc": "волшебная вещь",
+     "price": 90
+    },
+    {
+     "id": "set",
+     "type": "item",
+     "rarity": "set",
+     "title": "Из хорошего сундука",
+     "desc": "вещь из набора",
+     "price": 220,
+     "rare": true
+    }
+   ],
+   "rules": [
+    {
+     "if": {
+      "betrayed_d_betrayed_stakh": true
+     },
+     "close": "Ты нас Башне сдал. Уходи, пока ноги носят.",
+     "restore": [
+      "Стах этого не простит; Кривой может продать то же самое дороже"
+     ]
+    }
+   ]
+  },
+  "khrum": {
+   "npc": "khrum",
+   "title": "мена Хрума",
+   "faction": "forest",
+   "hello": "Меняю! Пуговку на пуговку, ложку на сказку!",
+   "enemyLine": "Ты наших обижал. Хрум с тобой не меняется.",
+   "restoreFaction": [
+    "пусть Шуршок замолвит слово",
+    "вернуть гоблинам их безделушки"
+   ],
+   "stock": [
+    {
+     "id": "button",
+     "type": "charm",
+     "charm": "button",
+     "title": "Чужая пуговица",
+     "price": 15
+    },
+    {
+     "id": "hp",
+     "type": "potion",
+     "potion": "hp",
+     "title": "Подорожник с могилы",
+     "desc": "лечит, как зелье",
+     "price": 16
+    }
+   ],
+   "rules": []
+  }
+ },
+ "worldRumors": {
+  "1": [
+   "Говорят, по ночам у брода стоит кто-то мокрый и смотрит на сети. Федот теперь сети не ставит.",
+   "С кладбища тянет холодом. Огоньки на могилах синие — значит, им тесно.",
+   "Гоблины роют могилы. Не золото берут — ложки, гребни. Срам.",
+   "Башня опять скупает память. Тур ходил, вернулся с деньгами и без лица.",
+   "Пепелище у брода? Не знаю. Всегда пустой был.",
+   "Ивар чужака три дня терпеть будет. А на четвёртый — Сход."
+  ],
+  "2": [
+   "Скоро Проводы. Береста уже сохнет у старосты.",
+   "Тролль у Камня носит ключ на шее. Двести лет носит, а всё не отдаст.",
+   "Безродные на лесной дороге обоз ждут. Башенный.",
+   "Улита опять письмо пишет. Шестьдесят лет пишет — кому?"
+  ]
+ },
+ "promises": {
+  "p_tur_silence": {
+   "to": "tur",
+   "text": "Никому не говорить, что Тур разучился ковать"
+  },
+  "p_agafya_knots": {
+   "to": "agafya",
+   "text": "Молчать о том, что Агафья вяжет узелки"
+  },
+  "p_agafya_teach": {
+   "to": "agafya",
+   "text": "Никому не говорить, что Агафья учила узелкам"
+  }
+ }
+}

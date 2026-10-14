@@ -1,0 +1,916 @@
+// Классы, деревья навыков, облик по тирам брони, снаряжение, аффиксы, уникальные вещи, сеты, оружие.
+// Дизайн-данные для «Пряжи». Все игровые тексты — на русском.
+//
+// СОГЛАШЕНИЯ ПО ЧИСЛАМ
+//  dmg      — множитель базового урона героя (ds.dmg ≈ 10 на 1-м уровне, ≈ 60 на 30-м).
+//  radius / range / dist — пиксели (тайл = 32 px; нынешняя «Огненная волна» = 95 px).
+//  dur / cd / tick — секунды. slow / value / chance — доли (0.3 = 30 %).
+//  heal / shield — доля макс. здоровья героя, если не сказано иное (abs:true — от урона).
+//  perRank — прибавка к одноимённым полям ВСЕХ эффектов навыка за каждый ранг после первого.
+//  cost     — { mp } мана, { rage } ярость, { focus } сосредоточение, { faith } вера, { hp } доля ТЕКУЩЕГО здоровья,
+//             { echo } Отголоски (валюта), { corpse } трупы на земле, { thread } нити (число или 'all').
+//  gain     — сколько ресурса навык даёт ({ heat: 20 }, { rage: 10 }).
+//  at       — где срабатывает эффект: self | aim (по направлению взгляда/захвата) | target (захваченная/ближайшая цель) |
+//             point (точка под целью, как areaPoint) | hit (к каждому, кого задел родительский эффект — внутри apply).
+//  apply    — вложенные эффекты, которые получают все задетые родительским эффектом.
+
+const A = (id, name, desc, o) => ({ id, name, desc, kind: 'active', ranks: 5, req: [], ...o });
+const P = (id, name, desc, o) => ({ id, name, desc, kind: 'passive', ranks: 3, req: [], ...o });
+const CAP = (id, name, desc, o) => ({ id, name, desc, ranks: 1, tier: 4, capstone: true, req: [], ...o });
+const B = (id, name, style, nodes) => ({ id, name, style, nodes });
+
+// Правила дерева: 1 очко за уровень начиная со 2-го (29 к 30-му) + очки от «Забвения».
+export const TREE_RULES = {
+  pointsPerLevel: 1, firstPointLevel: 2,
+  tierPoints: { 1: 0, 2: 3, 3: 7, 4: 15 }, // сколько очков уже вложено в ЭТУ ветку, чтобы открыть тир
+  capstoneLevel: 20,
+  activeSlots: ['K', 'L', 'U', 'I'], // предлагается расширить с 2 до 4 слотов; 3-й открывается на 6-м уровне, 4-й — на 12-м
+  slotLevels: [1, 3, 6, 12],
+  respec: { cost: { echo: 3 }, desc: 'Перевязать узор навыков: забыть всё выученное и разложить очки заново. Стоит три Отголоска.' },
+  oblivionPoint: 'Каждое воспоминание, отданное Забвению, даёт +1 очко навыков сверх обычного дара.',
+};
+
+// ===================================================================================================
+// КЛАССЫ
+// ===================================================================================================
+export const CLASSES2 = {
+  // -------------------------------------------------------------------------------------------- ВОИН
+  warrior: {
+    name: 'Воин', weapon: 'sword', offhand: 'shield', anim: 'slash', main: 'СИЛ', weight: 'heavy',
+    fantasy: 'Наёмник, который держит строй, когда остальные бегут. Чем дольше бой, тем злее он дерётся.',
+    style: 'Ближний бой, дуга перед собой. Ритм: три удара связки — третий тяжёлый и отбрасывает. Чем больше бьёшь и получаешь, тем больше Ярости на приёмы.',
+    resource: { id: 'rage', name: 'Ярость', max: 100, start: 0, gain: { onHit: 8, onHurt: 5 }, decay: { delay: 3, perSec: 6 },
+      twist: 'На 100 Ярости — «Кипение»: +15 % урона, пока Ярость не упадёт ниже 70. Мана воину не нужна.' },
+    basic: { type: 'melee', dmg: 1, cd: .42, range: 42, arc: 110, hitFrame: 3, combo: [1, 1, 1.5], comboWindow: .8, finisher: { knockback: 60 }, school: 'phys' },
+    tree: [
+      B('bulwark', 'Знаменосец', 'Танк: щит, блок, вызов на себя, ответный удар.', [
+        A('shield_bash', 'Удар щитом', 'Бьёт щитом перед собой: оглушает и отталкивает.', { tier: 1, cost: { rage: 15 }, cd: 5,
+          effects: [{ type: 'cone', at: 'aim', range: 55, arc: 90, dmg: .8, school: 'phys', apply: [{ type: 'stun', dur: 1 }, { type: 'knockback', dist: 60 }] }],
+          perRank: { dmg: .15, dur: .1 }, vfx: 'arc_steel', sfx: 'shield_hit' }),
+        P('steady', 'Крепкая стойка', 'Броня и шанс заблокировать удар щитом.', { tier: 1, mods: [{ stat: 'armor', per: 3 }, { stat: 'block', per: .04 }] }),
+        A('shield_wall', 'Стена щитов', 'Встаёт за щитом: спереди гасит 80 % урона и отражает стрелы и болты обратно.', { tier: 2, req: ['shield_bash'], cost: { rage: 20 }, cd: 10,
+          effects: [{ type: 'channel', dur: 3, moveMul: .4 }, { type: 'reflect', at: 'self', value: .8, arc: 150, dur: 3, projectiles: true }],
+          perRank: { dur: .3 }, vfx: 'shield_dome', sfx: 'shield_up' }),
+        P('retribution', 'Отплата', 'Каждый блок заряжает следующий удар.', { tier: 2, req: ['steady'], hook: 'onBlock', effect: { type: 'buff', stat: 'nextHitDmg%', value: .15, dur: 3 }, per: .15 }),
+        A('challenge', 'Вызов', 'Рык, после которого враги рядом хотят только тебя. Пока они злы, бьют слабее.', { tier: 3, req: ['shield_wall'], cost: { rage: 10 }, cd: 12,
+          effects: [{ type: 'debuff', at: 'self', radius: 140, kind: 'taunt', dur: 4, mods: [{ stat: 'dmg%', value: -.2 }] }, { type: 'buff', at: 'self', dur: 4, mods: [{ stat: 'armor', value: 6 }] }],
+          perRank: { dur: .4 }, vfx: 'ring_red', sfx: 'roar' }),
+        P('unbroken', 'Несломленный', 'Когда здоровье падает ниже 30 %, щит закрывает собой — раз в минуту.', { tier: 3, req: ['retribution'], hook: 'lowHp', threshold: .3, icd: 60, effect: { type: 'shield', value: .15, dur: 6 }, per: .05 }),
+        CAP('last_stand', 'Последний рубеж', 'Смертельный удар не убивает: 3 секунды неуязвимости и треть здоровья назад. Раз в две минуты. Пока рубеж держится, все враги рядом обязаны бить тебя.', { req: ['challenge', 'unbroken'], kind: 'passive',
+          hook: 'onDeath', icd: 120, effect: [{ type: 'buff', kind: 'invulnerable', dur: 3 }, { type: 'heal', value: .33 }, { type: 'debuff', radius: 160, kind: 'taunt', dur: 3 }], vfx: 'pillar_gold', sfx: 'heartbeat' }),
+      ]),
+      B('berserk', 'Рубака', 'Натиск: рывки, вихрь, кровь за кровь, полная Ярость — главное оружие.', [
+        A('dash', 'Рывок', 'Бросок вперёд, бьёт всех на пути. Даёт Ярость, а не тратит.', { tier: 1, cost: {}, gain: { rage: 10 }, cd: 5,
+          effects: [{ type: 'dash', at: 'aim', dist: 120, speed: 560, iframes: .3, dmg: .9, school: 'phys' }],
+          perRank: { dmg: .12, dist: 10 }, vfx: 'trail_dust', sfx: 'whoosh' }),
+        P('battle_thirst', 'Жажда боя', 'Ярость копится быстрее.', { tier: 1, mods: [{ stat: 'rageGain%', per: .1 }] }),
+        A('whirlwind', 'Вихрь', 'Кружится с мечом, задевая всех вокруг. Двигаться можно, но медленно.', { tier: 2, req: ['dash'], cost: { rage: 10, perSec: { rage: 10 } }, cd: 1,
+          effects: [{ type: 'channel', dur: 2.5, moveMul: .7 }, { type: 'aoe', at: 'self', radius: 60, tick: .3, dmg: .5, school: 'phys' }],
+          perRank: { dmg: .08, radius: 4 }, vfx: 'spin_steel', sfx: 'swing_loop' }),
+        P('blood_for_blood', 'Кровь за кровь', 'Пока Ярости больше половины, удары лечат.', { tier: 2, req: ['battle_thirst'], cond: 'rage>50', mods: [{ stat: 'lifesteal', per: .02 }] }),
+        A('cry', 'Боевой клич', 'Рёв оглушает врагов рядом, а удары 8 секунд сильнее.', { tier: 3, req: ['whirlwind'], cost: { rage: 30 }, cd: 14,
+          effects: [{ type: 'aoe', at: 'self', radius: 110, dmg: 0, apply: [{ type: 'stun', dur: 1.2, bossMul: .4 }] }, { type: 'buff', at: 'self', dur: 8, mods: [{ stat: 'dmg%', value: .25 }] }],
+          perRank: { dur: .5 }, vfx: 'ring_gold', sfx: 'roar' }),
+        P('boiling', 'Кипение', 'На полной Ярости — больше критов и быстрее удары.', { tier: 3, req: ['blood_for_blood'], cond: 'rage>=100', mods: [{ stat: 'crit', per: .05 }, { stat: 'atkSpeed%', per: .05 }] }),
+        CAP('red_veil', 'Красная пелена', '10 секунд Ярость не убывает и не тратится, каждый удар бьёт дважды, урон +40 %. Цена — получаешь на 15 % больше.', { req: ['cry', 'boiling'], kind: 'active', cost: { rage: 100 }, cd: 60,
+          effects: [{ type: 'transform', at: 'self', dur: 10, tint: '#ff3030', mods: [{ stat: 'dmg%', value: .4 }, { stat: 'dmgTaken%', value: .15 }, { stat: 'rageCost%', value: -1 }, { stat: 'doubleHit', value: 1 }] }],
+          vfx: 'aura_red', sfx: 'roar_deep' }),
+      ]),
+      B('blade', 'Помнящий клинок', 'Дуэлянт: рассечения, парирование, казнь. Клинок запоминает каждого, кого добил.', [
+        A('cleave', 'Рассекающий удар', 'Широкий взмах, после которого враги истекают кровью.', { tier: 1, cost: { rage: 20 }, cd: 3,
+          effects: [{ type: 'cone', at: 'aim', range: 70, arc: 140, dmg: 1.4, school: 'phys', apply: [{ type: 'dot', kind: 'bleed', dps: .2, dur: 4 }] }],
+          perRank: { dmg: .15 }, vfx: 'arc_wide', sfx: 'swing_heavy' }),
+        P('fencing', 'Школа фехтования', 'Урон и сила критов.', { tier: 1, mods: [{ stat: 'dmg%', per: .03 }, { stat: 'critDmg', per: .1 }] }),
+        A('parry', 'Парирование', 'Короткая стойка: если в это мгновение по тебе бьют — удар отведён, а враг получает ответ и оглушение.', { tier: 2, req: ['cleave'], cost: {}, gain: { rage: 20 }, cd: 6,
+          effects: [{ type: 'buff', at: 'self', kind: 'parry', dur: .6, onTrigger: [{ type: 'stun', at: 'attacker', dur: .8 }, { type: 'cone', at: 'attacker', range: 50, dmg: 2, school: 'phys' }] }],
+          perRank: { dmg: .2 }, vfx: 'spark_white', sfx: 'parry' }),
+        P('notches', 'Зарубки', 'Каждое убийство — зарубка на клинке: +2 % урона (до 10). На десятой зарубке клинок роняет Отголосок, зарубки сходят. Отдых у костра стирает их.', { tier: 2, req: ['fencing'], ranks: 1,
+          hook: 'onKill', effect: { type: 'buff', stat: 'dmg%', value: .02, stack: 10, persist: 'untilRest', onMax: { type: 'dropEcho', count: 1, reset: true } } }),
+        A('execute', 'Казнь', 'Тяжёлый удар по одной цели. Вдвое сильнее по раненым (ниже 30 %). Если добил — Ярость и перезарядка возвращаются.', { tier: 3, req: ['parry'], cost: { rage: 35 }, cd: 8,
+          effects: [{ type: 'cone', at: 'target', range: 50, arc: 60, maxTargets: 1, dmg: 2, school: 'phys', lowHpBonus: { below: .3, mul: 2 }, onKill: { refund: true } }],
+          perRank: { dmg: .25 }, vfx: 'slash_red', sfx: 'execute' }),
+        P('blade_memory', 'Память клинка', 'Клинок помнит каждый вид врага, казнённого тобой: +1 % урона по этому виду за казнь, до +10 % — навсегда.', { tier: 3, req: ['notches'], ranks: 1,
+          hook: 'onKill', cond: 'by:execute', effect: { type: 'buff', stat: 'dmgVsKind%', value: .01, max: .1, permanent: true } }),
+        CAP('thousand_cuts', 'Тысяча порезов', 'Шесть мгновенных прыжков между врагами в радиусе 160 — каждый с ударом и кровотечением. Пока режешь, тебя не достать.', { req: ['execute', 'blade_memory'], kind: 'active', cost: { rage: 50 }, cd: 20,
+          effects: [{ type: 'blink', at: 'target', count: 6, radius: 160, iframes: true, apply: [{ type: 'cone', at: 'hit', range: 40, dmg: 1, school: 'phys' }, { type: 'dot', kind: 'bleed', dps: .15, dur: 4 }] }],
+          vfx: 'afterimage', sfx: 'slash_multi' }),
+      ]),
+    ],
+  },
+
+  // -------------------------------------------------------------------------------------------- СЛЕДОПЫТ
+  ranger: {
+    name: 'Следопыт', weapon: 'bow', anim: 'shoot', main: 'ЛОВ', weight: 'medium',
+    fantasy: 'Охотник, который читает следы — и память места, где эти следы оставлены.',
+    style: 'Дальний бой. Ритм: встал — прицелился — выстрелил — отошёл. Стоя на месте копишь Сосредоточение, на бегу тратишь.',
+    resource: { id: 'focus', name: 'Сосредоточение', max: 100, start: 100, regen: 12, regenStill: 30, stillDelay: .4,
+      twist: 'Метка добычи: помеченный зверь или враг, убитый тобой, с шансом 50 % оставляет Отголосок — «след запомнился».' },
+    basic: { type: 'projectile', proj: 'arrow', dmg: 1, cd: .5, speed: 380, range: 300, hitFrame: 5, school: 'phys',
+      charge: { hold: 1, maxDmg: 2.2, pierceAtFull: 2, moveMul: .5 } },
+    tree: [
+      B('sniper', 'Снайпер', 'Точность: заряженные выстрелы, уязвимые места, криты издалека.', [
+        A('aimed_shot', 'Прицельный выстрел', 'Полсекунды прицела — и стрела прошивает до трёх врагов.', { tier: 1, cost: { focus: 30 }, cd: 4,
+          effects: [{ type: 'channel', dur: .8, moveMul: 0 }, { type: 'pierce', at: 'aim', proj: 'arrow_heavy', speed: 620, range: 360, count: 3, dmg: 2.5, school: 'phys' }],
+          perRank: { dmg: .3 }, vfx: 'arrow_glint', sfx: 'bow_heavy' }),
+        P('steady_hand', 'Твёрдая рука', 'Чаще криты; стоя на месте копишь Сосредоточение быстрее.', { tier: 1, mods: [{ stat: 'crit', per: .03 }, { stat: 'focusStill%', per: .1 }] }),
+        P('weak_spot', 'Слабое место', 'Крит отмечает цель: 4 секунды она получает от тебя больше урона.', { tier: 2, req: ['steady_hand'], hook: 'onCrit', effect: { type: 'mark', kind: 'weak', dur: 4, mods: [{ stat: 'dmgTakenFromYou%', value: .05 }] }, per: .05 }),
+        A('disengage', 'Отскок', 'Прыжок назад и выстрел, замедляющий того, кто подошёл слишком близко.', { tier: 2, req: ['aimed_shot'], cost: { focus: 20 }, cd: 6,
+          effects: [{ type: 'dash', at: 'self', dir: 'back', dist: 110, speed: 520, iframes: .2 }, { type: 'projectile', at: 'aim', proj: 'arrow', speed: 420, dmg: 1.2, apply: [{ type: 'slow', value: .4, dur: 2 }] }],
+          perRank: { dmg: .15, dur: .3 }, vfx: 'trail_leaf', sfx: 'whoosh' }),
+        A('heart_shot', 'Выстрел в сердце', 'Огромный урон по одной цели; по отмеченной — ещё и возврат перезарядки, если убил.', { tier: 3, req: ['disengage'], cost: { focus: 50 }, cd: 15,
+          effects: [{ type: 'projectile', at: 'target', proj: 'arrow_heavy', speed: 700, dmg: 4, school: 'phys', bonusVsMarked: 1.3, onKill: { refund: true } }],
+          perRank: { dmg: .4 }, vfx: 'arrow_red_trail', sfx: 'bow_heavy' }),
+        P('hunter_eye', 'Глаз охотника', 'Дальше стреляешь, больнее крит.', { tier: 3, req: ['weak_spot'], mods: [{ stat: 'range%', per: .15 }, { stat: 'critDmg', per: .15 }] }),
+        CAP('last_arrow', 'Последняя стрела', 'Каждый пятый выстрел — гарантированный крит, который прошивает всех на линии. Криты стоя на месте возвращают 10 Сосредоточения.', { req: ['heart_shot', 'hunter_eye'], kind: 'passive',
+          hook: 'onCast', counter: 5, effect: { type: 'pierce', count: 99, forceCrit: true }, extra: { hook: 'onCrit', cond: 'still', effect: { type: 'gain', focus: 10 } }, vfx: 'arrow_white_line', sfx: 'bow_crack' }),
+      ]),
+      B('volley', 'Ливень', 'Много стрел сразу: веер, дождь, ловушки, рикошеты. Толпы — твоя работа.', [
+        A('fan', 'Веер стрел', 'Три стрелы разом. С 3-го ранга — четыре, с 5-го — пять.', { tier: 1, cost: { focus: 15 }, cd: 1.5,
+          effects: [{ type: 'projectile', at: 'aim', proj: 'arrow', count: 3, spread: .22, speed: 380, dmg: .9, school: 'phys' }],
+          perRank: { dmg: .06, count: .5 }, vfx: 'arrow', sfx: 'arrow' }),
+        P('light_step', 'Лёгкий шаг', 'Быстрее бегаешь, чаще уворачиваешься.', { tier: 1, mods: [{ stat: 'speed%', per: .04 }, { stat: 'dodge', per: .03 }] }),
+        A('rain', 'Дождь стрел', 'Град стрел накрывает область вокруг цели.', { tier: 2, req: ['fan'], cost: { focus: 30 }, cd: 7,
+          effects: [{ type: 'aoe', at: 'point', radius: 64, delay: .25, tick: .18, ticks: 6, dmg: .55, school: 'phys' }],
+          perRank: { dmg: .07, radius: 4 }, vfx: 'rain_arrows', sfx: 'arrow_rain' }),
+        P('bottomless', 'Колчан без дна', 'Иногда навык ничего не стоит.', { tier: 2, req: ['light_step'], hook: 'onCast', effect: { type: 'refund', chance: .1 }, per: .05 }),
+        A('snare', 'Капкан', 'Ставит капкан под ноги: первый, кто наступит, застрянет и закровоточит. До трёх капканов сразу.', { tier: 3, req: ['rain'], cost: { focus: 20 }, cd: 8,
+          effects: [{ type: 'trap', at: 'self', max: 3, life: 30, radius: 22, apply: [{ type: 'stun', dur: 2, kind: 'root' }, { type: 'dot', kind: 'bleed', dps: .3, dur: 4 }] }],
+          perRank: { dps: .06, dur: .2 }, vfx: 'trap_jaws', sfx: 'trap_snap' }),
+        P('ricochet', 'Рикошет', 'Стрела после попадания отскакивает в соседнего врага за полцены урона.', { tier: 3, req: ['bottomless'], ranks: 2,
+          hook: 'onHit', cond: 'proj:arrow', effect: { type: 'chain', count: 1, radius: 110, dmgMul: .5 }, per: 1 }),
+        CAP('arrow_storm', 'Буря стрел', 'Три секунды поток стрел — шесть в секунду конусом. Можно идти, но вполсилы.', { req: ['snare', 'ricochet'], kind: 'active', cost: { focus: 60 }, cd: 25,
+          effects: [{ type: 'channel', dur: 3, moveMul: .5 }, { type: 'projectile', at: 'aim', proj: 'arrow', rate: 6, spread: .35, speed: 420, dmg: .6, school: 'phys' }],
+          vfx: 'arrow_stream', sfx: 'arrow_loop' }),
+      ]),
+      B('trail', 'Звериная тропа', 'Метки, волк из памяти, сети. Охота вдвоём: зверь держит, ты добиваешь.', [
+        A('prey_mark', 'Метка добычи', 'Метит цель на 10 секунд: она видна сквозь туман и получает больше урона от тебя и зверя. Убитая добыча с шансом 50 % оставляет Отголосок.', { tier: 1, cost: { focus: 10 }, cd: 3,
+          effects: [{ type: 'mark', at: 'target', kind: 'prey', dur: 10, revealFog: true, mods: [{ stat: 'dmgTakenFromYou%', value: .2 }], onDeath: { type: 'dropEcho', chance: .5 } }],
+          perRank: { value: .03 }, vfx: 'mark_paw', sfx: 'mark' }),
+        P('scent', 'Чутьё', 'Чаще находишь Отголоски; враги в тумане видны в радиусе 5 тайлов.', { tier: 1, mods: [{ stat: 'echoFind%', per: .05 }, { stat: 'fogSense', per: 160, ranks: 1 }] }),
+        A('beast_call', 'Зов зверя', 'Призывает волка, которого ты когда-то знал, — он помнит тебя. Один волк, на 5-м ранге — двое.', { tier: 2, req: ['prey_mark'], cost: { focus: 35 }, cd: 20,
+          effects: [{ type: 'summon', at: 'self', unit: 'memory_wolf', max: 1, life: 60, hp: { base: 40, perLvl: 10 }, dmg: .5, speed: 110 }],
+          perRank: { dmg: .08, max: .25 }, vfx: 'wisp_blue', sfx: 'howl' }),
+        P('pack', 'Стая', 'Зверь сильнее и вцепляется в отмеченную добычу вдвое злее.', { tier: 2, req: ['scent'], mods: [{ stat: 'summonDmg%', per: .1 }, { stat: 'summonVsMarked%', per: .15 }] }),
+        A('net', 'Ловчая сеть', 'Брошенная сеть опутывает цель и всех рядом.', { tier: 3, req: ['beast_call'], cost: { focus: 20 }, cd: 9,
+          effects: [{ type: 'projectile', at: 'target', proj: 'net', speed: 340, dmg: .3, burst: 40, apply: [{ type: 'slow', value: 1, dur: 2 }, { type: 'slow', value: .5, dur: 3, delay: 2 }] }],
+          perRank: { dur: .2 }, vfx: 'net', sfx: 'net_throw' }),
+        P('blood_trail', 'Кровавый след', 'Отмеченная добыча истекает кровью от любого попадания.', { tier: 3, req: ['pack'], hook: 'onHit', cond: 'target:marked', effect: { type: 'dot', kind: 'bleed', dps: .1, dur: 3 }, per: .05 }),
+        CAP('the_hunt', 'Охота', '10 секунд ты и зверь быстрее на 40 % и бьёте добычу на 60 % сильнее. Если добыча падает — метка сама перескакивает на ближайшего.', { req: ['net', 'blood_trail'], kind: 'active', cost: { focus: 50 }, cd: 40,
+          effects: [{ type: 'buff', at: 'self', dur: 10, includeSummons: true, mods: [{ stat: 'speed%', value: .4 }, { stat: 'dmgVsMarked%', value: .6 }] }, { type: 'mark', at: 'target', kind: 'prey', dur: 10, jumpOnDeath: 200 }],
+          vfx: 'aura_green_paws', sfx: 'howl_pack' }),
+      ]),
+    ],
+  },
+
+  // -------------------------------------------------------------------------------------------- ПИРОМАНТ
+  pyro: {
+    name: 'Пиромант', weapon: 'staff', school: 'fire', anim: 'spellcast', main: 'ИНТ', weight: 'light',
+    fantasy: 'Маг, который жжёт чужие воспоминания как дрова — и рано или поздно доберётся до своих.',
+    style: 'Средняя дистанция, взрывы по площади. Ритм: разогнать Жар, войти в Перегрев, выплеснуть всё — и остыть, пока не убили.',
+    resource: { id: 'heat', name: 'Жар', max: 100, start: 0, decay: { delay: 1.5, perSec: 10 }, secondary: 'mp',
+      thresholds: [{ at: 60, mods: [{ stat: 'fire%', value: .2 }] }],
+      overheat: { at: 100, dur: 4, mods: [{ stat: 'mpCost%', value: -1 }], selfBurn: .02, after: 'heat=0' },
+      twist: 'Каждое огненное заклинание добавляет Жар. На 100 — Перегрев: 4 секунды заклинания бесплатны, но маг горит сам (2 % здоровья в секунду).' },
+    basic: { type: 'projectile', proj: 'fireball', dmg: 1, cd: .5, speed: 300, range: 330, hitFrame: 4, school: 'fire', gain: { heat: 6 },
+      onHit: [{ type: 'aoe', radius: 28, dmg: .5 }, { type: 'dot', kind: 'burn', dps: .15, dur: 3, chance: .3 }] },
+    tree: [
+      B('forge', 'Горнило', 'Перегрев как стиль жизни: чем горячее, тем страшнее взрывы.', [
+        A('nova', 'Огненная волна', 'Кольцо пламени вокруг мага, поджигает.', { tier: 1, cost: { mp: 20 }, gain: { heat: 20 }, cd: 3,
+          effects: [{ type: 'aoe', at: 'self', radius: 95, dmg: 1.6, school: 'fire', apply: [{ type: 'dot', kind: 'burn', dps: .2, dur: 3 }, { type: 'knockback', dist: 30 }] }],
+          perRank: { dmg: .2, radius: 5 }, vfx: 'ring_fire', sfx: 'whoomp' }),
+        P('hot_blood', 'Раскалённая кровь', 'Жар копится быстрее, огонь сильнее.', { tier: 1, mods: [{ stat: 'heatGain%', per: .1 }, { stat: 'fire%', per: .04 }] }),
+        A('meteor', 'Метеор', 'С неба падает пылающий камень и оставляет горящую землю.', { tier: 2, req: ['nova'], cost: { mp: 32 }, gain: { heat: 25 }, cd: 6,
+          effects: [{ type: 'aoe', at: 'point', delay: .75, radius: 80, dmg: 3, school: 'fire', apply: [{ type: 'knockback', dist: 50 }] }, { type: 'aoe', at: 'point', delay: .75, radius: 60, dur: 3, tick: .5, dmg: .25, school: 'fire', ground: 'fire' }],
+          perRank: { dmg: .35 }, vfx: 'meteor', sfx: 'boom' }),
+        P('fireproof', 'Жаропрочность', 'Перегрев жжёт тебя меньше; на 3-м ранге не жжёт вовсе.', { tier: 2, req: ['hot_blood'], mods: [{ stat: 'overheatSelfBurn%', per: -.34 }] }),
+        A('incinerate', 'Испепеление', 'Струя огня из посоха, пока держишь кнопку. Каждая доля секунды подкидывает Жар.', { tier: 3, req: ['meteor'], cost: { mp: 6, perSec: { mp: 10 } }, cd: 1,
+          effects: [{ type: 'channel', dur: 2.5, moveMul: .3 }, { type: 'cone', at: 'aim', range: 180, arc: 20, tick: .2, dmg: .55, school: 'fire', gainPerTick: { heat: 4 } }],
+          perRank: { dmg: .06, range: 10 }, vfx: 'beam_fire', sfx: 'flame_loop' }),
+        P('flashpoint', 'Вспышка', 'В момент Перегрева вокруг мага взрывается пламя.', { tier: 3, req: ['fireproof'], hook: 'onOverheat', effect: { type: 'aoe', at: 'self', radius: 120, dmg: 1.4, school: 'fire' }, per: .3 }),
+        CAP('heart_of_forge', 'Сердце горна', 'Перегрев длится 8 секунд, и каждую секунду с неба падает метеор в случайного врага рядом.', { req: ['incinerate', 'flashpoint'], kind: 'passive',
+          mods: [{ stat: 'overheatDur', value: 4 }], hook: 'onOverheat', effect: { type: 'aoe', at: 'randomEnemy', radius: 70, every: 1, dur: 8, delay: .6, dmg: 2, school: 'fire' }, vfx: 'meteor_small', sfx: 'boom' }),
+      ]),
+      B('ash', 'Пепел', 'Горение: поджечь всех, дать огню перекинуться, смотреть, как догорает.', [
+        A('fire_dart', 'Огненная стрела', 'Быстрая тонкая стрела. Каждое попадание — ещё один слой горения (до пяти).', { tier: 1, cost: { mp: 6 }, gain: { heat: 8 }, cd: .6,
+          effects: [{ type: 'projectile', at: 'aim', proj: 'fire_dart', speed: 520, dmg: .7, school: 'fire', apply: [{ type: 'dot', kind: 'burn', dps: .12, dur: 4, stacks: 5 }] }],
+          perRank: { dmg: .08 }, vfx: 'bolt_fire_thin', sfx: 'fwip' }),
+        P('smoulder', 'Тление', 'Горение сильнее и дольше.', { tier: 1, mods: [{ stat: 'burnDmg%', per: .15 }, { stat: 'burnDur', per: .5 }] }),
+        A('fire_ring', 'Пламенный круг', 'Шесть секунд вокруг мага пляшет огонь и жжёт всех, кто близко.', { tier: 2, req: ['fire_dart'], cost: { mp: 25 }, gain: { heat: 15 }, cd: 10,
+          effects: [{ type: 'aura', at: 'self', radius: 70, dur: 6, tick: .5, dmg: .15, school: 'fire', apply: [{ type: 'dot', kind: 'burn', dps: .12, dur: 2 }] }],
+          perRank: { dur: .5, dmg: .03 }, vfx: 'aura_fire', sfx: 'flame_loop' }),
+        P('wildfire', 'Пожар', 'Когда горящий враг умирает, огонь перекидывается на двоих соседей.', { tier: 2, req: ['smoulder'], hook: 'onKill', cond: 'target:burning', effect: { type: 'chain', count: 2, radius: 90, apply: [{ type: 'dot', kind: 'burn', dps: .2, dur: 4 }] }, per: 1 }),
+        A('fire_wall', 'Огненная стена', 'Поперёк пути встаёт стена огня. Кто проходит — горит.', { tier: 3, req: ['fire_ring'], cost: { mp: 30 }, gain: { heat: 20 }, cd: 12,
+          effects: [{ type: 'trap', at: 'point', shape: 'line', length: 140, width: 18, life: 5, tick: .5, dmg: .4, school: 'fire', apply: [{ type: 'dot', kind: 'burn', dps: .2, dur: 3 }] }],
+          perRank: { life: .5, dmg: .05 }, vfx: 'wall_fire', sfx: 'flame_rise' }),
+        P('smoke', 'Едкий дым', 'Горящие враги бьют слабее.', { tier: 3, req: ['wildfire'], hook: 'onHit', cond: 'target:burning', effect: { type: 'debuff', mods: [{ stat: 'dmg%', value: -.1 }], dur: 2 }, per: -.05 }),
+        CAP('ashes', 'Кто сгорел — тот забыт', 'Враг, умерший в огне, вспыхивает напоследок (урон по соседям), а с шансом 15 % от него остаётся Отголосок — пепел чужой памяти.', { req: ['fire_wall', 'smoke'], kind: 'passive',
+          hook: 'onKill', cond: 'target:burning', effect: [{ type: 'aoe', at: 'hit', radius: 70, dmg: 1.5, school: 'fire' }, { type: 'dropEcho', chance: .15 }], vfx: 'burst_ash', sfx: 'pop_fire' }),
+      ]),
+      B('phoenix', 'Феникс', 'Огонь как защита: прыжки, огненный щит, второй шанс.', [
+        A('flame_step', 'Огненный шаг', 'Маг исчезает в пламени и появляется дальше, оставляя горящий след.', { tier: 1, cost: { mp: 18 }, gain: { heat: 10 }, cd: 5,
+          effects: [{ type: 'blink', at: 'aim', dist: 120 }, { type: 'trap', at: 'path', shape: 'line', life: 3, tick: .5, dmg: .2, school: 'fire' }],
+          perRank: { dist: 10 }, cdPerRank: -.3, vfx: 'trail_fire', sfx: 'whoosh_fire' }),
+        P('warm_palms', 'Тёплые ладони', 'Пока Жара больше 30, здоровье восстанавливается.', { tier: 1, cond: 'heat>30', mods: [{ stat: 'regen', per: .5 }] }),
+        A('flame_shield', 'Пламенный щит', 'Огненная оболочка поглощает урон, а тех, кто бьёт в упор, поджигает.', { tier: 2, req: ['flame_step'], cost: { mp: 25 }, gain: { heat: 10 }, cd: 12,
+          effects: [{ type: 'shield', at: 'self', value: .2, dur: 6, onHurt: [{ type: 'dot', at: 'attacker', kind: 'burn', dps: .25, dur: 3 }] }],
+          perRank: { value: .03 }, vfx: 'shield_fire', sfx: 'flame_rise' }),
+        P('sparks', 'Искры', 'Любое заклинание может выпустить лишнюю искру в ближайшего врага.', { tier: 2, req: ['warm_palms'], hook: 'onCast', effect: { type: 'projectile', at: 'target', proj: 'spark', dmg: .5, school: 'fire', chance: .1 }, per: .1 }),
+        A('blast', 'Взрыв', 'Огонь толкает всё вокруг прочь. Спасает, когда окружили.', { tier: 3, req: ['flame_shield'], cost: { mp: 20 }, gain: { heat: 15 }, cd: 8,
+          effects: [{ type: 'aoe', at: 'self', radius: 80, dmg: 1, school: 'fire', apply: [{ type: 'knockback', dist: 120 }, { type: 'stun', dur: .4 }] }],
+          perRank: { dmg: .15 }, vfx: 'burst_fire', sfx: 'boom_small' }),
+        P('ash_to_ash', 'Пепел к пеплу', 'Ниже 25 % здоровья Жар мгновенно вспыхивает до 100. Раз в 45 секунд.', { tier: 3, req: ['sparks'], ranks: 1, hook: 'lowHp', threshold: .25, icd: 45, effect: { type: 'gain', heat: 100 } }),
+        CAP('rebirth', 'Возрождение', 'Раз в три минуты маг не умирает, а сгорает и встаёт из огня с 40 % здоровья, сжигая всё вокруг. Огонь берёт плату: три Отголоска. Если их нет — чуда не будет.', { req: ['blast', 'ash_to_ash'], kind: 'passive',
+          hook: 'onDeath', icd: 180, cost: { echo: 3 }, effect: [{ type: 'heal', value: .4 }, { type: 'aoe', at: 'self', radius: 140, dmg: 3, school: 'fire' }, { type: 'buff', kind: 'invulnerable', dur: 1.5 }], vfx: 'phoenix_burst', sfx: 'phoenix' }),
+      ]),
+    ],
+  },
+
+  // -------------------------------------------------------------------------------------------- КРИОМАНТ
+  cryo: {
+    name: 'Криомант', weapon: 'staff', school: 'ice', anim: 'spellcast', main: 'ИНТ', weight: 'light',
+    fantasy: 'Маг, который останавливает мгновение. Лёд — это память, которая не тает.',
+    style: 'Средняя дистанция, контроль. Ритм: наложить Стужу, заморозить, расколоть. Враги подходят медленно — и не всегда доходят.',
+    resource: { id: 'frost', name: 'Стужа', onEnemy: true, maxStacks: 5, decay: { delay: 3, perSec: 1 }, secondary: 'mp',
+      perStack: { slow: .06 }, atMax: { type: 'freeze', dur: 1.5, bossDur: .5, immune: 4, reset: true },
+      shatter: { bonus: .5, schools: ['phys', 'ice'], endsFreeze: true },
+      twist: 'Каждое ледяное попадание вешает на врага слой Стужи. Пять слоёв — враг замерзает. Удар по замёрзшему «раскалывает» его: +50 % урона.' },
+    basic: { type: 'projectile', proj: 'ice_shard', dmg: .9, cd: .48, speed: 340, range: 320, hitFrame: 4, school: 'ice', apply: [{ type: 'frostStack', count: 1 }] },
+    tree: [
+      B('permafrost', 'Вечная мерзлота', 'Контроль: заморозить, замедлить, не пустить.', [
+        A('frostnova', 'Ледяная нова', 'Холодная вспышка вокруг мага: два слоя Стужи всем рядом.', { tier: 1, cost: { mp: 18 }, cd: 4,
+          effects: [{ type: 'aoe', at: 'self', radius: 100, dmg: 1, school: 'ice', apply: [{ type: 'frostStack', count: 2 }] }],
+          perRank: { dmg: .12, radius: 5 }, vfx: 'ring_ice', sfx: 'freeze' }),
+        P('cold_breath', 'Холодное дыхание', 'Каждый слой Стужи замедляет сильнее.', { tier: 1, mods: [{ stat: 'frostSlowPerStack', per: .03 }] }),
+        A('ice_prison', 'Ледяная темница', 'Заковывает одну цель в лёд (боссов — ненадолго).', { tier: 2, req: ['frostnova'], cost: { mp: 25 }, cd: 10,
+          effects: [{ type: 'projectile', at: 'target', proj: 'ice_orb', speed: 300, dmg: .5, school: 'ice', apply: [{ type: 'freeze', dur: 3, bossDur: 1 }] }],
+          perRank: { dur: .3 }, vfx: 'block_ice', sfx: 'freeze_hard' }),
+        P('deep_cold', 'Глубокий холод', 'Заморозка держит дольше.', { tier: 2, req: ['cold_breath'], mods: [{ stat: 'freezeDur', per: .3 }] }),
+        A('blizzard', 'Метель', 'Пять секунд вьюги над областью: урон, замедление и слой Стужи каждую секунду.', { tier: 3, req: ['ice_prison'], cost: { mp: 35 }, cd: 14,
+          effects: [{ type: 'aoe', at: 'point', radius: 110, dur: 5, tick: .5, dmg: .25, school: 'ice', apply: [{ type: 'slow', value: .3, dur: .6 }, { type: 'frostStack', count: 1, every: 1 }] }],
+          perRank: { dmg: .04, radius: 6 }, vfx: 'snowstorm', sfx: 'wind_loop' }),
+        P('still_time', 'Застывшее мгновение', 'Замёрзшие враги получают больше урона от всего.', { tier: 3, req: ['deep_cold'], cond: 'target:frozen', mods: [{ stat: 'dmgTaken%', per: .08, onTarget: true }] }),
+        CAP('absolute_zero', 'Абсолютный ноль', 'Всё в радиусе 260 замерзает на 3 секунды (боссы — на полторы). Мир на миг перестаёт двигаться.', { req: ['blizzard', 'still_time'], kind: 'active', cost: { mp: 60 }, cd: 45,
+          effects: [{ type: 'aoe', at: 'self', radius: 260, dmg: .5, school: 'ice', apply: [{ type: 'freeze', dur: 3, bossDur: 1.5, ignoreImmune: true }] }],
+          vfx: 'screen_frost', sfx: 'freeze_world' }),
+      ]),
+      B('shards', 'Осколки', 'Урон: копья, град, раскол замёрзших.', [
+        A('ice_lance', 'Ледяное копьё', 'Копьё пробивает всех на линии.', { tier: 1, cost: { mp: 14 }, cd: 2,
+          effects: [{ type: 'pierce', at: 'aim', proj: 'ice_lance', speed: 520, range: 340, count: 99, dmg: 1.6, school: 'ice', apply: [{ type: 'frostStack', count: 1 }] }],
+          perRank: { dmg: .18 }, vfx: 'lance_ice', sfx: 'ice_whistle' }),
+        P('sharp_ice', 'Острый лёд', 'Криты по замедленным больнее.', { tier: 1, cond: 'target:slowed', mods: [{ stat: 'critDmg', per: .1 }, { stat: 'crit', per: .02 }] }),
+        A('shard_burst', 'Град осколков', 'Веер из семи ледяных игл в упор.', { tier: 2, req: ['ice_lance'], cost: { mp: 20 }, cd: 5,
+          effects: [{ type: 'cone', at: 'aim', range: 120, arc: 70, count: 7, dmg: .5, school: 'ice', apply: [{ type: 'frostStack', count: 1 }] }],
+          perRank: { dmg: .06 }, vfx: 'shards_fan', sfx: 'ice_crack' }),
+        P('shatter', 'Раскол', 'Раскол бьёт сильнее.', { tier: 2, req: ['sharp_ice'], mods: [{ stat: 'shatterBonus', per: .2 }] }),
+        A('break', 'Разбить', 'Все замёрзшие враги рядом лопаются разом, осколки ранят соседей.', { tier: 3, req: ['shard_burst'], cost: { mp: 25 }, cd: 6,
+          effects: [{ type: 'aoe', at: 'self', radius: 200, filter: 'frozen', dmg: 2.5, school: 'ice', shatter: true, apply: [{ type: 'aoe', at: 'hit', radius: 50, dmg: .8, school: 'ice' }] }],
+          perRank: { dmg: .3 }, vfx: 'shatter_burst', sfx: 'glass_break' }),
+        P('chain_frost', 'Цепная стужа', 'Раскол переносит два слоя Стужи на соседей.', { tier: 3, req: ['shatter'], ranks: 2, hook: 'onShatter', effect: { type: 'frostStack', radius: 70, count: 2 }, per: 1 }),
+        CAP('ice_mirror', 'Ледяное зеркало', 'На месте каждого расколотого врага встаёт ледяное зеркало: 4 секунды оно бьёт осколками ближайших. Не больше трёх зеркал.', { req: ['break', 'chain_frost'], kind: 'passive',
+          hook: 'onShatter', effect: { type: 'summon', unit: 'ice_mirror', at: 'hit', max: 3, life: 4, turret: { proj: 'ice_shard', cd: .6, dmg: .6, range: 200 } }, vfx: 'mirror_ice', sfx: 'chime' }),
+      ]),
+      B('winter_heart', 'Сердце зимы', 'Защита: ледяная броня, двойник, отражение.', [
+        A('barrier', 'Ледяной щит', 'Ледяная броня поглощает 60 % урона 7 секунд.', { tier: 1, cost: { mp: 26 }, cd: 12,
+          effects: [{ type: 'buff', at: 'self', dur: 7, mods: [{ stat: 'dmgTaken%', value: -.6 }] }],
+          perRank: { dur: .5 }, vfx: 'shell_ice', sfx: 'ice_form' }),
+        P('rime', 'Иней на коже', 'Больше брони; кто бьёт тебя вблизи, получает слой Стужи.', { tier: 1, mods: [{ stat: 'armor', per: 2 }], hook: 'onHurt', cond: 'melee', effect: { type: 'frostStack', at: 'attacker', count: 1 } }),
+        A('snow_double', 'Снежный двойник', 'Маг отскакивает назад, а на его месте остаётся двойник из снега. Враги бьют его, а через 4 секунды он взрывается Стужей.', { tier: 2, req: ['barrier'], cost: { mp: 20 }, cd: 10,
+          effects: [{ type: 'blink', at: 'self', dir: 'back', dist: 100 }, { type: 'summon', at: 'origin', unit: 'snow_double', life: 4, taunt: true, hp: { base: 40, perLvl: 8 }, onExpire: [{ type: 'aoe', radius: 90, dmg: 1.2, school: 'ice', apply: [{ type: 'frostStack', count: 3 }] }] }],
+          perRank: { dmg: .15 }, vfx: 'clone_ice', sfx: 'ice_form' }),
+        P('cold_reckoning', 'Холодный расчёт', 'Пока держится Ледяной щит, мана течёт быстрее.', { tier: 2, req: ['rime'], cond: 'buff:barrier', mods: [{ stat: 'mpRegen%', per: .1 }] }),
+        A('ice_block', 'Ледяная глыба', 'Маг замерзает сам: 2 секунды его не достать, и он заживляет раны. Пошевелиться нельзя.', { tier: 3, req: ['snow_double'], cost: { mp: 15 }, cd: 30,
+          effects: [{ type: 'freeze', at: 'self', dur: 2, invulnerable: true }, { type: 'heal', at: 'self', value: .2, overTime: 2 }],
+          perRank: { value: .03 }, cdPerRank: -2, vfx: 'block_ice', sfx: 'freeze_hard' }),
+        P('mirror_skin', 'Зеркальная корка', 'Под Ледяным щитом часть снарядов отлетает обратно.', { tier: 3, req: ['cold_reckoning'], cond: 'buff:barrier', mods: [{ stat: 'reflectProj', per: .15 }] }),
+        CAP('heart_of_winter', 'Сердце зимы', 'Вокруг мага всегда стоит холод: каждую секунду враги рядом получают слой Стужи, а сам он получает на 20 % меньше урона.', { req: ['ice_block', 'mirror_skin'], kind: 'passive',
+          effects: [{ type: 'aura', at: 'self', radius: 120, permanent: true, tick: 1, apply: [{ type: 'frostStack', count: 1 }] }], mods: [{ stat: 'dmgTaken%', value: -.2 }], vfx: 'aura_snow', sfx: 'wind_soft' }),
+      ]),
+    ],
+  },
+
+  // -------------------------------------------------------------------------------------------- НЕКРОМАНТ
+  necro: {
+    name: 'Некромант', weapon: 'staff', school: 'shadow', anim: 'spellcast', main: 'ИНТ', weight: 'light',
+    fantasy: 'Тот, кто слышит, о чём помнят мёртвые. Тело — лишь сосуд для чужой памяти, и сосуд можно наполнить заново.',
+    style: 'Средняя дистанция, армия и истощение. Ритм: убить — поднять — взорвать. Трупы на земле — второй запас силы.',
+    resource: { id: 'corpse', name: 'Трупы', onGround: true, life: 20, max: 12, secondary: 'mp',
+      twist: 'Павшие враги остаются трупами на 20 секунд. Некромант тратит их на сильные заклинания. Поднятые мертвецы помнят, кого убили: когда такой слуга рассыпается, с шансом 10 % за каждое его убийство остаётся Отголосок.' },
+    basic: { type: 'projectile', proj: 'shadow_bolt', dmg: .9, cd: .5, speed: 300, range: 320, hitFrame: 4, school: 'shadow', lifesteal: .1 },
+    tree: [
+      B('bones', 'Повелитель костей', 'Армия: скелеты, лучники, взрывы трупов, костяной великан.', [
+        A('raise', 'Поднять мертвеца', 'Скелет встаёт и бьётся рядом. Если рядом есть труп — он крепче. Двое, на 3-м ранге трое, на 5-м — четверо.', { tier: 1, cost: { mp: 24 }, cd: 2.5,
+          effects: [{ type: 'summon', at: 'corpseOrSelf', unit: 'skeleton', max: 2, life: 45, hp: { base: 60, perLvl: 14 }, dmg: .6, corpseBonus: { hp: 20 } }],
+          perRank: { max: .5, dmg: .05 }, vfx: 'rise_green', sfx: 'bones_rise' }),
+        P('hard_bones', 'Крепкие кости', 'Слуги живут дольше и держат больше.', { tier: 1, mods: [{ stat: 'summonHp%', per: .12 }, { stat: 'summonLife', per: 5 }] }),
+        A('raise_archer', 'Поднять лучника', 'Из трупа встаёт скелет-лучник и стреляет из-за спин. Нужен труп.', { tier: 2, req: ['raise'], cost: { mp: 28, corpse: 1 }, cd: 4,
+          effects: [{ type: 'summon', at: 'corpse', unit: 'skeleton_archer', max: 2, life: 45, hp: { base: 40, perLvl: 10 }, dmg: .5, ranged: { range: 200, cd: 1.6 } }],
+          perRank: { dmg: .06 }, vfx: 'rise_green', sfx: 'bones_rise' }),
+        P('command', 'Командный голос', 'Слуги бьют сильнее.', { tier: 2, req: ['hard_bones'], mods: [{ stat: 'summonDmg%', per: .1 }] }),
+        A('corpse_blast', 'Взрыв трупа', 'Труп (или твой же слуга) лопается тёмной вспышкой.', { tier: 3, req: ['raise_archer'], cost: { mp: 15, corpse: 1, orMinion: true }, cd: 2,
+          effects: [{ type: 'aoe', at: 'corpse', radius: 80, dmg: 2.5, school: 'shadow', apply: [{ type: 'knockback', dist: 40 }] }],
+          perRank: { dmg: .3 }, vfx: 'burst_bone', sfx: 'bone_crack' }),
+        P('loyal', 'Верность за гробом', 'Когда слуга рассыпается, он отдаёт хозяину остатки сил.', { tier: 3, req: ['command'], hook: 'onSummonDeath', effect: { type: 'heal', value: .05 }, per: .03 }),
+        CAP('bone_golem', 'Костяной великан', 'Три трупа сплавляются в великана. Он огромен, тянет врагов на себя и живёт, пока его не сломают. Только один.', { req: ['corpse_blast', 'loyal'], kind: 'active', cost: { mp: 60, corpse: 3 }, cd: 60,
+          effects: [{ type: 'summon', at: 'corpse', unit: 'bone_golem', max: 1, life: 0, scale: 1.5, hp: { base: 300, perLvl: 30 }, dmg: 1.2, taunt: true, reach: 44 }],
+          vfx: 'rise_golem', sfx: 'golem_roar' }),
+      ]),
+      B('reaping', 'Жатва', 'Истощение: высасывать жизнь, гноить, пировать.', [
+        A('harvest', 'Жатва душ', 'Высасывает жизнь из всех врагов рядом и лечит мага половиной отнятого.', { tier: 1, cost: { mp: 30 }, cd: 8,
+          effects: [{ type: 'aoe', at: 'self', radius: 125, dmg: 1.2, school: 'shadow', apply: [{ type: 'lifesteal', value: .5 }] }],
+          perRank: { dmg: .15 }, vfx: 'drain_lines', sfx: 'drain' }),
+        P('hunger', 'Голод', 'Каждый удар немного лечит.', { tier: 1, mods: [{ stat: 'lifesteal', per: .02 }] }),
+        A('rot', 'Проклятие гнили', 'Гниль на области: 6 секунд урона и ослабленная броня.', { tier: 2, req: ['harvest'], cost: { mp: 18 }, cd: 5,
+          effects: [{ type: 'aoe', at: 'point', radius: 70, dmg: 0, apply: [{ type: 'dot', kind: 'rot', school: 'shadow', dps: .3, dur: 6 }, { type: 'debuff', dur: 6, mods: [{ stat: 'armor%', value: -.2 }] }] }],
+          perRank: { dps: .05 }, vfx: 'cloud_green', sfx: 'bubble' }),
+        P('wither', 'Увядание', 'Тёмные язвы держатся дольше.', { tier: 2, req: ['hunger'], mods: [{ stat: 'dotDur:shadow', per: 1 }] }),
+        A('siphon', 'Похищение жизни', 'Тёмный луч тянет жизнь из одной цели, пока держишь кнопку. Всё отнятое — тебе.', { tier: 3, req: ['rot'], cost: { mp: 6, perSec: { mp: 8 } }, cd: 1,
+          effects: [{ type: 'channel', dur: 3, moveMul: .4 }, { type: 'chain', at: 'target', count: 1, range: 200, tick: .25, dmg: .5, school: 'shadow', apply: [{ type: 'lifesteal', value: 1 }] }],
+          perRank: { dmg: .06 }, vfx: 'beam_green', sfx: 'drain_loop' }),
+        P('feast', 'Пир', 'Каждое убийство лечит и возвращает ману.', { tier: 3, req: ['wither'], hook: 'onKill', effect: { type: 'heal', value: .02, mp: 4 }, per: .02 }),
+        CAP('black_harvest', 'Чёрная жатва', '10 секунд каждый убитый враг сам встаёт скелетом (без затрат и сверх предела) и возвращает 10 маны.', { req: ['siphon', 'feast'], kind: 'active', cost: { mp: 40 }, cd: 40,
+          effects: [{ type: 'buff', at: 'self', dur: 10, hook: 'onKill', effect: [{ type: 'summon', at: 'hit', unit: 'skeleton', ignoreMax: true, life: 20 }, { type: 'gain', mp: 10 }] }],
+          vfx: 'aura_black_green', sfx: 'choir_low' }),
+      ]),
+      B('whispers', 'Шёпот мёртвых', 'Чужая память: вытягивать из трупов силу, пугать, занимать чужие тела.', [
+        A('pull_memory', 'Вытянуть память', 'Маг вынимает из трупа последнее воспоминание. Получает силу этого существа на 20 секунд (волк — скорость, тролль — живучесть, гоблин — криты, скелет — броня, ведьма — мана) и с шансом 25 % Отголосок.', { tier: 1, cost: { mp: 10, corpse: 1 }, cd: 6,
+          effects: [{ type: 'buff', at: 'self', dur: 20, from: 'corpseKind', table: { wolf: [{ stat: 'speed%', value: .2 }], troll: [{ stat: 'regen', value: 3 }], goblin: [{ stat: 'crit', value: .1 }], skeleton: [{ stat: 'armor', value: 6 }], witch: [{ stat: 'mpRegen%', value: .5 }], bandit: [{ stat: 'dmg%', value: .12 }], default: [{ stat: 'dmg%', value: .08 }] } }, { type: 'dropEcho', chance: .25 }],
+          perRank: { dur: 3 }, vfx: 'wisp_pull', sfx: 'whisper' }),
+        P('chatty_dead', 'Мёртвые болтливы', 'Отголоски находятся чаще.', { tier: 1, mods: [{ stat: 'echoFind%', per: .06 }] }),
+        A('terror', 'Ужас', 'Враги перед магом вспоминают свою смерть и бегут прочь.', { tier: 2, req: ['pull_memory'], cost: { mp: 20 }, cd: 12,
+          effects: [{ type: 'cone', at: 'aim', range: 130, arc: 100, dmg: .3, school: 'shadow', apply: [{ type: 'debuff', kind: 'fear', dur: 2.5, bossDur: .8 }] }],
+          perRank: { dur: .3 }, vfx: 'cone_black', sfx: 'scream' }),
+        P('death_mark', 'Метка смерти', 'Удары иногда метят врага: когда он умрёт, его смерть исцелит твоих слуг.', { tier: 2, req: ['chatty_dead'], hook: 'onHit', effect: { type: 'mark', kind: 'death', dur: 8, chance: .1, onDeath: { type: 'heal', target: 'summons', radius: 160, value: .25 } }, per: .1 }),
+        A('borrow_flesh', 'Чужая плоть', 'Последний убитый тобой враг (не босс) встаёт таким, каким был, и 20 секунд дерётся за тебя.', { tier: 3, req: ['terror'], cost: { mp: 45 }, cd: 30,
+          effects: [{ type: 'summon', at: 'lastKill', unit: 'copyOfLastKill', life: 20, hpMul: 1, dmgMul: 1, tint: '#7dff9a', notBoss: true }],
+          perRank: { life: 3 }, vfx: 'rise_tinted', sfx: 'bones_rise' }),
+        P('grave_cold', 'Холод могилы', 'Удары слуг замедляют.', { tier: 3, req: ['death_mark'], hook: 'onSummonHit', effect: { type: 'slow', value: .15, dur: 1.5 }, per: .05 }),
+        CAP('choir', 'Хор мёртвых', 'Каждый труп в радиусе 160 шепчет тебе: +6 % к тёмному урону и +1 % вампиризма (до восьми трупов). Трупы лежат вдвое дольше.', { req: ['borrow_flesh', 'grave_cold'], kind: 'passive',
+          effects: [{ type: 'aura', at: 'self', radius: 160, permanent: true, countOf: 'corpse', maxCount: 8, perCount: [{ stat: 'shadow%', value: .06 }, { stat: 'lifesteal', value: .01 }] }], mods: [{ stat: 'corpseLife%', value: 1 }], vfx: 'corpse_glow', sfx: 'whisper_loop' }),
+      ]),
+    ],
+  },
+
+  // -------------------------------------------------------------------------------------------- ЖРЕЦ
+  priest: {
+    name: 'Жрец', weapon: 'staff', school: 'holy', anim: 'spellcast', main: 'МДР', weight: 'medium',
+    fantasy: 'Хранитель обетов. Свет здесь — то, что люди решили не забывать: имена, клятвы, обещания.',
+    style: 'Средняя дистанция, выживание. Ритм: держаться, лечиться, копить Веру — и обрушить её освящённым заклинанием. Нежить горит вдвое.',
+    resource: { id: 'faith', name: 'Вера', max: 100, start: 0, gain: { perHealed: 1 / 3, onHitUndead: 5 }, decay: { delay: 10, perSec: 2 }, secondary: 'mp',
+      consecrate: { at: 100, effectMul: 2, consume: 100 },
+      twist: 'Лечение и удары по нежити копят Веру. На 100 Веры следующее заклинание «освящено»: его сила удваивается.' },
+    basic: { type: 'projectile', proj: 'holy_bolt', dmg: .85, cd: .5, speed: 320, range: 320, hitFrame: 4, school: 'holy', vsUndead: 2, gain: { faith: 1 } },
+    tree: [
+      B('healer', 'Целитель', 'Лечение, восстановление, помощь союзникам.', [
+        A('heal', 'Исцеление', 'Возвращает треть здоровья себе и половину — союзникам рядом.', { tier: 1, cost: { mp: 22 }, cd: 4,
+          effects: [{ type: 'heal', at: 'self', value: .34 }, { type: 'heal', at: 'allies', radius: 160, value: .5 }],
+          perRank: { value: .03 }, vfx: 'sparkle_gold', sfx: 'chime_heal' }),
+        P('warm_hands', 'Тёплые руки', 'Лечение сильнее.', { tier: 1, mods: [{ stat: 'healPower%', per: .08 }] }),
+        A('renew', 'Обновление', 'Шесть секунд раны затягиваются сами.', { tier: 2, req: ['heal'], cost: { mp: 15 }, cd: 6,
+          effects: [{ type: 'heal', at: 'self', value: .04, tick: 1, dur: 6, alsoAllies: 160 }],
+          perRank: { value: .006 }, vfx: 'motes_gold', sfx: 'chime_soft' }),
+        P('grace', 'Благодать', 'Лечение сверх полного здоровья становится щитом.', { tier: 2, req: ['warm_hands'], mods: [{ stat: 'overhealShieldMax', per: .05 }] }),
+        A('holy_ground', 'Святая земля', 'Освящает круг на земле: союзники в нём лечатся, нежить горит.', { tier: 3, req: ['renew'], cost: { mp: 35 }, cd: 18,
+          effects: [{ type: 'aura', at: 'point', radius: 90, dur: 8, tick: 1, apply: [{ type: 'heal', target: 'allies', value: .03 }, { type: 'dot', target: 'undead', kind: 'holyfire', school: 'holy', dps: .4, dur: 1 }] }],
+          perRank: { dur: 1 }, vfx: 'circle_gold', sfx: 'choir_high' }),
+        P('mercy', 'Милосердие', 'Вера копится быстрее.', { tier: 3, req: ['grace'], mods: [{ stat: 'faithGain%', per: .15 }] }),
+        CAP('miracle', 'Чудо', 'Отдаёт всю Веру (не меньше 50): полное исцеление, снятие всех бед и 3 секунды неуязвимости.', { req: ['holy_ground', 'mercy'], kind: 'active', cost: { mp: 20, faith: 'all', faithMin: 50 }, cd: 90,
+          effects: [{ type: 'heal', at: 'self', value: 1, alsoAllies: 200 }, { type: 'buff', at: 'self', kind: 'invulnerable', dur: 3, cleanse: true }],
+          vfx: 'pillar_gold', sfx: 'choir_full' }),
+      ]),
+      B('judgement', 'Каратель', 'Свет как оружие: столпы, лучи, молот.', [
+        A('smite', 'Небесная кара', 'Столп света бьёт по области, нежити — вдвое.', { tier: 1, cost: { mp: 28 }, cd: 6,
+          effects: [{ type: 'aoe', at: 'point', delay: .25, radius: 66, dmg: 2.2, school: 'holy', vsUndead: 2 }],
+          perRank: { dmg: .25 }, vfx: 'pillar_light', sfx: 'holy_strike' }),
+        P('righteous', 'Праведный гнев', 'Свет бьёт сильнее.', { tier: 1, mods: [{ stat: 'holy%', per: .05 }] }),
+        A('ray', 'Луч света', 'Луч из посоха, пока держишь кнопку: жжёт врагов и лечит союзников на линии.', { tier: 2, req: ['smite'], cost: { mp: 6, perSec: { mp: 9 } }, cd: 1,
+          effects: [{ type: 'channel', dur: 3, moveMul: .3 }, { type: 'cone', at: 'aim', range: 200, arc: 12, tick: .2, dmg: .45, school: 'holy', vsUndead: 2, alliesHeal: .01 }],
+          perRank: { dmg: .05 }, vfx: 'beam_gold', sfx: 'hum_holy' }),
+        P('banish', 'Изгнание', 'Свет иногда оглушает нежить.', { tier: 2, req: ['righteous'], hook: 'onHit', cond: 'target:undead,school:holy', effect: { type: 'stun', dur: 1, chance: .08 }, per: .08 }),
+        A('faith_hammer', 'Молот веры', 'Тяжёлый светящийся молот летит медленно, но оглушает и отбрасывает.', { tier: 3, req: ['ray'], cost: { mp: 25 }, gain: { faith: 10 }, cd: 8,
+          effects: [{ type: 'projectile', at: 'target', proj: 'hammer', speed: 240, dmg: 2, school: 'holy', vsUndead: 2, apply: [{ type: 'stun', dur: 1.5 }, { type: 'knockback', dist: 70 }] }],
+          perRank: { dmg: .25 }, vfx: 'hammer_gold', sfx: 'holy_strike' }),
+        P('light_remembers', 'Свет не забывает', 'Каждая упокоенная нежить приносит Веру, а с шансом 10 % — Отголосок: чья-то память освобождена.', { tier: 3, req: ['banish'], hook: 'onKill', cond: 'target:undead', effect: [{ type: 'gain', faith: 3 }, { type: 'dropEcho', chance: .1 }], per: 3 }),
+        CAP('judgement_day', 'Суд', 'Пять столпов света падают на врагов в радиусе 220. Нежить ниже 40 % здоровья рассыпается сразу. Нужно 50 Веры.', { req: ['faith_hammer', 'light_remembers'], kind: 'active', cost: { mp: 50, faith: 50 }, cd: 30,
+          effects: [{ type: 'aoe', at: 'enemies', count: 5, radius: 60, searchRadius: 220, dmg: 3, school: 'holy', vsUndead: 2, executeUndeadBelow: .4 }],
+          vfx: 'pillar_light_multi', sfx: 'thunder_holy' }),
+      ]),
+      B('warden', 'Хранитель', 'Обеты и щиты: не дать упасть ни себе, ни другим.', [
+        A('faith_shield', 'Щит веры', 'Светлая оболочка поглощает урон.', { tier: 1, cost: { mp: 20 }, cd: 10,
+          effects: [{ type: 'shield', at: 'self', value: .25, dur: 8 }],
+          perRank: { value: .03 }, vfx: 'shield_gold', sfx: 'shield_up' }),
+        P('humility', 'Смирение', 'Больше брони и здоровья.', { tier: 1, mods: [{ stat: 'armor', per: 2 }, { stat: 'hp%', per: .04 }] }),
+        A('vow', 'Обет', 'Жрец даёт обет и цепляется за него памятью: 12 секунд он не может упасть ниже 1 здоровья. Когда обет кончается, половина предотвращённого урона возвращается лечением.', { tier: 2, req: ['faith_shield'], cost: { mp: 30 }, cd: 40,
+          effects: [{ type: 'buff', at: 'self', kind: 'cannotDie', dur: 12, onEnd: { type: 'heal', fromPrevented: .5 } }],
+          perRank: { dur: 1 }, cdPerRank: -2, vfx: 'chain_gold', sfx: 'oath' }),
+        P('reflected_light', 'Отражённый свет', 'Часть урона от ударов вблизи возвращается светом.', { tier: 2, req: ['humility'], mods: [{ stat: 'thorns:holy', per: .1 }] }),
+        A('holy_word', 'Святое слово', 'Одно слово — и враги вокруг оглушены и отброшены, а с жреца спадают все беды.', { tier: 3, req: ['vow'], cost: { mp: 25 }, cd: 12,
+          effects: [{ type: 'aoe', at: 'self', radius: 110, dmg: .6, school: 'holy', apply: [{ type: 'stun', dur: 1.2 }, { type: 'knockback', dist: 80 }] }, { type: 'buff', at: 'self', cleanse: true, dur: 0 }],
+          perRank: { dur: .15 }, vfx: 'ring_white', sfx: 'holy_word' }),
+        P('guardian_angel', 'Ангел-хранитель', 'Ниже 30 % здоровья сам собой встаёт щит. Раз в минуту.', { tier: 3, req: ['reflected_light'], hook: 'lowHp', threshold: .3, icd: 60, effect: { type: 'shield', value: .15, dur: 6 }, per: .05 }),
+        CAP('halo', 'Нимб', 'Вокруг жреца всегда свет: союзники в радиусе 100 получают на 15 % меньше урона, враги в нём тлеют, Вера сама прибывает (2 в секунду).', { req: ['holy_word', 'guardian_angel'], kind: 'passive',
+          effects: [{ type: 'aura', at: 'self', radius: 100, permanent: true, tick: 1, apply: [{ type: 'buff', target: 'allies', mods: [{ stat: 'dmgTaken%', value: -.15 }] }, { type: 'dot', target: 'enemies', kind: 'holyfire', school: 'holy', dps: .15, dur: 1 }] }], mods: [{ stat: 'faithRegen', value: 2 }], vfx: 'halo', sfx: 'choir_loop' }),
+      ]),
+    ],
+  },
+
+  // -------------------------------------------------------------------------------------------- ТКАЧ (новый)
+  weaver: {
+    name: 'Ткач', nameF: 'Ткачиха', weapon: 'dagger', anim: 'slash', castAnim: 'spellcast', main: 'ЛОВ', weight: 'light', school: 'memory', isNew: true,
+    fantasy: 'Мастер, который видит нити Пряжи и умеет их тянуть. Игла в руке — и оружие, и инструмент: что сшито, то можно распороть.',
+    style: 'Ближняя и средняя дистанция. Ритм: быстрые уколы иглой цепляют нити → рывок нитей (стянуть, связать, распороть) бьёт всех «прошитых» разом. Бьёт из-за спины, уходит раньше, чем ответят.',
+    resource: { id: 'thread', name: 'Нити', max: 5, onEnemy: true, life: 8, secondary: 'mp',
+      twist: 'Каждый укол иглы пришивает к врагу нить (всего до пяти нитей). Навыки «тянут» за все нити сразу. Некоторые навыки можно «вплести» — заплатить Отголоском сверх маны и получить усиленную версию.' },
+    basic: { type: 'melee', dmg: .7, cd: .3, range: 34, arc: 70, hitFrame: 3, school: 'phys', combo: [1, 1, 1, 1.3], backstab: { bonus: .5, critChance: .3 }, onHit: [{ type: 'thread', count: 1 }] },
+    echoWeave: 'Навыки с полем woven: при нажатии с зажатым Shift (или долгим тапом) тратят 1 Отголосок и применяют woven вместо обычных параметров.',
+    tree: [
+      B('pattern', 'Узор', 'Контроль: стянуть, связать, спеленать.', [
+        A('tug', 'Стянуть', 'Дёргает за все нити: прошитые враги летят к тебе и вязнут. Нити рвутся.', { tier: 1, cost: { mp: 12, thread: 'all' }, cd: 4,
+          effects: [{ type: 'pull', at: 'threaded', toward: 'self', dist: 80, apply: [{ type: 'slow', value: .3, dur: 2 }] }],
+          woven: { pull: { dist: 140 }, add: [{ type: 'stun', dur: 1 }] },
+          perRank: { dist: 8, dur: .2 }, vfx: 'threads_pull', sfx: 'thread_snap' }),
+        P('strong_thread', 'Крепкая нить', 'Можно держать больше нитей.', { tier: 1, mods: [{ stat: 'threadMax', per: 1 }] }),
+        A('bind_fates', 'Связать судьбы', 'Связывает всех прошитых: 6 секунд 40 % урона по одному расходится по остальным.', { tier: 2, req: ['tug'], cost: { mp: 20 }, cd: 10,
+          effects: [{ type: 'debuff', at: 'threaded', kind: 'link', share: .4, dur: 6 }],
+          woven: { share: .7, dur: 8 },
+          perRank: { share: .05 }, vfx: 'link_red', sfx: 'thread_hum' }),
+        P('tight_knot', 'Тугой узел', 'Стянутые враги на миг оглушены.', { tier: 2, req: ['strong_thread'], hook: 'onPull', effect: { type: 'stun', dur: .3 }, per: .3 }),
+        A('cocoon', 'Кокон', 'Заматывает цель в кокон: 3 секунды она не шевелится, а потом получает на четверть больше урона.', { tier: 3, req: ['bind_fates'], cost: { mp: 25 }, cd: 12,
+          effects: [{ type: 'stun', at: 'target', dur: 3, bossDur: 1, kind: 'cocoon' }, { type: 'debuff', at: 'target', delay: 3, dur: 5, mods: [{ stat: 'dmgTaken%', value: .25 }] }],
+          perRank: { dur: .2 }, vfx: 'cocoon', sfx: 'thread_wrap' }),
+        P('web', 'Сеть', 'Удар по прошитому врагу может перекинуть нить на соседа.', { tier: 3, req: ['tight_knot'], hook: 'onHit', cond: 'target:threaded', effect: { type: 'thread', radius: 90, count: 1, chance: .2 }, per: .2 }),
+        CAP('canvas', 'Полотно', 'Все враги в радиусе 200 прошиты разом и стянуты в одну точку: 2 секунды оглушения и урон памятью.', { req: ['cocoon', 'web'], kind: 'active', cost: { mp: 50 }, cd: 35,
+          effects: [{ type: 'thread', at: 'self', radius: 200, count: 99 }, { type: 'pull', at: 'threaded', toward: 'point', dist: 999 }, { type: 'aoe', at: 'point', delay: .3, radius: 70, dmg: 2, school: 'memory', apply: [{ type: 'stun', dur: 2, bossDur: .7 }] }],
+          vfx: 'canvas_threads', sfx: 'loom' }),
+      ]),
+      B('needle', 'Игла', 'Ловкий клинок: стежки сквозь врагов, удары в спину, распарывание.', [
+        A('stitch', 'Стежок', 'Проскальзывает сквозь врага, дважды колет его и оказывается за спиной.', { tier: 1, cost: { mp: 10 }, cd: 3,
+          effects: [{ type: 'dash', at: 'target', dist: 100, through: true, iframes: .25, hits: 2, dmg: .8, school: 'phys', apply: [{ type: 'thread', count: 1 }] }],
+          perRank: { dmg: .1 }, cdPerRank: -.2, vfx: 'trail_red_thread', sfx: 'stitch' }),
+        P('fine_work', 'Тонкая работа', 'Чаще криты, сильнее удары в спину.', { tier: 1, mods: [{ stat: 'crit', per: .03 }, { stat: 'backstab%', per: .15 }] }),
+        A('unravel', 'Распустить', 'Рвёт все нити разом: каждая бьёт памятью и оставляет кровоточащий след.', { tier: 2, req: ['stitch'], cost: { mp: 15, thread: 'all' }, cd: 5,
+          effects: [{ type: 'aoe', at: 'threaded', perThread: true, dmg: 1, school: 'memory', apply: [{ type: 'dot', kind: 'bleed', dps: .2, dur: 4 }] }],
+          woven: { dmg: 1.8 },
+          perRank: { dmg: .12 }, vfx: 'threads_burst', sfx: 'thread_rip' }),
+        P('nimble', 'Ловкие пальцы', 'Быстрее колешь, чаще уворачиваешься.', { tier: 2, req: ['fine_work'], mods: [{ stat: 'atkSpeed%', per: .05 }, { stat: 'dodge', per: .03 }] }),
+        A('hidden_seam', 'Потайной шов', 'Ткач уходит в изнанку мира: 3 секунды невидим, следующий удар — крит вдвое и три нити.', { tier: 3, req: ['unravel'], cost: { mp: 22 }, cd: 14,
+          effects: [{ type: 'invis', at: 'self', dur: 3, breakOnHit: true, nextHit: { critMul: 2, forceCrit: true, apply: [{ type: 'thread', count: 3 }] } }],
+          perRank: { dur: .3 }, vfx: 'fade_out', sfx: 'shh' }),
+        P('seam_by_seam', 'Шов за швом', 'После уворота два следующих удара на 40 % сильнее.', { tier: 3, req: ['nimble'], hook: 'onDodge', effect: { type: 'buff', stat: 'nextHitDmg%', value: .4, charges: 2, dur: 4 }, per: .1 }),
+        CAP('thousand_stitches', 'Тысяча стежков', 'Две секунды игла мелькает между всеми прошитыми: 12 уколов, каждый — урон памятью. Ткача в это время не достать.', { req: ['hidden_seam', 'seam_by_seam'], kind: 'active', cost: { mp: 40 }, cd: 25,
+          effects: [{ type: 'channel', dur: 2, iframes: true }, { type: 'blink', at: 'threaded', count: 12, tick: .16, apply: [{ type: 'cone', at: 'hit', range: 30, dmg: .5, school: 'memory' }] }],
+          vfx: 'afterimage_red', sfx: 'stitch_multi' }),
+      ]),
+      B('weaving', 'Вплетение', 'Магия памяти: узелки, перемотка, перешивание врагов. Дорого, но меняет бой.', [
+        A('memory_knot', 'Узелок на память', 'Завязывает узелок там, где стоишь. Нажми снова в течение 12 секунд — вернёшься туда и с тем здоровьем, что было.', { tier: 1, cost: { mp: 15 }, cd: 14,
+          effects: [{ type: 'mark', at: 'self', kind: 'knot', dur: 12, recast: [{ type: 'blink', at: 'mark' }, { type: 'heal', at: 'self', toSnapshot: true }] }],
+          perRank: { dur: 1 }, cdPerRank: -1, vfx: 'knot_glow', sfx: 'knot' }),
+        P('hand_memory', 'Память рук', 'Больше маны, быстрее восстановление.', { tier: 1, mods: [{ stat: 'mp%', per: .08 }, { stat: 'mpRegen%', per: .05 }] }),
+        A('weave_echo', 'Вплести отголосок', 'Вплетает Отголосок в собственную ткань: 15 секунд три следующих навыка работают как «вплетённые» без отдельной платы.', { tier: 2, req: ['memory_knot'], cost: { mp: 5, echo: 1 }, cd: 10,
+          effects: [{ type: 'buff', at: 'self', kind: 'woven', charges: 3, dur: 15 }],
+          perRank: { dur: 2 }, vfx: 'echo_spiral', sfx: 'echo_chime' }),
+        P('foreign_patterns', 'Чужие узоры', 'Убив прошитого врага, забираешь кусок его узора: +4 % урона на 10 секунд (до пяти раз).', { tier: 2, req: ['hand_memory'], hook: 'onKill', cond: 'target:threaded', effect: { type: 'buff', stat: 'dmg%', value: .04, stack: 5, dur: 10 }, per: .01 }),
+        A('unpick_time', 'Распороть время', 'Распарывает мгновение вокруг: враги еле двигаются, а их снаряды летят обратно.', { tier: 3, req: ['weave_echo'], cost: { mp: 30 }, cd: 16,
+          effects: [{ type: 'aoe', at: 'self', radius: 100, dmg: 0, apply: [{ type: 'slow', value: .6, dur: 4 }] }, { type: 'reflect', at: 'self', radius: 100, dur: 4, projectiles: true, value: 1 }],
+          woven: { slow: { value: .85 }, radius: 140 },
+          perRank: { dur: .4 }, vfx: 'clock_ring', sfx: 'rewind' }),
+        P('patch', 'Заплатка', 'Ниже 25 % здоровья ткач сам латает себя Отголоском: +35 % здоровья. Раз в минуту, если Отголоски есть.', { tier: 3, req: ['foreign_patterns'], ranks: 1, hook: 'lowHp', threshold: .25, icd: 60, cost: { echo: 1 }, effect: { type: 'heal', value: .35 } }),
+        CAP('reweave', 'Перешить', 'Перешивает врага (не босса): 30 секунд он сражается за тебя, а потом распускается в Отголосок. Боссу просто вырезает 15 % текущего здоровья и оглушает на 2 секунды.', { req: ['unpick_time', 'patch'], kind: 'active', cost: { mp: 40, echo: 3 }, cd: 60,
+          effects: [{ type: 'transform', at: 'target', into: 'ally', dur: 30, notBoss: true, onEnd: { type: 'dropEcho', count: 1, kill: true } }, { type: 'debuff', at: 'target', bossOnly: true, cutHp: .15, apply: [{ type: 'stun', dur: 2 }] }],
+          vfx: 'reweave', sfx: 'loom' }),
+      ]),
+    ],
+  },
+
+  // -------------------------------------------------------------------------------------------- БЕСПАМЯТНЫЙ (новый)
+  hollow: {
+    name: 'Беспамятный', nameF: 'Беспамятная', weapon: 'sword', offhand: null, anim: 'slash', main: 'ВЫН', weight: 'medium', school: 'memory', isNew: true,
+    fantasy: 'Человек, который отдал Забвению почти всё — даже своё имя. Чем меньше он помнит, тем меньше в нём боли и тем страшнее удар.',
+    style: 'Ближний бой, широкие тяжёлые взмахи двумя руками. Маны нет: навыки стоят здоровья, а вампиризм его возвращает. Ритм: ранить себя — ударить — восстановиться на врагах.',
+    resource: { id: 'lapse', name: 'Провалы', max: 5, gain: { onKill: 1 }, decay: { delay: 8, perSec: 1 }, noMana: true,
+      atMax: { type: 'buff', dur: 3, mods: [{ stat: 'dmgTaken%', value: -.3 }], name: 'Не помню боли' },
+      emptiness: { perOblivion: [{ stat: 'dmg%', value: .03 }, { stat: 'lifesteal', value: .01 }], cap: 20 },
+      twist: 'Пустота: каждое воспоминание, отданное Забвению, навсегда даёт +3 % урона и +1 % вампиризма (до двадцати). Отголоски Беспамятный может съесть — это лечит и злит. Провалы копятся за убийства и усиливают навыки.' },
+    basic: { type: 'melee', dmg: 1.3, cd: .6, range: 48, arc: 140, hitFrame: 3, school: 'phys', lifesteal: .05 },
+    tree: [
+      B('void', 'Пустота', 'Платить собой: удары за здоровье, вампиризм, сила на краю смерти.', [
+        A('blood_swing', 'Кровавый замах', 'Широкий взмах, оплаченный собственной кровью. Треть нанесённого урона возвращается.', { tier: 1, cost: { hp: .06 }, cd: 3,
+          effects: [{ type: 'cone', at: 'aim', range: 60, arc: 140, dmg: 1.8, school: 'phys', apply: [{ type: 'lifesteal', value: .3 }] }],
+          perRank: { dmg: .2 }, vfx: 'arc_dark_red', sfx: 'swing_heavy' }),
+        P('nothing_to_spare', 'Ничего не жаль', 'Чем меньше здоровья, тем сильнее удар: за каждые 10 % потерянного.', { tier: 1, mods: [{ stat: 'dmgPerMissingHp10%', per: .015 }] }),
+        A('blank_stare', 'Пустой взгляд', 'Враги перед тобой забывают, зачем пришли: 2,5 секунды бродят без цели.', { tier: 2, req: ['blood_swing'], cost: { hp: .05 }, cd: 12,
+          effects: [{ type: 'cone', at: 'aim', range: 120, arc: 90, dmg: 0, apply: [{ type: 'debuff', kind: 'forget', dur: 2.5, bossDur: .8, dropAggro: true }] }],
+          perRank: { dur: .3 }, vfx: 'cone_grey', sfx: 'hush' }),
+        P('empty_cup', 'Пустая чаша', 'Больше вампиризма.', { tier: 2, req: ['nothing_to_spare'], mods: [{ stat: 'lifesteal', per: .02 }] }),
+        A('void_hunger', 'Голод пустоты', '6 секунд пустота вокруг тянет жизнь из всех рядом и отдаёт тебе.', { tier: 3, req: ['blank_stare'], cost: { hp: .1 }, cd: 16,
+          effects: [{ type: 'aura', at: 'self', radius: 80, dur: 6, tick: .5, dmg: .3, school: 'memory', apply: [{ type: 'lifesteal', value: 1 }] }],
+          perRank: { dmg: .04 }, vfx: 'aura_void', sfx: 'void_loop' }),
+        P('nothing_to_lose', 'Нечего терять', 'Ниже 30 % здоровья — больше критов.', { tier: 3, req: ['empty_cup'], cond: 'hp<.3', mods: [{ stat: 'crit', per: .08 }] }),
+        CAP('nobody', 'Никто', '8 секунд мир не помнит, что ты есть: враги не замечают тебя, пока не подойдут вплотную, удары бьют памятью на 60 % сильнее, навыки не стоят здоровья.', { req: ['void_hunger', 'nothing_to_lose'], kind: 'active', cost: { hp: .15 }, cd: 50,
+          effects: [{ type: 'transform', at: 'self', dur: 8, tint: '#b9a8d8', alpha: .55, mods: [{ stat: 'dmg%', value: .6 }, { stat: 'hpCost%', value: -1 }, { stat: 'convertTo:memory', value: 1 }] }, { type: 'invis', at: 'self', dur: 8, detectRadius: 40, breakOnHit: false }],
+          vfx: 'fade_grey', sfx: 'silence' }),
+      ]),
+      B('oblivion', 'Забвение', 'Стирать: врагов, пространство, собственную смерть. Растёт от отданных воспоминаний.', [
+        A('erase', 'Стереть', 'Удар, после которого враг забывает, как сражаться: 5 секунд бьёт на 20 % слабее.', { tier: 1, cost: { hp: .04 }, cd: 4,
+          effects: [{ type: 'cone', at: 'target', range: 50, arc: 60, maxTargets: 1, dmg: 1.5, school: 'memory', apply: [{ type: 'debuff', dur: 5, mods: [{ stat: 'dmg%', value: -.2 }] }] }],
+          perRank: { dmg: .18 }, vfx: 'slash_grey', sfx: 'erase' }),
+        P('price_of_oblivion', 'Цена забвения', 'Каждое отданное воспоминание даёт ещё больше урона.', { tier: 1, mods: [{ stat: 'dmgPerOblivion%', per: .005 }] }),
+        A('lapse_leap', 'Провал', 'Исчезает и возникает у цели, ударяя всех вокруг. Тратит все Провалы: каждый +25 % урона.', { tier: 2, req: ['erase'], cost: { hp: .05, lapse: 'all' }, cd: 6,
+          effects: [{ type: 'blink', at: 'target', dist: 140 }, { type: 'aoe', at: 'self', radius: 60, dmg: 1.2, school: 'memory', perLapse: .25 }],
+          perRank: { dmg: .15 }, vfx: 'blink_grey', sfx: 'thud' }),
+        P('quiet_mind', 'Тишина в голове', 'Оглушения и замедления на тебе держатся меньше.', { tier: 2, req: ['price_of_oblivion'], mods: [{ stat: 'ccReduction', per: .15 }] }),
+        A('blank_spot', 'Белое пятно', 'Стирает кусок мира: в круге 5 секунд нет памяти — враги не применяют умений и получают на 30 % больше урона.', { tier: 3, req: ['lapse_leap'], cost: { hp: .08 }, cd: 18,
+          effects: [{ type: 'aura', at: 'point', radius: 120, dur: 5, apply: [{ type: 'debuff', kind: 'silence', dur: .6, mods: [{ stat: 'dmgTaken%', value: .3 }] }] }],
+          perRank: { dur: .5 }, vfx: 'white_patch', sfx: 'silence' }),
+        P('ash_of_names', 'Пепел имён', 'Каждое убийство лечит.', { tier: 3, req: ['quiet_mind'], hook: 'onKill', effect: { type: 'heal', value: .03 }, per: .03 }),
+        CAP('last_memory', 'Последнее воспоминание', 'Раз в 90 секунд смертельный удар стирается из памяти: остаёшься с 1 здоровьем и 2 секунды неуязвим. Каждое отданное Забвению воспоминание даёт ещё одно очко навыков.', { req: ['blank_spot', 'ash_of_names'], kind: 'passive',
+          hook: 'onDeath', icd: 90, effect: [{ type: 'heal', setTo: 1, abs: true }, { type: 'buff', kind: 'invulnerable', dur: 2 }], extra: { hook: 'onForget', effect: { type: 'gain', skillPoint: 1 } }, vfx: 'flash_white', sfx: 'heartbeat' }),
+      ]),
+      B('echo', 'Пожиратель отголосков', 'Есть чужую память: лечиться Отголосками, повторять удары эхом, звать призрака себя.', [
+        A('eat_echo', 'Съесть отголосок', 'Глотает Отголосок: +25 % здоровья и +20 % урона на 8 секунд. Чужая память горчит.', { tier: 1, cost: { echo: 1 }, cd: 15,
+          effects: [{ type: 'heal', at: 'self', value: .25 }, { type: 'buff', at: 'self', dur: 8, mods: [{ stat: 'dmg%', value: .2 }] }],
+          perRank: { value: .03 }, vfx: 'echo_swallow', sfx: 'gulp_echo' }),
+        P('foreign_taste', 'Привкус чужого', 'Усиления держатся дольше.', { tier: 1, mods: [{ stat: 'buffDur', per: 2 }] }),
+        A('echo_strike', 'Эхо удара', 'Три следующих удара повторяются через полсекунды призрачным эхом — вполсилы.', { tier: 2, req: ['eat_echo'], cost: { hp: .03 }, cd: 8,
+          effects: [{ type: 'buff', at: 'self', kind: 'echoHits', charges: 3, dur: 6, repeat: { delay: .4, dmgMul: .5, school: 'memory' } }],
+          perRank: { dmgMul: .08 }, vfx: 'afterimage_grey', sfx: 'echo_hit' }),
+        P('foreign_hands', 'Чужие руки', 'Крит иногда повторяется эхом.', { tier: 2, req: ['foreign_taste'], hook: 'onCrit', effect: { type: 'repeatHit', dmgMul: .6, school: 'memory', chance: .1 }, per: .1 }),
+        A('self_ghost', 'Призрак себя', 'Из Отголоска встаёт твоя собственная тень — та, кем ты был, пока помнил. 10 секунд бьёт рядом вполсилы.', { tier: 3, req: ['echo_strike'], cost: { hp: .08, echo: 1 }, cd: 25,
+          effects: [{ type: 'summon', at: 'self', unit: 'hero_echo', copyHero: true, life: 10, dmg: .5, tint: '#b9a8d8', alpha: .6 }],
+          perRank: { life: 2, dmg: .05 }, vfx: 'ghost_self', sfx: 'echo_chime' }),
+        P('resonance', 'Резонанс', 'Каждое попадание эхом может дать Провал.', { tier: 3, req: ['foreign_hands'], hook: 'onEchoHit', effect: { type: 'gain', lapse: 1, chance: .15 }, per: .1 }),
+        CAP('echo_choir', 'Хор отголосков', 'Съедает до пяти Отголосков: каждый становится призрачным клинком, который 10 секунд кружит вокруг и режет всех, кого заденет.', { req: ['self_ghost', 'resonance'], kind: 'active', cost: { echo: '1-5' }, cd: 40,
+          effects: [{ type: 'aura', at: 'self', radius: 70, dur: 10, orbit: { countFromCost: 'echo', speed: 3.5 }, hitCd: .5, dmg: .4, school: 'memory' }],
+          vfx: 'orbit_blades', sfx: 'blade_hum' }),
+      ]),
+    ],
+  },
+};
+
+// ===================================================================================================
+// ОБЛИК: подписной наряд класса по тирам брони I–IV + легендарный «тронутый памятью».
+// Формат слоя: [ключСлоя, '#ткань' | null, '#металл'?]. Ключи — из ITEMS build_game.py или NEW_LAYERS ниже.
+// robe:true — женскому телу ls2+skirt заменяются на 'robe' того же цвета (robe в LPC есть только у female).
+// fem — точечные замены слоёв для женского тела.
+// ===================================================================================================
+export const NEW_LAYERS = {
+  pauldrons: ['torso', 'arms/shoulders/shoulders_pauldrons.json'],
+  mantle: ['torso', 'arms/shoulders/shoulders_mantal.json'],
+  epaulets: ['torso', 'arms/shoulders/shoulders_epaulets.json'],
+  bracers: ['torso', 'arms/wrists/arms_bracers.json'],
+  gloves: ['torso', 'arms/arms_gloves.json'],
+  quiver: ['torso', 'torso/backpack/quiver.json'],
+  armor_legion: ['torso', 'torso/armour/torso_armour_legion.json'],
+  cape_trim: ['torso', 'torso/cape/cape_trim.json'],
+  bandages: ['torso', 'torso/torso_bandages.json'],
+  belt_sash: ['torso', 'torso/waist/belt_sash.json'],
+  belt_robe: ['torso', 'torso/waist/belt_robe.json'],
+  kimono: ['torso', 'torso/dresses/kimono/dress_kimono_longsleeve_trim.json'], // только female/teen
+  skirt_legion: ['legs', 'legs/skirts/legs_skirts_legion.json'],
+  boots_rim: ['feet', 'feet/boots/feet_boots_rim.json'],
+  boots_fold: ['feet', 'feet/boots/feet_boots_fold.json'],
+  helm_greathelm: ['hat', 'headwear/helmets/helmets/hat_helmet_greathelm.json'],
+  helm_mail: ['hat', 'headwear/helmets/helmets/hat_helmet_mail.json'],
+  hat_celestial: ['hat', 'headwear/hats/magic/hat_magic_celestial.json'],
+  hat_large: ['hat', 'headwear/hats/magic/hat_magic_large.json'],
+  headband_rune: ['hat', 'headwear/coverings/headbands/hat_headband_thick_rune.json'],
+  cap_feather: ['hat', 'headwear/hats/caps/hat_cap_leather_feather.json'],
+  tiara: ['hat', 'headwear/hats/formal/hat_formal_tiara.json'],
+  mask: ['acc', 'headwear/accessories/facial_mask_plain.json'],
+  scarf: ['acc', 'headwear/neck/neck_scarf.json'],
+  amulet_cross: ['acc', 'headwear/neck/charms/neck_amulet_cross.json'],
+  amulet_spider: ['acc', 'headwear/neck/charms/neck_amulet_spider.json'],
+  shield_crusader: ['weapon', 'weapons/shields/engrailed/shield_crusader.json'],
+};
+
+// Палитра «тронутого памятью»: выцветшее серебро + бледная сирень + светящийся край.
+const MEM = { cloth: '#cfc8e8', dark: '#3a2f52', glow: '#e8e2ff', metal: '#b8c4ff' };
+
+export const OUTFITS = {
+  warrior: {
+    palette: { main: '#8a1f1f', leather: '#4a3020', accent: '#e8c060' }, silhouette: 'Щит в руке всегда; с III тира — наплечники и закрытый шлем. Единственный, кто носит красное с металлом.',
+    tiers: [
+      { name: 'Стёганка ополченца', layers: [['ls2', '#b8a888'], ['vest', '#8a1f1f'], ['belt', '#4a3020'], ['pants', '#4a3a30'], ['boots', '#3a2a20'], ['shield', '#8a1f1f', '#8a7f74']] },
+      { name: 'Кожа наёмника', layers: [['ls2', '#8a1f1f'], ['armor_leather', '#5a3a24'], ['bracers', '#4a3020'], ['pants', '#3b3f46'], ['boots', '#3a2a20'], ['helm_nasal', null, '#9aa3ad'], ['shield', '#8a1f1f', '#9aa3ad']] },
+      { name: 'Кольчуга знаменосца', layers: [['ls2', '#5a1414'], ['chainmail', null, '#c9d3dc'], ['tabard', '#8a1f1f'], ['pauldrons', null, '#c9d3dc'], ['pants', '#3b3f46'], ['boots_rim', '#3a2a20'], ['helm_mail', null, '#c9d3dc'], ['shield_crusader', '#8a1f1f', '#c9d3dc']] },
+      { name: 'Латы алой стражи', layers: [['armor_plate', null, '#c9d3dc'], ['pauldrons', null, '#c9d3dc'], ['gloves', null, '#c9d3dc'], ['legs_armor', null, '#c9d3dc'], ['feet_armor', null, '#c9d3dc'], ['cape', '#8a1f1f'], ['helm_greathelm', null, '#c9d3dc'], ['shield_crusader', '#8a1f1f', '#e8c060']] },
+    ],
+    legendary: { name: 'Доспех Помнящего', layers: [['armor_plate', null, MEM.metal], ['pauldrons', null, MEM.metal], ['gloves', null, MEM.metal], ['legs_armor', null, MEM.metal], ['feet_armor', null, MEM.metal], ['cape_trim', '#5a1414', MEM.glow], ['helm_greathelm', null, MEM.metal], ['shield_crusader', MEM.dark, MEM.glow]], glow: MEM.glow },
+  },
+  ranger: {
+    palette: { main: '#3f5a3a', leather: '#6b4a2e', accent: '#c9a24a' }, silhouette: 'Колчан за спиной на всех тирах, капюшон или шляпа с пером, рваный зелёный плащ. Никакого металла на голове.',
+    tiers: [
+      { name: 'Дорожная одежда', layers: [['ls_laced', '#b8a888'], ['vest', '#5a4636'], ['belt', '#3a2a20'], ['pants', '#4a3a30'], ['boots', '#3a2a20'], ['quiver', '#6b4a2e'], ['cap_feather', '#3f5a3a']], fem: { ls_laced: 'blouse_ls' } },
+      { name: 'Куртка охотника', layers: [['ls_laced', '#3f5a3a'], ['armor_leather', '#6b4a2e'], ['bracers', '#6b4a2e'], ['pants', '#4a3a30'], ['boots_fold', '#3a2a20'], ['quiver', '#6b4a2e'], ['hood', '#3f5a3a']], fem: { ls_laced: 'blouse_ls' } },
+      { name: 'Плащ следопыта', layers: [['ls_laced', '#2f4a2a'], ['armor_leather', '#3f5a3a'], ['gloves', '#4a3020'], ['cape_tattered', '#3f5a3a'], ['leggings', '#3b3f2e'], ['boots_fold', '#3a2a20'], ['quiver', '#4a3020'], ['hood', '#2f4a2a']], fem: { ls_laced: 'blouse_ls' } },
+      { name: 'Доспех лесного стража', layers: [['ls_laced', '#2f4a2a'], ['chainmail', null, '#9aa3ad'], ['vest', '#2f4a2a'], ['bracers', '#6b4a2e'], ['cape_trim', '#2f4a2a', '#c9a24a'], ['leggings', '#3b3f2e'], ['boots_fold', '#3a2a20'], ['quiver', '#4a3020'], ['cavalier', '#2f4a2a']], fem: { ls_laced: 'blouse_ls' } },
+    ],
+    legendary: { name: 'Шкура забытого зверя', layers: [['ls_laced', MEM.dark], ['armor_leather', '#8a8aa8'], ['bracers', MEM.cloth], ['cape_tattered', MEM.cloth], ['leggings', MEM.dark], ['boots_fold', '#2a2438'], ['quiver', MEM.dark], ['hood', MEM.cloth]], glow: MEM.glow, fem: { ls_laced: 'blouse_ls' } },
+  },
+  pyro: {
+    palette: { main: '#8a2a1a', dark: '#2a1a14', accent: '#e8a23a' }, silhouette: 'Длинная красная мантия с золотым кушаком, руническая повязка на лбу (I–III), огромная шляпа на IV. Наплечная накидка-мантия с II тира.',
+    tiers: [
+      { name: 'Мантия ученика огня', robe: true, layers: [['ls2', '#8a2a1a'], ['skirt', '#6a1e12'], ['belt_sash', '#e8a23a'], ['sandals', '#3a2a20'], ['headband_rune', '#e8a23a']] },
+      { name: 'Мантия углежога', robe: true, layers: [['ls2', '#8a2a1a'], ['skirt', '#6a1e12'], ['mantle', '#2a1a14'], ['belt_sash', '#e8a23a'], ['bracers', '#2a1a14'], ['shoes', '#2a1a14'], ['headband_rune', '#e8a23a']] },
+      { name: 'Риза горна', robe: true, layers: [['ls2', '#7a2214'], ['skirt', '#5a1a10'], ['mantle', '#e8a23a'], ['cape', '#2a1a14'], ['belt_sash', '#e8a23a'], ['gloves', '#2a1a14'], ['shoes', '#2a1a14'], ['headband_rune', '#ffcf4a']] },
+      { name: 'Облачение огненного архимага', robe: true, layers: [['ls2', '#6a1810'], ['skirt', '#4a120c'], ['mantle', '#e8a23a'], ['cape_trim', '#8a2a1a', '#ffcf4a'], ['belt_sash', '#ffcf4a'], ['gloves', '#2a1a14'], ['shoes', '#2a1a14'], ['hat_large', '#8a2a1a']] },
+    ],
+    legendary: { name: 'Риза Неугасимого', robe: true, layers: [['ls2', '#2a0e0a'], ['skirt', '#1a0806'], ['mantle', MEM.cloth], ['cape_trim', '#2a0e0a', MEM.glow], ['belt_sash', '#ffcf4a'], ['gloves', '#1a0806'], ['shoes', '#1a0806'], ['hat_large', '#2a0e0a']], glow: '#ffcf4a' },
+  },
+  cryo: {
+    palette: { main: '#2a5a8a', light: '#e8f4ff', accent: '#bfe8ff' }, silhouette: 'Остроконечная шляпа с первого дня, белый шарф и белый плащ. Холодный сине-белый — ни капли коричневого.',
+    tiers: [
+      { name: 'Мантия северного ученика', robe: true, layers: [['ls2', '#2a5a8a'], ['skirt', '#1f3a5a'], ['belt', '#bfe8ff'], ['boots', '#2a3a4a'], ['wizard', '#2a5a8a']] },
+      { name: 'Мантия инеевщика', robe: true, layers: [['ls2', '#2a5a8a'], ['skirt', '#1f3a5a'], ['scarf', '#e8f4ff'], ['cape', '#e8f4ff'], ['belt', '#bfe8ff'], ['boots', '#2a3a4a'], ['wizard', '#1f3a5a']] },
+      { name: 'Риза зимнего круга', robe: true, layers: [['ls2', '#1f3a5a'], ['skirt', '#e8f4ff'], ['epaulets', null, '#bfe8ff'], ['scarf', '#e8f4ff'], ['cape', '#e8f4ff'], ['gloves', '#e8f4ff'], ['belt', '#bfe8ff'], ['boots_rim', '#2a3a4a'], ['wizard', '#e8f4ff']] },
+      { name: 'Облачение Вечной зимы', robe: true, layers: [['ls2', '#1f3560'], ['skirt', '#e8f4ff'], ['epaulets', null, '#8fd6ff'], ['scarf', '#bfe8ff'], ['cape_trim', '#e8f4ff', '#8fd6ff'], ['gloves', '#e8f4ff'], ['belt', '#8fd6ff'], ['boots_rim', '#1f3560'], ['hat_celestial', '#e8f4ff']] },
+    ],
+    legendary: { name: 'Застывшее мгновение', robe: true, layers: [['ls2', MEM.dark], ['skirt', MEM.cloth], ['epaulets', null, MEM.metal], ['scarf', MEM.glow], ['cape_trim', MEM.cloth, MEM.glow], ['gloves', MEM.cloth], ['belt', MEM.glow], ['boots_rim', MEM.dark], ['hat_celestial', MEM.cloth]], glow: '#bfe8ff' },
+  },
+  necro: {
+    palette: { main: '#231a2e', bone: '#e8e2cf', accent: '#7dff9a' }, silhouette: 'Капюшон всегда, рваный плащ со II тира, на IV — белая костяная маска и мантия-воротник цвета кости. Зелёный огонёк амулета.',
+    tiers: [
+      { name: 'Саван послушника', robe: true, layers: [['ls2', '#231a2e'], ['skirt', '#1f1c26'], ['belt_robe', '#4a2a5a'], ['shoes', '#1b1b1b'], ['hood', '#231a2e']] },
+      { name: 'Одеяние могильщика', robe: true, layers: [['ls2', '#231a2e'], ['skirt', '#1f1c26'], ['cape_tattered', '#2a1f36'], ['amulet_spider', null, '#7dff9a'], ['belt_robe', '#4a2a5a'], ['shoes', '#1b1b1b'], ['hood', '#231a2e']] },
+      { name: 'Риза костяного круга', robe: true, layers: [['ls2', '#1a1422'], ['skirt', '#1f1c26'], ['mantle', '#e8e2cf'], ['cape_tattered', '#2a1f36'], ['gloves', '#1b1b1b'], ['amulet_spider', null, '#7dff9a'], ['belt_robe', '#4a2a5a'], ['shoes', '#1b1b1b'], ['hood', '#1a1422']] },
+      { name: 'Облачение Повелителя склепов', robe: true, layers: [['ls2', '#120c18'], ['skirt', '#120c18'], ['mantle', '#e8e2cf'], ['cape_tattered', '#4a2a5a'], ['gloves', '#1b1b1b'], ['amulet_spider', null, '#7dff9a'], ['belt_robe', '#7dff9a'], ['shoes', '#1b1b1b'], ['mask', '#e8e2cf'], ['hood', '#120c18']] },
+    ],
+    legendary: { name: 'Саван Тысячи Голосов', robe: true, layers: [['ls2', MEM.dark], ['skirt', '#120c18'], ['mantle', MEM.cloth], ['cape_tattered', MEM.cloth], ['gloves', '#120c18'], ['amulet_spider', null, MEM.glow], ['belt_robe', MEM.glow], ['shoes', '#120c18'], ['mask', MEM.glow], ['hood', MEM.dark]], glow: '#7dff9a' },
+  },
+  priest: {
+    palette: { main: '#ece6d4', gold: '#e8b84a', accent: '#8ab4e0' }, silhouette: 'Белое до пят, золотой кушак и крест на груди. Со II тира — золотая риза-табард поверх. Голова открыта до IV тира, где появляется венец.',
+    tiers: [
+      { name: 'Ряса послушника', robe: true, layers: [['ls2', '#ece6d4'], ['skirt', '#d8d0b8'], ['belt_sash', '#e8b84a'], ['sandals', '#8a6a40'], ['amulet_cross', null, '#e8b84a']] },
+      { name: 'Облачение странствующего жреца', robe: true, layers: [['ls2', '#ece6d4'], ['skirt', '#d8d0b8'], ['tabard', '#c9a24a'], ['belt_sash', '#ece6d4'], ['sandals', '#8a6a40'], ['amulet_cross', null, '#e8b84a']] },
+      { name: 'Риза хранителя обетов', robe: true, layers: [['ls2', '#ece6d4'], ['skirt', '#ece6d4'], ['tabard', '#e8b84a'], ['mantle', '#f6f2e6'], ['belt_sash', '#8ab4e0'], ['shoes', '#c9b48a'], ['amulet_cross', null, '#f0c84a'], ['hood', '#f6f2e6']] },
+      { name: 'Облачение Светлого собора', robe: true, layers: [['ls2', '#f6f2e6'], ['skirt', '#f6f2e6'], ['tabard', '#e8b84a'], ['epaulets', null, '#f0c84a'], ['cape_trim', '#f6f2e6', '#f0c84a'], ['belt_sash', '#8ab4e0'], ['shoes', '#c9b48a'], ['amulet_cross', null, '#f0c84a'], ['tiara', null, '#f0c84a']] },
+    ],
+    legendary: { name: 'Риза Последнего обета', robe: true, layers: [['ls2', MEM.cloth], ['skirt', '#f6f2e6'], ['tabard', MEM.dark], ['epaulets', null, MEM.metal], ['cape_trim', '#f6f2e6', MEM.glow], ['belt_sash', MEM.glow], ['shoes', MEM.cloth], ['amulet_cross', null, MEM.glow], ['tiara', null, MEM.metal]], glow: '#fff2a8' },
+  },
+  weaver: {
+    palette: { main: '#2e3a7a', linen: '#d8cdb0', accent: '#c0303a' }, silhouette: 'Шарф и повязки цвета красной нити на всех тирах, широкие штаны-шаровары (у неё — кимоно), лёгкая обувь. Индиго и небелёный лён; красная нить — всегда.',
+    tiers: [
+      { name: 'Фартук подмастерья', layers: [['ls_laced', '#d8cdb0'], ['pantaloons', '#2e3a7a'], ['belt_sash', '#c0303a'], ['shoes', '#3a2a20'], ['scarf', '#c0303a']], fem: { ls_laced: 'kimono', pantaloons: 'leggings' } },
+      { name: 'Куртка прядильщика', layers: [['ls_laced', '#d8cdb0'], ['vest', '#2e3a7a'], ['pantaloons', '#2e3a7a'], ['bracers', '#c0303a'], ['belt_sash', '#c0303a'], ['shoes', '#3a2a20'], ['scarf', '#c0303a'], ['bandana', '#2e3a7a']], fem: { ls_laced: 'kimono', pantaloons: 'leggings' } },
+      { name: 'Покров ткацкого цеха', layers: [['ls_laced', '#2e3a7a'], ['vest', '#d8cdb0'], ['pantaloons', '#1f2858'], ['bracers', '#c0303a'], ['gloves', '#d8cdb0'], ['cape', '#2e3a7a'], ['belt_sash', '#c0303a'], ['boots_fold', '#3a2a20'], ['scarf', '#c0303a'], ['bandana', '#c0303a']], fem: { ls_laced: 'kimono', pantaloons: 'leggings' } },
+      { name: 'Облачение Мастера Пряжи', layers: [['ls_laced', '#1f2858'], ['armor_leather', '#2e3a7a'], ['mantle', '#c0303a'], ['pantaloons', '#1f2858'], ['bracers', '#c0303a'], ['gloves', '#d8cdb0'], ['cape_trim', '#1f2858', '#c0303a'], ['belt_sash', '#d8cdb0'], ['boots_fold', '#2a2020'], ['scarf', '#c0303a']], fem: { ls_laced: 'kimono', pantaloons: 'leggings' } },
+    ],
+    legendary: { name: 'Узор Первой нити', layers: [['ls_laced', MEM.dark], ['armor_leather', MEM.cloth], ['mantle', '#c0303a'], ['pantaloons', MEM.dark], ['bracers', MEM.glow], ['gloves', MEM.cloth], ['cape_trim', MEM.dark, '#c0303a'], ['belt_sash', MEM.glow], ['boots_fold', MEM.dark], ['scarf', '#c0303a']], glow: '#ff6a70', fem: { ls_laced: 'kimono', pantaloons: 'leggings' } },
+  },
+  hollow: {
+    palette: { main: '#6e6a66', bandage: '#d8d4c8', accent: '#8a7aa8' }, silhouette: 'Бинты на теле и белая безликая маска на всех тирах. Ни шлема, ни щита. Пепельно-серое с выцветшей сиренью, плащ всегда рваный.',
+    tiers: [
+      { name: 'Бинты безымянного', layers: [['bandages', '#d8d4c8'], ['pants', '#4a4642'], ['belt', '#3a3430'], ['boots', '#2a2622'], ['mask', '#d8d4c8']] },
+      { name: 'Обноски странника', layers: [['ls2', '#6e6a66'], ['bandages', '#d8d4c8'], ['cape_tattered', '#6e6a66'], ['bracers', '#3a3430'], ['pants', '#4a4642'], ['belt', '#3a3430'], ['boots', '#2a2622'], ['mask', '#d8d4c8']] },
+      { name: 'Доспех без герба', layers: [['ls2', '#4a4642'], ['armor_leather', '#5a5652'], ['bandages', '#d8d4c8'], ['skirt_legion', null, '#8a7f74'], ['cape_tattered', '#5a4a6a'], ['bracers', '#3a3430'], ['pants', '#3a3632'], ['boots_rim', '#2a2622'], ['mask', '#d8d4c8']] },
+      { name: 'Латы стёртого имени', layers: [['ls2', '#3a3632'], ['armor_legion', null, '#8a8580'], ['pauldrons', null, '#8a8580'], ['skirt_legion', null, '#8a8580'], ['cape_tattered', '#8a7aa8'], ['gloves', '#3a3430'], ['pants', '#3a3632'], ['boots_rim', '#2a2622'], ['mask', '#d8d4c8']] },
+    ],
+    legendary: { name: 'Никто', layers: [['ls2', MEM.dark], ['armor_legion', null, MEM.metal], ['pauldrons', null, MEM.metal], ['skirt_legion', null, MEM.metal], ['cape_tattered', MEM.cloth], ['gloves', MEM.dark], ['pants', MEM.dark], ['boots_rim', MEM.dark], ['mask', MEM.glow]], glow: MEM.glow, alpha: .85 },
+  },
+};
+// Какой тир облика показывать: средний «уровень брони» надетых head/chest/legs/feet → I (1–7), II (8–15), III (16–23), IV (24+).
+// Легендарный облик: надет уникальный нагрудник класса ИЛИ собраны 4 предмета любого сета. Оружие рисуется отдельно (WEAPONS).
+export const OUTFIT_RULES = { tierByItemLevel: [1, 8, 16, 24], legendaryWhen: ['uniqueChestOfClass', 'set4'], glowFx: 'Пульсирующий контур цвета glow (alpha .35–.6, период 2 с) + редкие искры-нити вверх.' };
+
+// ===================================================================================================
+// СНАРЯЖЕНИЕ
+// ===================================================================================================
+export const WEIGHTS = {
+  light: { name: 'Лёгкая', speed: .05, dodge: .06, mpRegen: .15, castSpeed: 0, armorMul: .6, desc: 'Быстрее бегать и уворачиваться, мана течёт быстрее. Держит мало.' },
+  medium: { name: 'Средняя', speed: 0, dodge: .02, mpRegen: 0, castSpeed: 0, armorMul: 1, desc: 'Золотая середина.' },
+  heavy: { name: 'Тяжёлая', speed: -.08, dodge: -.05, mpRegen: -.2, castSpeed: -.15, mpCost: .1, armorMul: 1.6, ccReduction: .2, desc: 'Держит удар и сбивает оглушения, но тормозит шаг и мешает колдовать: заклинания медленнее и дороже.' },
+  // Вес считается по большинству из head/chest/legs/feet. Штраф/бонус применяется целиком.
+  // Классовая «родная» тяжесть (CLASSES2[cls].weight) снимает половину штрафа соседней тяжести: воину средняя — без потерь.
+};
+
+// Базы предметов. armor — на 1-м уровне предмета; растёт ×(1 + ilvl*0.08).
+export const ITEM_BASES = [
+  // голова
+  { id: 'cap_cloth', slot: 'head', weight: 'light', name: 'Колпак', armor: 1, implicit: [{ stat: 'mpRegen%', value: .05 }] },
+  { id: 'hood_leather', slot: 'head', weight: 'medium', name: 'Кожаный капюшон', armor: 2, implicit: [{ stat: 'crit', value: .01 }] },
+  { id: 'helm_iron', slot: 'head', weight: 'heavy', name: 'Железный шлем', armor: 4, implicit: [{ stat: 'ccReduction', value: .05 }] },
+  // грудь
+  { id: 'robe', slot: 'chest', weight: 'light', name: 'Мантия', armor: 2, implicit: [{ stat: 'mp', value: 10 }] },
+  { id: 'jerkin', slot: 'chest', weight: 'medium', name: 'Кожаная куртка', armor: 5, implicit: [{ stat: 'dodge', value: .02 }] },
+  { id: 'mail', slot: 'chest', weight: 'heavy', name: 'Кольчуга', armor: 8, implicit: [{ stat: 'hp', value: 15 }] },
+  { id: 'plate', slot: 'chest', weight: 'heavy', name: 'Кираса', armor: 11, implicit: [{ stat: 'block', value: .03 }], minLevel: 15 },
+  // ноги
+  { id: 'trousers', slot: 'legs', weight: 'light', name: 'Штаны', armor: 1, implicit: [{ stat: 'speed%', value: .02 }] },
+  { id: 'leggings', slot: 'legs', weight: 'medium', name: 'Поножи из кожи', armor: 3, implicit: [] },
+  { id: 'greaves', slot: 'legs', weight: 'heavy', name: 'Латные поножи', armor: 5, implicit: [{ stat: 'knockbackResist', value: .3 }] },
+  // ноги-обувь
+  { id: 'sandals', slot: 'feet', weight: 'light', name: 'Сандалии', armor: 0, implicit: [{ stat: 'speed%', value: .04 }] },
+  { id: 'boots', slot: 'feet', weight: 'medium', name: 'Сапоги', armor: 2, implicit: [{ stat: 'speed%', value: .02 }] },
+  { id: 'sabatons', slot: 'feet', weight: 'heavy', name: 'Латные сапоги', armor: 3, implicit: [{ stat: 'slowResist', value: .2 }] },
+  // плащ
+  { id: 'cloak', slot: 'cloak', weight: 'light', name: 'Плащ', armor: 1, implicit: [{ stat: 'dodge', value: .02 }] },
+  { id: 'mantle', slot: 'cloak', weight: 'medium', name: 'Накидка', armor: 2, implicit: [{ stat: 'resist:all', value: .03 }] },
+  // украшения
+  { id: 'amulet', slot: 'amulet', name: 'Амулет', armor: 0, implicit: [{ stat: 'echoFind%', value: .03 }] },
+  { id: 'locket', slot: 'amulet', name: 'Медальон', armor: 0, implicit: [{ stat: 'hp', value: 8 }], note: 'Внутри можно хранить воспоминание: см. уникальный «Пустой медальон».' },
+  { id: 'ring', slot: 'ring', name: 'Кольцо', armor: 0, implicit: [], count: 2 },
+  { id: 'signet', slot: 'ring', name: 'Перстень', armor: 0, implicit: [{ stat: 'dmg%', value: .02 }], count: 2 },
+  // вторая рука
+  { id: 'shield', slot: 'offhand', weight: 'heavy', name: 'Щит', armor: 5, implicit: [{ stat: 'block', value: .12 }], classes: ['warrior'], layer: 'shield' },
+  { id: 'quiver', slot: 'offhand', name: 'Колчан', armor: 0, implicit: [{ stat: 'focusMax', value: 10 }], classes: ['ranger'], layer: 'quiver' },
+  { id: 'orb', slot: 'offhand', name: 'Сфера', armor: 0, implicit: [{ stat: 'castSpeed%', value: .05 }], classes: ['pyro', 'cryo', 'necro', 'priest'] },
+  { id: 'spool', slot: 'offhand', name: 'Веретено', armor: 0, implicit: [{ stat: 'threadMax', value: 1 }], classes: ['weaver'] },
+  { id: 'reliquary', slot: 'offhand', name: 'Пустая шкатулка', armor: 0, implicit: [{ stat: 'lapseMax', value: 1 }], classes: ['hollow'] },
+];
+
+// Аффиксы. tiers — значения по уровню предмета [ilvl 1–10, 11–20, 21–30]. Предмет: обычный 0, магический 1–2, редкий 3–4 аффикса.
+const PRE = (id, name, slots, o) => ({ id, kind: 'prefix', name, slots, ...o });
+const SUF = (id, name, slots, o) => ({ id, kind: 'suffix', name, slots, ...o });
+const ARM = ['head', 'chest', 'legs', 'feet', 'cloak'], JEW = ['amulet', 'ring'], ALL = [...ARM, ...JEW, 'offhand'];
+export const AFFIXES = [
+  // префиксы (прилагательное перед названием: «Закалённая кольчуга»)
+  PRE('tempered', 'Закалённый', ARM, { mods: [{ stat: 'armor%', tiers: [.1, .2, .3] }] }),
+  PRE('sturdy', 'Крепкий', [...ARM, 'offhand'], { mods: [{ stat: 'hp', tiers: [10, 25, 45] }] }),
+  PRE('fierce', 'Свирепый', [...JEW, 'offhand'], { mods: [{ stat: 'dmg%', tiers: [.04, .08, .12] }] }),
+  PRE('sharp', 'Острый', ['ring', 'head'], { mods: [{ stat: 'crit', tiers: [.02, .04, .06] }] }),
+  PRE('cruel', 'Жестокий', ['amulet', 'ring'], { mods: [{ stat: 'critDmg', tiers: [.1, .2, .3] }] }),
+  PRE('swift', 'Быстрый', ['feet', 'legs'], { mods: [{ stat: 'speed%', tiers: [.03, .06, .09] }] }),
+  PRE('nimble', 'Ловкий', ['chest', 'cloak', 'legs'], { mods: [{ stat: 'dodge', tiers: [.02, .04, .06] }] }),
+  PRE('wise', 'Мудрый', ['head', 'amulet', 'offhand'], { mods: [{ stat: 'mp', tiers: [10, 22, 36] }] }),
+  PRE('smouldering', 'Тлеющий', ALL, { classes: ['pyro'], mods: [{ stat: 'fire%', tiers: [.05, .1, .15] }] }),
+  PRE('rimed', 'Заиндевелый', ALL, { classes: ['cryo'], mods: [{ stat: 'ice%', tiers: [.05, .1, .15] }] }),
+  PRE('gravebound', 'Могильный', ALL, { classes: ['necro'], mods: [{ stat: 'shadow%', tiers: [.05, .1, .15] }] }),
+  PRE('blessed', 'Освящённый', ALL, { classes: ['priest'], mods: [{ stat: 'holy%', tiers: [.05, .1, .15] }] }),
+  PRE('faded', 'Выцветший', ALL, { classes: ['weaver', 'hollow'], mods: [{ stat: 'memory%', tiers: [.05, .1, .15] }] }),
+  PRE('vampiric', 'Вампирский', ['ring', 'amulet', 'chest'], { mods: [{ stat: 'lifesteal', tiers: [.01, .02, .03] }] }),
+  PRE('thorned', 'Шипастый', ['chest', 'offhand'], { mods: [{ stat: 'thorns', tiers: [.1, .18, .25] }] }),
+  PRE('warlords', 'Полководческий', ['head', 'amulet'], { mods: [{ stat: 'summonDmg%', tiers: [.08, .15, .22] }, { stat: 'summonHp%', tiers: [.08, .15, .22] }] }),
+  PRE('remembered', 'Памятный', ALL, { rare: true, mods: [{ stat: 'echoFind%', tiers: [.05, .08, .12] }], desc: 'Вещь кого-то любили. Отголоски к ней тянутся.' }),
+  // суффиксы («…ярости», «…лисы»)
+  SUF('of_bear', 'медведя', ARM, { mods: [{ stat: 'hp%', tiers: [.04, .07, .1] }] }),
+  SUF('of_fox', 'лисы', ['cloak', 'feet', 'ring'], { mods: [{ stat: 'dodge', tiers: [.02, .04, .06] }, { stat: 'speed%', tiers: [.02, .03, .04] }] }),
+  SUF('of_spring', 'родника', ['amulet', 'chest', 'head'], { mods: [{ stat: 'regen', tiers: [.5, 1, 1.8] }] }),
+  SUF('of_tide', 'прилива', ['ring', 'head', 'offhand'], { mods: [{ stat: 'mpRegen%', tiers: [.08, .15, .25] }] }),
+  SUF('of_haste', 'спешки', ['ring', 'amulet', 'head'], { mods: [{ stat: 'cdr', tiers: [.03, .06, .1] }] }),
+  SUF('of_fury', 'ярости', ALL, { classes: ['warrior'], mods: [{ stat: 'rageGain%', tiers: [.08, .15, .22] }] }),
+  SUF('of_hawk', 'ястреба', ALL, { classes: ['ranger'], mods: [{ stat: 'focusRegen%', tiers: [.08, .15, .22] }] }),
+  SUF('of_kiln', 'горна', ALL, { classes: ['pyro'], mods: [{ stat: 'burnDmg%', tiers: [.1, .2, .3] }] }),
+  SUF('of_winter', 'зимы', ALL, { classes: ['cryo'], mods: [{ stat: 'freezeDur', tiers: [.15, .3, .45] }] }),
+  SUF('of_crypt', 'склепа', ALL, { classes: ['necro'], mods: [{ stat: 'corpseLife%', tiers: [.25, .5, .75] }] }),
+  SUF('of_vow', 'обета', ALL, { classes: ['priest'], mods: [{ stat: 'faithGain%', tiers: [.08, .15, .22] }] }),
+  SUF('of_spindle', 'веретена', ALL, { classes: ['weaver'], mods: [{ stat: 'threadLife', tiers: [1, 2, 3] }] }),
+  SUF('of_emptiness', 'пустоты', ALL, { classes: ['hollow'], mods: [{ stat: 'hpCost%', tiers: [-.08, -.15, -.22] }] }),
+  // крючки
+  SUF('of_embers', 'углей', ['ring', 'amulet', 'offhand'], { hook: 'onHit', effect: { type: 'dot', kind: 'burn', school: 'fire', dps: .12, dur: 3, chance: .08 } }),
+  SUF('of_frost', 'стужи', ['ring', 'amulet', 'offhand'], { hook: 'onHit', effect: { type: 'slow', value: .25, dur: 1.5, chance: .1 } }),
+  SUF('of_last_breath', 'последнего вздоха', ['chest', 'amulet'], { hook: 'lowHp', threshold: .25, icd: 60, effect: { type: 'shield', value: .2, dur: 5 } }),
+  SUF('of_carrion', 'падальщика', ['ring', 'head'], { hook: 'onKill', effect: { type: 'heal', value: .02, mp: 3 } }),
+  SUF('of_echoes', 'отголосков', ['amulet', 'ring'], { rare: true, hook: 'onKill', effect: { type: 'dropEcho', chance: .02 }, desc: 'Иногда павший оставляет больше, чем тело.' }),
+  SUF('of_dodger', 'увёртливого', ['feet', 'cloak'], { hook: 'onDodge', effect: { type: 'buff', stat: 'speed%', value: .25, dur: 1.5 } }),
+];
+
+// Уникальные предметы. memoryCost — можно надеть только отдав воспоминание (Забвение) или по особому условию.
+export const UNIQUES = [
+  { id: 'u_frost_double', name: 'Шарф Снежной Сестры', base: 'cloak', class: 'cryo', lore: 'Её звали Илва. Теперь её зовут только этим шарфом.',
+    mods: [{ stat: 'ice%', value: .15 }], hook: 'onCast', cond: 'skill:frostnova', effect: { type: 'summon', unit: 'snow_double', at: 'self', life: 4, taunt: true, onExpire: [{ type: 'aoe', radius: 90, dmg: 1.2, school: 'ice' }] },
+    desc: 'Ледяная нова оставляет на месте мага снежного двойника, который отвлекает врагов и взрывается.' },
+  { id: 'u_kindling', name: 'Растопка', base: 'amulet', class: 'pyro', lore: 'Пиромант сжёг в нём письма. Амулет до сих пор тёплый.',
+    hook: 'onKill', cond: 'target:burning', effect: { type: 'gain', heat: 15 }, mods: [{ stat: 'burnDmg%', value: .25 }],
+    desc: 'Каждый, кто умер в огне, подкидывает 15 Жара.' },
+  { id: 'u_memory_burner', name: 'Кадило Забытых имён', base: 'orb', class: 'pyro', memoryCost: 'minor',
+    mods: [{ stat: 'fire%', value: .3 }], extra: 'Пока надето, в журнале одна случайная запись о выполненном задании становится нечитаемой.',
+    hook: 'onOverheat', effect: { type: 'buff', mods: [{ stat: 'dmg%', value: .5 }], dur: 4 },
+    desc: 'Сжигает одно воспоминание, чтобы надеть. Перегрев даёт +50 % урона.' },
+  { id: 'u_red_banner', name: 'Знамя Алой стражи', base: 'cloak', class: 'warrior',
+    mods: [{ stat: 'armor', value: 6 }], hook: 'onBlock', effect: { type: 'gain', rage: 8 },
+    desc: 'Каждый блок даёт 8 Ярости. Пока Ярость полна, союзники рядом бьют на 10 % сильнее.', aura: { cond: 'rage>=100', radius: 160, mods: [{ stat: 'dmg%', value: .1 }] } },
+  { id: 'u_widow_ring', name: 'Вдовье кольцо', base: 'ring', class: null, lore: 'Внутри гравировка: «Не забудь меня». Её не прочесть — буквы стёрты.',
+    mods: [{ stat: 'crit', value: .05 }], hook: 'lowHp', threshold: .3, icd: 30, effect: { type: 'buff', mods: [{ stat: 'critDmg', value: 1 }], dur: 5 },
+    desc: 'Ниже 30 % здоровья криты 5 секунд бьют вдвое сильнее.' },
+  { id: 'u_empty_locket', name: 'Пустой медальон', base: 'locket', class: null, memoryCost: 'player-choice',
+    desc: 'Положи в медальон воспоминание (оно забудется, как при Забвении). Медальон получает силу по «цене» памяти: мелкое — +5 % урона, важное — +10 % урона и +10 % здоровья, дорогое — ещё и +1 к уровню всех навыков.',
+    tiersByMemory: { minor: [{ stat: 'dmg%', value: .05 }], major: [{ stat: 'dmg%', value: .1 }, { stat: 'hp%', value: .1 }], precious: [{ stat: 'dmg%', value: .1 }, { stat: 'hp%', value: .1 }, { stat: 'skillLevels', value: 1 }] } },
+  { id: 'u_wolf_tooth', name: 'Клык Серого', base: 'amulet', class: 'ranger', lore: 'Волк, которого ты помнишь. Или думаешь, что помнишь.',
+    mods: [{ stat: 'summonDmg%', value: .3 }], extra: 'Зов зверя призывает двух волков, а каждый их укус ставит Метку добычи.',
+    hook: 'onSummonHit', effect: { type: 'mark', kind: 'prey', dur: 6 }, desc: 'Твой зверь сам метит добычу; волков двое.' },
+  { id: 'u_last_arrow', name: 'Лук «Последнее слово»', base: 'weapon:bow', class: 'ranger',
+    mods: [{ stat: 'critDmg', value: .4 }], hook: 'onKill', cond: 'by:charged', effect: { type: 'refund', skill: 'all', value: 1.5 },
+    desc: 'Убийство полностью заряженным выстрелом сбрасывает 1,5 секунды со всех перезарядок.' },
+  { id: 'u_choir_staff', name: 'Посох Хора', base: 'weapon:staff', class: 'necro',
+    mods: [{ stat: 'shadow%', value: .2 }], hook: 'onSummonDeath', effect: { type: 'aoe', at: 'hit', radius: 70, dmg: 1.5, school: 'shadow' },
+    desc: 'Каждый рассыпавшийся слуга взрывается тёмной вспышкой.' },
+  { id: 'u_bone_crown', name: 'Венец костей', base: 'cap_cloth', class: 'necro',
+    mods: [{ stat: 'summonMax', value: 1 }, { stat: 'hp%', value: -.1 }], desc: '+1 к пределу скелетов. Минус десятая часть твоего здоровья — кости не бывают бесплатными.' },
+  { id: 'u_oath_keeper', name: 'Хранитель клятвы', base: 'shield', class: 'priest', note: 'Жрец может носить щит только этот.',
+    mods: [{ stat: 'block', value: .15 }, { stat: 'holy%', value: .1 }], hook: 'onBlock', effect: { type: 'gain', faith: 6 },
+    desc: 'Единственный щит, который жрец согласен держать. Блок даёт 6 Веры.' },
+  { id: 'u_saint_sandals', name: 'Сандалии паломницы', base: 'sandals', class: null,
+    mods: [{ stat: 'speed%', value: .08 }], hook: 'onHeal', effect: { type: 'aura', at: 'self', radius: 60, dur: 3, apply: [{ type: 'dot', target: 'undead', kind: 'holyfire', school: 'holy', dps: .3, dur: 1 }] },
+    desc: 'После каждого лечения под ногами три секунды тлеет святой след.' },
+  { id: 'u_first_needle', name: 'Первая игла', base: 'weapon:dagger', class: 'weaver', lore: 'Ею, говорят, сшили этот мир. Шов разошёлся — игла осталась.',
+    mods: [{ stat: 'threadMax', value: 2 }], hook: 'onKill', cond: 'target:threaded', effect: { type: 'dropEcho', chance: .1 },
+    desc: '+2 к нитям. Прошитый враг, убитый тобой, с шансом 10 % оставляет Отголосок.' },
+  { id: 'u_mothers_shawl', name: 'Мамина шаль', base: 'cloak', class: 'weaver', memoryCost: 'precious',
+    mods: [{ stat: 'hp%', value: .15 }, { stat: 'memory%', value: .2 }], extra: 'Чтобы надеть, нужно забыть лицо матери (дорогая память). Узелок на память больше не имеет перезарядки — только цену в мане.',
+    desc: 'Узелок на память без перезарядки. Цена — лицо, которое ты больше не вспомнишь.' },
+  { id: 'u_nameless_blade', name: 'Безымянный', base: 'weapon:sword', class: 'hollow',
+    mods: [{ stat: 'dmgPerOblivion%', value: .01 }], hook: 'onForget', effect: { type: 'buff', permanent: true, mods: [{ stat: 'critDmg', value: .05 }] },
+    desc: 'Меч растёт вместе с пустотой: каждое отданное воспоминание навсегда +1 % урона и +5 % силы крита.' },
+  { id: 'u_blank_mask', name: 'Маска без лица', base: 'hood_leather', class: 'hollow',
+    mods: [{ stat: 'lifesteal', value: .03 }], extra: 'NPC тебя не узнают, пока маска надета: торговцы назначают обычную цену, а враги-люди иногда принимают за своего (не нападают первыми).',
+    desc: 'Тебя не узнают — ни друзья, ни враги.' },
+  { id: 'u_heartstone', name: 'Наковальня', base: 'plate', class: 'warrior', weight: 'heavy',
+    mods: [{ stat: 'armor%', value: .25 }], hook: 'onHurt', effect: { type: 'gain', rage: 3 }, extra: 'Тяжёлая броня не замедляет.',
+    desc: 'Тяжёлый доспех без штрафа к скорости. Любой полученный удар даёт ещё 3 Ярости.' },
+  { id: 'u_glacier_heart', name: 'Сердце ледника', base: 'robe', class: 'cryo',
+    hook: 'onShatter', effect: { type: 'shield', value: .04, dur: 4, stack: 5 }, desc: 'Каждый раскол даёт маленький ледяной щит (складывается до пяти раз).' },
+];
+
+// Сеты: 4 предмета, бонус за 2 и за 4. Сет тянет «легендарный» облик класса при 4 предметах.
+export const SETS = [
+  { id: 'set_red_guard', name: 'Наследие Алой стражи', class: 'warrior', pieces: ['helm_iron', 'plate', 'greaves', 'sabatons'],
+    bonus2: { mods: [{ stat: 'block', value: .08 }, { stat: 'armor', value: 8 }] },
+    bonus4: { hook: 'onBlock', effect: { type: 'aoe', at: 'self', radius: 70, dmg: 1, school: 'phys', apply: [{ type: 'knockback', dist: 50 }] }, desc: 'Каждый блок отбрасывает всех вокруг ударом щита.' } },
+  { id: 'set_greenway', name: 'Зелёная тропа', class: 'ranger', pieces: ['hood_leather', 'jerkin', 'boots', 'quiver'],
+    bonus2: { mods: [{ stat: 'speed%', value: .06 }, { stat: 'focusRegen%', value: .15 }] },
+    bonus4: { desc: 'Стоя на месте полсекунды, становишься невидим для врагов дальше 120 px; первый выстрел из невидимости — крит.', hook: 'still', effect: { type: 'invis', detectRadius: 120, breakOnHit: true, nextHit: { forceCrit: true } } } },
+  { id: 'set_kiln', name: 'Регалии Горна', class: 'pyro', pieces: ['cap_cloth', 'robe', 'trousers', 'orb'],
+    bonus2: { mods: [{ stat: 'heatGain%', value: .2 }] },
+    bonus4: { desc: 'Перегрев начинается с 80 Жара, а Огненная волна во время Перегрева вылетает дважды.', mods: [{ stat: 'overheatAt', value: -20 }], hook: 'onCast', cond: 'skill:nova,overheat', effect: { type: 'repeatCast', delay: .3 } } },
+  { id: 'set_vow', name: 'Ризы Утешителя', class: 'priest', pieces: ['hood_leather', 'robe', 'sandals', 'amulet'],
+    bonus2: { mods: [{ stat: 'healPower%', value: .15 }, { stat: 'faithGain%', value: .15 }] },
+    bonus4: { desc: 'Освящённое заклинание (на 100 Веры) дополнительно бьёт Небесной карой по ближайшему врагу.', hook: 'onConsecrate', effect: { type: 'aoe', at: 'target', radius: 66, dmg: 2.2, school: 'holy' } } },
+  { id: 'set_loom', name: 'Ткацкий стан', class: 'weaver', pieces: ['cap_cloth', 'jerkin', 'trousers', 'spool'],
+    bonus2: { mods: [{ stat: 'threadMax', value: 2 }, { stat: 'atkSpeed%', value: .08 }] },
+    bonus4: { desc: 'Каждый пятый навык «вплетается» сам, без Отголоска.', hook: 'onCast', counter: 5, effect: { type: 'buff', kind: 'woven', charges: 1 } } },
+  { id: 'set_nameless', name: 'Саван Без-имени', class: 'hollow', pieces: ['mantle', 'mail', 'leggings', 'reliquary'],
+    bonus2: { mods: [{ stat: 'lifesteal', value: .03 }, { stat: 'hpCost%', value: -.1 }] },
+    bonus4: { desc: 'Каждое воспоминание, отданное Забвению, считается за два для Пустоты.', mods: [{ stat: 'oblivionMul', value: 2 }] } },
+];
+
+// ===================================================================================================
+// ОРУЖИЕ: тип = поведение. Металл (METALS) задаёт силу и цвет.
+// ===================================================================================================
+export const WEAPONS = {
+  sword: { name: 'меч', layer: 'sword', anim: 'slash', hand: 'one', dmgMul: 1, cd: .42, range: 42, arc: 110, hitFrame: 3,
+    handling: 'Связка из трёх ударов: третий на 50 % сильнее и отбрасывает. Пауза дольше 0,8 с сбрасывает связку.', combo: [1, 1, 1.5], comboWindow: .8, offhand: ['shield', null] },
+  twohand: { name: 'двуручный меч', layer: 'sword', scale: 1.15, anim: 'slash', hand: 'two', dmgMul: 1.3, cd: .6, range: 48, arc: 140, hitFrame: 3,
+    handling: 'Медленный широкий взмах; щит не взять. Беспамятный держит меч обеими руками (тот же слой sword, крупнее, без щита).', offhand: [] },
+  dagger: { name: 'кинжал', layer: 'dagger', anim: 'slash', hand: 'one', dmgMul: .7, cd: .3, range: 34, arc: 70, hitFrame: 2, critBonus: .05,
+    handling: 'Очень быстрые уколы, связка из четырёх. Удар в спину (цель смотрит от тебя) +50 % урона и +30 % к шансу крита.', combo: [1, 1, 1, 1.3], backstab: { bonus: .5, critChance: .3 } },
+  spear: { name: 'копьё', layer: 'spear', anim: 'thrust', needsAnim: true, hand: 'two', dmgMul: 1.1, cd: .55, range: 64, arc: 30, hitFrame: 4,
+    handling: 'Длинный укол по линии (пронзает двоих). Каждый третий удар — подсечка по дуге 160° на 40 px, сбивает с ног на 0,5 с. Враг на кончике копья (дальше 48 px) получает +20 %.',
+    sweepEvery: 3, sweep: { arc: 160, range: 40, stun: .5 }, tipBonus: { from: 48, mul: 1.2 }, pierce: 2,
+    note: 'Требует анимацию thrust: в ANIMS build_game.py добавить "thrust": (8, 4, list(range(8))). У тела и копья LPC она есть; slash у копья нет.' },
+  bow: { name: 'лук', layer: 'bow', extra: 'arrow', anim: 'shoot', hand: 'two', dmgMul: 1, cd: .5, range: 300, speed: 380, hitFrame: 5,
+    handling: 'Нажал — выстрел. Зажал — заряд до 1 с: урон до ×2,2, на полном заряде стрела пробивает двоих. Во время зарядки идёшь вдвое медленнее.',
+    charge: { hold: 1, maxDmg: 2.2, pierceAtFull: 2, moveMul: .5 } },
+  staff: { name: 'посох', layer: 'staff', anim: 'spellcast', hand: 'two', dmgMul: 1, cd: .5, range: 320, hitFrame: 4,
+    handling: 'Стреляет болтом своей школы. Поведение болта зависит от школы посоха.',
+    bySchool: {
+      fire: { proj: 'fireball', speed: 300, onHit: 'взрыв 28 px на 50 % урона, 30 % поджечь', tint: '#ff8a3a' },
+      ice: { proj: 'ice_shard', speed: 340, onHit: '+1 слой Стужи, чуть дешевле по кулдауну (0,48 с)', tint: '#bfe8ff' },
+      shadow: { proj: 'shadow_bolt', speed: 300, onHit: 'вампиризм 10 %', tint: '#7dff9a' },
+      holy: { proj: 'holy_bolt', speed: 320, onHit: '×2 по нежити, +1 Вера', tint: '#fff2a8' },
+      memory: { proj: 'thread_bolt', speed: 360, onHit: 'пришивает нить; урон памятью игнорирует броню', tint: '#ff6a70' },
+    } },
+  shield: { name: 'щит', layer: 'shield', offhand: true, handling: 'Блок пассивный: шанс block гасит удар спереди целиком. Удар щитом/Стена щитов — навыки воина.' },
+};
+
+// Школы урона. memory — «урон памятью»: игнорирует броню, но враги-нежить (уже забывшие себя) получают от него −30 %.
+export const SCHOOLS = {
+  phys: { name: 'физический', color: '#e8e2d4' }, fire: { name: 'огонь', color: '#ff8a3a' }, ice: { name: 'лёд', color: '#bfe8ff' },
+  shadow: { name: 'тьма', color: '#7dff9a' }, holy: { name: 'свет', color: '#fff2a8' }, memory: { name: 'память', color: '#ff6a70', ignoresArmor: true, vsUndead: .7 },
+};
+
+// Новые призываемые существа (look — как в ENEMIES).
+export const SUMMONS = {
+  memory_wolf: { name: 'Волк из памяти', look: { body: 'male', skin: '#8a9ab8', alpha: .8, layers: ['head_wolf', ['pants', '#3a4058']] }, ai: 'melee', reach: 26, cd: 1, speed: 110 },
+  skeleton: { name: 'Скелет-слуга', look: { body: 'male', base: 'body_skeleton', skin: '#e8e2cf', tint: '#7dff9a', layers: [['head_skeleton', '#e8e2cf'], ['sword', null, '#8a7f74']] } },
+  skeleton_archer: { name: 'Скелет-лучник', look: { body: 'male', base: 'body_skeleton', skin: '#e8e2cf', tint: '#7dff9a', layers: [['head_skeleton', '#e8e2cf'], ['bow', '#6a4a2a', '#8a7f74'], ['arrow', '#6a4a2a', '#8a7f74']] }, ai: 'ranged' },
+  bone_golem: { name: 'Костяной великан', look: { body: 'male', base: 'body_skeleton', skin: '#d8d0b8', scale: 1.5, layers: [['head_skeleton', '#d8d0b8'], ['pauldrons', null, '#e8e2cf'], ['armor_legion', null, '#cfc8b0']] }, ai: 'melee' },
+  snow_double: { name: 'Снежный двойник', copyHero: true, tint: '#e8f4ff', alpha: .7, ai: 'none' },
+  ice_mirror: { name: 'Ледяное зеркало', sprite: 'fx:crystal', ai: 'turret' },
+  hero_echo: { name: 'Тень себя', copyHero: true, tint: '#b9a8d8', alpha: .6, ai: 'melee' },
+};
+
+// ---------- «Человек»: так начинает каждый. Путь (класс) выучивается у наставников по ходу сюжета ----------
+CLASSES2.human = {
+  name: 'Человек', nameF: 'Человек', weapon: 'knife', anim: 'slash', main: 'ВЫН', weight: 'light', isHuman: true,
+  fantasy: 'Ни ремесла, ни магии. Нож, кулаки и руки, которые что-то помнят, но не знают что. Путь найдётся у людей: кто-то научит бить, кто-то — стрелять, кто-то — вязать узлы. Маги фракций — дальше по дороге.',
+  style: 'Нож и пинок. Перекат из-под удара.',
+  resource: { id: 'focus', name: 'Дыхание', max: 100, start: 100, regen: 14, regenStill: 26, stillDelay: 0.5, noMana: true, twist: 'Дыхание тратится на пинок и перекат и быстрее возвращается, когда стоишь.' },
+  basic: { type: 'melee', dmg: 0.8, cd: 0.42, range: 36, arc: 100, hitFrame: 3, combo: [1, 1, 1.4], comboWindow: 0.8, finisher: { knockback: 40 }, school: 'phys' },
+  tree: [
+    { name: 'Выживание', nodes: [
+      { id: 'h_kick', name: 'Пинок', desc: 'Сбивает с ног того, кто подошёл слишком близко.', kind: 'active', ranks: 3, req: [], tier: 1, cost: { focus: 25 }, cd: 4, effects: [{ type: 'cone', at: 'aim', range: 48, arc: 80, dmg: 0.7, school: 'phys', apply: [{ type: 'knockback', dist: 70 }, { type: 'stun', dur: 0.6 }] }], perRank: { dmg: 0.15 }, vfx: 'arc_steel', sfx: 'shield_hit' },
+      { id: 'h_roll', name: 'Перекат', desc: 'Уйти из-под удара.', kind: 'active', ranks: 3, req: [], tier: 1, cost: { focus: 30 }, cd: 5, effects: [{ type: 'dash', at: 'aim', dist: 100, speed: 520, iframes: 0.35 }], perRank: { dist: 10 }, vfx: 'trail_dust', sfx: 'whoosh' },
+      { id: 'h_tough', name: 'Живучесть', desc: 'Больше здоровья.', kind: 'passive', ranks: 3, req: [], tier: 1, mods: [{ stat: 'hp', per: 12 }] },
+    ] },
+    { name: 'Чужие руки', nodes: [
+      { id: 'h_quick', name: 'Ловкие пальцы', desc: 'Руки помнят сеть и узлы. Чьи — неизвестно. Бьёшь чуть быстрее.', kind: 'passive', ranks: 2, req: [], tier: 1, mods: [{ stat: 'atkSpeed%', per: 0.05 }] },
+      { id: 'h_stance', name: 'Чужая стойка', desc: 'Тело само встаёт в строй, будто стояло в нём годами. Немного брони.', kind: 'passive', ranks: 2, req: [], tier: 1, mods: [{ stat: 'armor', per: 4 }] },
+      { id: 'h_herbs', name: 'Травяной нюх', desc: 'Ты откуда-то знаешь, как заваривать полынь. Зелья лечат сильнее.', kind: 'passive', ranks: 2, req: [], tier: 1, mods: [{ stat: 'healPower%', per: 0.1 }] },
+    ] },
+  ],
+};
+OUTFITS.human = { tiers: [
+  { name: 'Сухое с чужого плеча', layers: [['ls_laced', '#9a8a6a'], ['belt', '#3a2a20'], ['pants', '#4a3a30'], ['shoes', '#3a2a20']], fem: { ls_laced: 'blouse_ls' } },
+  { name: 'Крестьянская одёжа', layers: [['ls2', '#8a7a5a'], ['vest', '#4a3a2a'], ['belt', '#3a2a20'], ['pants', '#3b3f46'], ['boots', '#2a201a']], fem: { ls2: 'blouse_ls' } },
+  { name: 'Дорожная куртка', layers: [['armor_leather', '#5a4636'], ['ls2', '#7a6a5a'], ['belt', '#3a2a20'], ['pants', '#3b3f46'], ['boots', '#2a201a']], fem: { ls2: 'blouse_ls' } },
+  { name: 'Стёганка ополченца', layers: [['tabard', '#4a4a3a'], ['ls2', '#6a5a4a'], ['belt', '#3a2a20'], ['pants', '#3b3f46'], ['boots', '#2a201a']], fem: { ls2: 'blouse_ls' } },
+] };
