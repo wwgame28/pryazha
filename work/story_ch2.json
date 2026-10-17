@@ -1,0 +1,435 @@
+{
+  "quests": [
+    {
+      "id": "m3",
+      "title": "Тот, кто не забывает",
+      "giver": "ivar",
+      "chain": "main",
+      "chapter": 2,
+      "after": [
+        "c1_council"
+      ],
+      "summary": "Ключ от склепа хранит Гурдым — тролль, которому Морвен велел отдать его тому, кто придёт мокрым. Гурдым помнит слишком много зим.",
+      "onStart": [
+        "scene:chapter_2_start"
+      ],
+      "steps": [
+        {
+          "id": "s1",
+          "type": "goto",
+          "target": "trollcamp",
+          "where": "trollcamp",
+          "scene": "m3_s1",
+          "text": "Найти Гурдымов Камень"
+        },
+        {
+          "id": "s2",
+          "type": "talk",
+          "target": "gurdym",
+          "where": "trollcamp",
+          "scene": "m3_s2",
+          "text": "Поговорить с Гурдымом"
+        },
+        {
+          "id": "s3",
+          "type": "choose",
+          "target": "gurdym",
+          "where": "trollcamp",
+          "scene": "m3_s3",
+          "text": "Решить, как получить ключ"
+        },
+        {
+          "id": "s4",
+          "type": "defeat",
+          "target": "troll",
+          "count": 1,
+          "where": "trollcamp",
+          "requires": {
+            "gurdym": "dead"
+          },
+          "scene": "m3_s4",
+          "text": "Одолеть Гурдыма"
+        },
+        {
+          "id": "s5",
+          "type": "choose",
+          "target": "gurdym",
+          "where": "trollcamp",
+          "requires": {
+            "c2_gurdym_route": "easing"
+          },
+          "scene": "m3_s5",
+          "text": "Решить, брать ли красную зиму"
+        },
+        {
+          "id": "s6",
+          "type": "talk",
+          "target": "gurdym",
+          "where": "trollcamp",
+          "requires": {
+            "gurdym": "spared"
+          },
+          "scene": "m3_s6",
+          "text": "Получить ключ миром"
+        }
+      ],
+      "outcomes": [
+        {
+          "if": {
+            "gurdym": "dead"
+          },
+          "text": "Ключ тёплый от ладони Гурдыма. В ельнике всю ночь воют гоблины; теперь они знают, что старика можно было не убивать.",
+          "rewards": {
+            "gold": 90,
+            "xp": 160,
+            "echoes": 25,
+            "item": "crypt_key"
+          },
+          "worldEffects": [
+            "card+:quest:q_m3:4",
+            "npc:gurdym:gone",
+            "bond:shurshok:-3",
+            "spawn:goblin:wild:forest:x1.5",
+            "deed:d_killed_gurdym",
+            "later:2:ev_goblin_raid"
+          ]
+        },
+        {
+          "if": {
+            "all": [
+              {
+                "gurdym": "eased"
+              },
+              {
+                "c2_gurdym_memory": "borne"
+              }
+            ]
+          },
+          "text": "В тебе теперь чужая зима: красная вода, горящие окна и мальчик с факелом. Гурдым впервые за двести лет спит.",
+          "rewards": {
+            "xp": 160,
+            "echoes": 15,
+            "item": "crypt_key"
+          },
+          "worldEffects": [
+            "card+:quest:q_m3:4",
+            "card+:foreign:f_red_winter:3",
+            "bond:gurdym:+2",
+            "deed:d_eased_gurdym",
+            "learn:f_red_winter_gurdym"
+          ]
+        },
+        {
+          "if": {
+            "gurdym": "eased"
+          },
+          "text": "Огонь взял красную зиму, а Гурдым остался смотреть на пустую ладонь. Ключ он отдал молча.",
+          "rewards": {
+            "xp": 160,
+            "echoes": 15,
+            "item": "crypt_key"
+          },
+          "worldEffects": [
+            "card+:quest:q_m3:4",
+            "bond:gurdym:+1",
+            "deed:d_eased_gurdym"
+          ]
+        },
+        {
+          "if": {},
+          "text": "Гурдым отдал ключ не потому, что забыл, а потому, что ему впервые не приказали забыть.",
+          "rewards": {
+            "xp": 160,
+            "echoes": 15,
+            "item": "crypt_key"
+          },
+          "worldEffects": [
+            "card+:quest:q_m3:4",
+            "bond:gurdym:+2",
+            "bond:shurshok:+1",
+            "deed:d_spared_gurdym"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "m4",
+      "title": "Проводы",
+      "giver": "ivar",
+      "chain": "main",
+      "chapter": 2,
+      "after": [
+        "m3"
+      ],
+      "endsChapter": 2,
+      "summary": "В ночь Проводов Брод в последний раз назовёт имена умерших за год. Среди них — Митрий Вереск; Ясна предлагает купить весь список.",
+      "steps": [
+        {
+          "id": "s1",
+          "type": "talk",
+          "target": "ivar",
+          "where": "village",
+          "scene": "m4_s1",
+          "text": "Узнать, как пройдут Проводы"
+        },
+        {
+          "id": "s2",
+          "type": "talk",
+          "target": "agafya",
+          "where": "village",
+          "scene": "m4_s2",
+          "text": "Поговорить с Агафьей о Митрии"
+        },
+        {
+          "id": "s3",
+          "type": "night",
+          "target": "ford",
+          "where": "village",
+          "text": "Прийти ночью к броду"
+        },
+        {
+          "id": "s4",
+          "type": "talk",
+          "target": "ivar",
+          "where": "village",
+          "scene": "m4_s4",
+          "text": "Встретить Ясну у воды"
+        },
+        {
+          "id": "s5",
+          "type": "choose",
+          "target": "ivar",
+          "where": "village",
+          "scene": "m4_s5",
+          "text": "Решить судьбу имён"
+        },
+        {
+          "id": "s6",
+          "type": "sacrifice",
+          "target": "any",
+          "count": 2,
+          "where": "village",
+          "requires": {
+            "provody": "taken"
+          },
+          "scene": "m4_s6",
+          "text": "Освободить место для чужих имён (отдать память весом от 2)"
+        }
+      ],
+      "outcomes": [
+        {
+          "if": {
+            "all": [
+              {
+                "provody": "spoken"
+              },
+              {
+                "mitya_hidden": true
+              }
+            ]
+          },
+          "text": "Одиннадцать берестинок уплыли. Агафья держит узелок и смотрит на тебя так, будто ты сам Митрий. Ивар всё понял, но промолчал.",
+          "rewards": {
+            "xp": 120,
+            "echoes": 20
+          },
+          "worldEffects": [
+            "card+:quest:q_m4:4",
+            "bond:agafya:+2",
+            "bond:ivar:-1",
+            "flag:mitya_kept=true",
+            "deed:d_read_names",
+            "deed:d_hid_mitya",
+            "greeting:agafya:c2_mitya_held"
+          ]
+        },
+        {
+          "if": {
+            "provody": "spoken"
+          },
+          "text": "Береста уплыла. Агафья расплела косу, и узелок ушёл за огоньками. Утром она назовёт тебя «милок» и не вспомнит, почему плакала.",
+          "rewards": {
+            "gold": 30,
+            "xp": 120,
+            "echoes": 20
+          },
+          "worldEffects": [
+            "card+:quest:q_m4:4",
+            "bond:ivar:+2",
+            "flag:mitya_kept=false",
+            "line:agafya:forgot_mitya"
+          ]
+        },
+        {
+          "if": {
+            "provody": "sold"
+          },
+          "text": "Ясна заплатила деревне сто пятьдесят серебром. Утром никто не помнит умерших, а в Архиве на полке звенят двенадцать склянок.",
+          "rewards": {
+            "gold": 150,
+            "xp": 120,
+            "echoes": 10
+          },
+          "worldEffects": [
+            "card+:quest:q_m4:4",
+            "bond:yasna:+2",
+            "bond:agafya:-2",
+            "flag:mitya_kept=archive",
+            "shop:yasna:discount10",
+            "deed:d_sold_names"
+          ]
+        },
+        {
+          "if": {},
+          "text": "Двенадцать имён теперь в тебе. Ночью слышно, как они переговариваются. Агафья помнит сына; Ивар перестал здороваться первым.",
+          "rewards": {
+            "xp": 140,
+            "echoes": 30
+          },
+          "worldEffects": [
+            "card+:quest:q_m4:4",
+            "card+:foreign:f_twelve_names:3",
+            "bond:agafya:+3",
+            "bond:ivar:-2",
+            "flag:mitya_kept=hero",
+            "deed:d_took_names"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "c2_birch",
+      "title": "Береста",
+      "giver": "ivar",
+      "chain": "side",
+      "chapter": 2,
+      "after": [
+        "m3"
+      ],
+      "auto": true,
+      "summary": "Ивар велел собрать у шести дворов истории тех, чьи имена он внесёт в бересту Проводов. Некоторые живые просят не отдавать своих мёртвых.",
+      "steps": [
+        {
+          "id": "s1",
+          "type": "talk",
+          "target": "ivar",
+          "where": "village",
+          "scene": "c2_birch_s1",
+          "text": "Взять бересту у Ивара"
+        },
+        {
+          "id": "s2",
+          "type": "count",
+          "target": "c2_birch_names",
+          "count": 6,
+          "where": "village",
+          "text": "Обойти шесть дворов: Весна, Улита, Пелагея, Федот, Дуня, Агафья"
+        },
+        {
+          "id": "s3",
+          "type": "talk",
+          "target": "ivar",
+          "where": "village",
+          "scene": "c2_birch_s3",
+          "text": "Вернуть бересту Ивару"
+        }
+      ],
+      "outcomes": [
+        {
+          "if": {
+            "c2_birch_mitya": "hidden"
+          },
+          "text": "В списке осталось пустое восьмое место. Ивар не спросил, чьё оно. Береста помнит и без чернил.",
+          "rewards": {
+            "xp": 70,
+            "echoes": 8
+          },
+          "worldEffects": [
+            "card+:quest:q_c2_birch:2",
+            "rel:agafya:trust:1"
+          ]
+        },
+        {
+          "if": {},
+          "text": "Береста собрала шесть домашних историй. Имена стали тяжелее, но не сделались проще.",
+          "rewards": {
+            "xp": 70,
+            "echoes": 8
+          },
+          "worldEffects": [
+            "card+:quest:q_c2_birch:2"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "c2_pebbles",
+      "title": "Камешки",
+      "giver": "khrum",
+      "chain": "side",
+      "chapter": 2,
+      "after": [
+        "m3"
+      ],
+      "summary": "Гоблины растащили три камешка-зимы с шеи Гурдыма. Один из них красный и хранит то, чего тролль хотел бы не помнить.",
+      "steps": [
+        {
+          "id": "s1",
+          "type": "talk",
+          "target": "khrum",
+          "where": "far_bank",
+          "scene": "c2_pebbles_s1",
+          "text": "Узнать, куда делись камешки"
+        },
+        {
+          "id": "s2",
+          "type": "investigate",
+          "target": "c2_pebble",
+          "count": 3,
+          "where": "wild:forest",
+          "scene": "c2_pebbles_s2",
+          "text": "Найти три камешка в Подшёрстке"
+        },
+        {
+          "id": "s3",
+          "type": "choose",
+          "target": "gurdym",
+          "where": "trollcamp",
+          "scene": "c2_pebbles_s3",
+          "text": "Решить судьбу красного камешка"
+        }
+      ],
+      "outcomes": [
+        {
+          "if": {
+            "c2_pebble_kept": true
+          },
+          "text": "Красный камешек лежит в кармане, тяжёлый как недосказанная правда. Он не заменит свидетеля, но не даст делу стать сказкой.",
+          "rewards": {
+            "xp": 45,
+            "echoes": 5
+          },
+          "worldEffects": [
+            "card+:quest:q_c2_pebbles:1"
+          ]
+        },
+        {
+          "if": {},
+          "text": "Красный камешек ушёл в реку. У Гурдыма стало меньше тяжести на шее, но у Брода — на одну улику меньше.",
+          "rewards": {
+            "xp": 45,
+            "echoes": 8
+          },
+          "worldEffects": [
+            "card+:quest:q_c2_pebbles:1"
+          ]
+        }
+      ]
+    }
+  ],
+  "modify": {},
+  "places": {},
+  "greetings": {
+    "c2_mitya_held": "Косу не трогай, милок. Она и так тяжёлая."
+  }
+}

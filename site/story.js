@@ -78,7 +78,7 @@ export class Story {
   npcName(id) {
     const n = this.npcById[id]; if (!n) return id;
     const M = this.G.memory || {};
-    if (M.sacrificed && M.sacrificed.some((s) => s.type === 'bond' && s.links && s.links.npc === id)) return 'Кто-то знакомый?';
+    if (!M.cards?.some(c=>c.type==='bond' && c.links?.npc===id) && M.sacrificed && M.sacrificed.some((s) => s.type === 'bond' && s.links && s.links.npc === id)) return 'Кто-то знакомый?';
     return n.name;
   }
   npcState(id) { return this.S.npc[id] || (this.late.has(id) ? 'gone' : 'home'); }
@@ -141,13 +141,15 @@ export class Story {
     const o = q.outcomes.find((x) => this.test(x.if)) || q.outcomes[q.outcomes.length - 1];
     this.S.done[qid] = q.outcomes.indexOf(o);
     const r = o.rewards || {};
-    if (r.gold) this.A.gold(r.gold); if (r.xp) this.A.xp(r.xp); if (r.echoes) this.A.echoes(r.echoes); if (r.item) this.A.item(r.item);
-    for (const w of o.worldEffects || []) this.effect(w, q, o);
+    if (r.gold) this.A.gold(r.gold); if (r.xp) this.A.xp(r.xp); if (r.echoes) this.A.echoes(r.echoes); if (r.item) this.A.item(this.resolve(r.item));
+    const finale = (o.worldEffects || []).some(w=>w.split(':')[0]==='ending');
+    for (const w of o.worldEffects || []) if(w.split(':')[0] !== 'ending') this.effect(w, q, o);
     // journal line for this quest goes onto its memory card
     const card = this.A.cardById('q_' + qid); if (card && o.text) card.journal = [...(card.journal || []), o.text];
     this.A.questDone(q, o);
+    if(finale) this.A.ending(this.ending());
     for (const nx of q.then || []) this.start(nx);
-    if (q.endsChapter) this.A.chapterTo(q.endsChapter + 1);
+    if (q.endsChapter && q.endsChapter < 6) this.A.chapterTo(q.endsChapter + 1);
     if (q.chain === 'main') { const nx = this.nextMain(); if (nx) { const n = this.qById[nx]; if (n.auto || !n.giver || !this.reachable(n.giver)) this.start(nx); } }
     this.A.save(); this.A.updateHUD();
   }
@@ -186,7 +188,7 @@ export class Story {
       case 'spawn': { const type = p[1], mul = parseFloat((p[p.length - 1] || 'x1').slice(1)); const where = p.slice(2, -1).join(':'); G.flags['spawn:' + type + ':' + where] = mul; if (mul > 0 && this.here(where)) this.A.raid(type, Math.ceil(3 * mul)); break; }
       case 'fog': { const where = p.slice(1, -1).join(':'); this.A.fog(where, p[p.length - 1]); break; }
       case 'biome': G.flags['biome:' + p[1]] = (G.flags['biome:' + p[1]] || 0) + (p[2] === 'grow' ? 1 : -1) * (+p[3] || 10); break;
-      case 'item': this.A.item(p[1]); break;
+      case 'item': this.A.item(this.resolve(p[1])); break;
       case 'perk': G.flags['perk:' + p[1]] = (G.flags['perk:' + p[1]] || 0) + parseFloat(p[2]); break;
       case 'sacrifice': this.A.forceForget(p.slice(1).join(':')); break;
       case 'restore': this.A.restoreLast(); break;

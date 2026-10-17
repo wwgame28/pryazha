@@ -1,0 +1,186 @@
+{
+  "quests": [
+    {
+      "id": "m9",
+      "title": "Красная зима",
+      "giver": "agafya",
+      "chain": "main",
+      "chapter": 5,
+      "auto": true,
+      "summary": "Красная зима больше не помещается в чужих молчаниях. Собери три из пяти свидетельств, реши, кому достанется правда, и не дай старому огню повториться.",
+      "after": ["m8"],
+      "endsChapter": 5,
+      "steps": [
+        {"id": "s1", "type": "talk", "target": "agafya", "where": "village", "scene": "m9_s1", "text": "Вернуться к Агафье"},
+        {"id": "s2", "type": "count", "target": "c5_witness_count", "count": 3, "where": "village", "text": "Собрать любые три из пяти свидетельств Красной зимы"},
+        {"id": "s3", "type": "choose", "target": "self", "where": "village", "scene": "m9_s3", "text": "Решить, кому достанется правда"},
+        {"id": "s4", "type": "choose", "target": "self", "where": "ashes", "scene": "m9_s4", "text": "Свести Ясну и Угара у пепелища"},
+        {"id": "s5", "type": "talk", "target": "kudel", "where": "ruins", "scene": "m9_s5", "text": "Спросить Кудель, кто сшил героя"},
+        {"id": "s6", "type": "night", "target": "village", "where": "village", "scene": "m9_s6", "text": "Ночью прийти к избе Агафьи"},
+        {"id": "s7", "type": "wait", "target": "dawn", "where": "village", "scene": "m9_s7", "text": "Дождаться рассвета и принять инструмент"}
+      ],
+      "outcomes": [
+        {
+          "if": {"faction": "none"},
+          "text": "У тебя нет ни лампы, ни факела. Есть узелок, память о страхе Морвена перед пауками и правда, за которую пришлось заплатить живым.",
+          "rewards": {"xp": 220, "echoes": 25, "item": "agafya_knot"},
+          "worldEffects": ["card+:quest:q_m9:4", "flag:morven_spiders=true"]
+        },
+        {
+          "if": {},
+          "text": "Инструмент для Морвена лежит в руках тяжело. Теперь он не отменяет твоего выбора — только делает его возможным.",
+          "rewards": {"xp": 220, "echoes": 25, "item": "$faction_tool"},
+          "worldEffects": ["card+:quest:q_m9:4"]
+        }
+      ]
+    },
+    {
+      "id": "c5_witness",
+      "title": "Пять свидетельств",
+      "giver": "agafya",
+      "chain": "investigation",
+      "chapter": 5,
+      "hidden": true,
+      "summary": "Агафья назвала пять следов Красной зимы. Трёх достаточно, чтобы узнать правду; все пять не сделают её легче.",
+      "steps": [
+        {"id": "s1", "type": "count", "target": "c5_witness_count", "count": 3, "where": "village", "text": "Собрать три свидетельства: узелок, список, полка, поступок или пепелище"}
+      ],
+      "outcomes": [
+        {
+          "if": {},
+          "text": "Три разных следа сходятся в одну ночь: список, огонь и память, которую Брод продал, чтобы не смотреть на себя.",
+          "rewards": {"xp": 65},
+          "worldEffects": []
+        }
+      ]
+    },
+    {
+      "id": "c5_knot",
+      "title": "Серый узелок",
+      "giver": "agafya",
+      "chain": "investigation",
+      "chapter": 5,
+      "hidden": true,
+      "summary": "Под красным узелком Митрия Агафья тридцать пять лет носит серый — память о Марфе и собственном молчании.",
+      "steps": [
+        {"id": "s1", "type": "talk", "target": "agafya", "where": "village", "scene": "c5_knot_s1", "text": "Спросить Агафью о сером узелке"}
+      ],
+      "outcomes": [
+        {
+          "if": {},
+          "text": "Агафья призналась: она видела огонь и молчала. Что делать с её серым узлом — теперь не только её выбор.",
+          "rewards": {"xp": 45},
+          "worldEffects": []
+        }
+      ]
+    },
+    {
+      "id": "c5_list",
+      "title": "Список старосты",
+      "giver": "ivar",
+      "chain": "investigation",
+      "chapter": 5,
+      "hidden": true,
+      "summary": "В сундуке Богдана Ольхи лежит берестяной список дворов, которые он выдал Пепельному Кругу.",
+      "steps": [
+        {"id": "s1", "type": "talk", "target": "ivar", "where": "village", "scene": "c5_list_s1", "text": "Попросить Ивара открыть сундук Богдана"}
+      ],
+      "outcomes": [
+        {
+          "if": {"ivar_list": "village"},
+          "text": "Ивар отдаёт список деревне. Отец больше не может прятаться за сундуком, а сын — за его именем.",
+          "rewards": {"xp": 50},
+          "worldEffects": []
+        },
+        {
+          "if": {"ivar_list": "burned"},
+          "text": "Список сгорел, но Ивар успел прочесть каждое имя. Береста исчезла, ответственность — нет.",
+          "rewards": {"xp": 45},
+          "worldEffects": []
+        },
+        {
+          "if": {},
+          "text": "Ивар спрятал список от Чада. Правда осталась у вас, но не стала его оружием.",
+          "rewards": {"xp": 45},
+          "worldEffects": []
+        }
+      ]
+    },
+    {
+      "id": "c5_shelf",
+      "title": "Опечатанная полка",
+      "giver": "yasna",
+      "chain": "investigation",
+      "chapter": 5,
+      "hidden": true,
+      "summary": "В запечатанном крыле Башни лежат купленные память Брода и детство Ясны, отданное после пожара.",
+      "steps": [
+        {"id": "s1", "type": "talk", "target": "yasna", "where": "tower", "scene": "c5_shelf_s1", "text": "Попросить Ясну открыть запечатанное крыло"},
+        {"id": "s2", "type": "choose", "target": "yasna", "where": "tower", "scene": "c5_shelf_s2", "text": "Решить судьбу детства Ясны"}
+      ],
+      "outcomes": [
+        {
+          "if": {"yasna_childhood": "returned"},
+          "text": "Ясна взяла своё детство. Вместе с ним вернулся дым, но и маленькая девочка, которую когда-то вынесли из дома.",
+          "rewards": {"xp": 60, "echoes": 5},
+          "worldEffects": []
+        },
+        {
+          "if": {},
+          "text": "Запись о ночи первого снега больше нельзя назвать случайным пожаром. Детство Ясны осталось за печатью — по её воле или по твоей.",
+          "rewards": {"xp": 50},
+          "worldEffects": []
+        }
+      ]
+    },
+    {
+      "id": "c5_deed",
+      "title": "Поступок",
+      "giver": "ugar",
+      "chain": "investigation",
+      "chapter": 5,
+      "hidden": true,
+      "summary": "Угар сжёг память о ночи первого снега. В её отражении он одновременно мальчик с факелом и ребёнок, который вынес Ясеньку.",
+      "steps": [
+        {"id": "s1", "type": "talk", "target": "ugar", "where": "camp", "scene": "c5_deed_s1", "text": "Поговорить с Угаром о мальчике с факелом"}
+      ],
+      "outcomes": [
+        {
+          "if": {"ugar_fate": "atoning"},
+          "text": "Угар принял память целиком. Он не стал невиновным, но может не дать Чаду повторить его поступок.",
+          "rewards": {"xp": 55},
+          "worldEffects": []
+        },
+        {
+          "if": {},
+          "text": "Угар увидел свой поступок, но не нашёл для него простого имени. Огонь у Круга теперь горит неровно.",
+          "rewards": {"xp": 45},
+          "worldEffects": []
+        }
+      ]
+    },
+    {
+      "id": "c5_ashes",
+      "title": "Пепел на снегу",
+      "giver": "agafya",
+      "chain": "investigation",
+      "chapter": 5,
+      "hidden": true,
+      "summary": "Пепелище у брода хранит не рассказ, а простые следы дома: камни, чешую и детскую букву на печи.",
+      "steps": [
+        {"id": "s1", "type": "investigate", "target": "ashes", "count": 1, "where": "ashes", "scene": "c5_ashes_s1", "text": "Осмотреть пепелище ещё раз"}
+      ],
+      "outcomes": [
+        {
+          "if": {},
+          "text": "Даже засыпанный снегом пепел не становится пустым местом. У дома Марфы были люди, имена и печь.",
+          "rewards": {"xp": 35},
+          "worldEffects": []
+        }
+      ]
+    }
+  ],
+  "modify": {},
+  "places": {},
+  "greetings": {}
+}

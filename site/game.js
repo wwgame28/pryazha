@@ -1,5 +1,6 @@
 // «Тени Ольхового Брода»: top-down action RPG. Heroes and villagers come from the character dossier generator.
 import * as GEN from './gen.js';
+import { createExpansion } from './expansion.js';
 import { loadSprites, Look, hasItem, shade, lum, ANIM_FRAMES } from './sprites.js';
 import { T, TILE, makeTileset, buildCrypt, solidTile, drawGround, drawProp, propBox } from './world.js';
 import { Overworld, CS, chunkMinimap, STRUCT_ICON, BIOME_NAME } from './overworld.js';
@@ -154,6 +155,9 @@ function derivedStats(h) {
 const xpNeed = (lvl) => Math.round(110 * lvl ** 1.75); // прокачка медленная: каждый уровень даётся трудом
 
 function newGame(char, pickCls) {
+  if (G && player && screenNow === 'game') save();
+  const oldSave = store.get(SAVE_KEY); if (oldSave) store.set('pryazha.backup.v1', oldSave);
+  player = null; NARR = null; STORY = null;
   const cls = pickCls || 'human';
   G = { v: 3, char, cls, lvl: 1, tree: {}, slots: [null, null, null, null], echoes: 0, gear: {}, bag: [], xp: 0, gold: 25, potions: { hp: 3, mp: 2 }, equip: { weapon: 1, armor: 0, helm: 0 }, quests: [], done: {}, flags: {}, kills: {}, zone: 'world', found: {}, opened: {}, duns: {}, time: 30, playTime: 0, pos: null, seed: (rand() * 1e9) | 0, villagers: [], relics: {}, stats: { kills: 0, deaths: 0, chests: 0 } };
   SK.starterTree(G); MEM.initMemory(G);
@@ -161,7 +165,7 @@ function newGame(char, pickCls) {
   // villagers: four keepers and eight neighbours, each a full dossier
   const roles = ['inn', 'shop', 'smith', 'elder'];
   for (let i = 0; i < 12; i++) G.villagers.push({ seed: (rand() * 2 ** 31) | 0, role: roles[i] || null, quest: null, met: false, told: 0 });
-  save();
+  store.set(SAVE_KEY, G);
 }
 function villagerChar(v) {
   const c = GEN.generate(null, new Set(), { genre: 'fantasy', gender: 'any', age: v.role === 'elder' ? 'old' : 'any', race: 'any' }, v.seed);
@@ -175,7 +179,7 @@ function assignSideQuests() {
     else v.quest = { id: 's' + v.seed, type: 'fetch', relic: rpick(RELICS), zone: rand() < .6 ? 'forest' : 'crypt1', reward: { gold: 70, xp: 70 } };
   }
 }
-function save() { if (!G) return; if (maps.world) G.worldSave = { seen: [...maps.world.seen].slice(-4000) }; if (player) { G.hp = player.hp; G.mp = player.mp; G.zone = world.id; G.pos = [player.x, player.y]; } if (NARR) G.ink = NARR.save(); store.set(SAVE_KEY, G); }
+function save() { if (!G) return; if (maps.world) G.worldSave = { seen: [...maps.world.seen].slice(-4000) }; if (player) { G.hp = player.hp; G.mp = player.mp; G.zone = world.id; G.pos = [player.x, player.y]; } if (NARR) G.ink = NARR.save(); EXP.persist(); if (!store.set(SAVE_KEY, G)) { /* Some browsers isolate file storage; portable export remains available. */ } }
 
 // =====================================================================================
 // Zones
@@ -532,7 +536,7 @@ function parried(from, melee) {
   P.parry = 0; P.parryRecover = 0; P.parryCd = .2; P.anim = 'walk'; P.frame = 0;
   fx.push({ type: 'parry', x: P.x + Math.cos(a) * 18, y: P.y - 24 + Math.sin(a) * 10, a, t: 0, life: .5 });
   fx.push({ type: 'num', x: P.x, y: P.y - 56, text: 'парировано', small: true, gold: true, t: 0, life: .9 });
-  hitStop = .1; sfx.parry();
+  hitStop = .1; sfx.parry(); EXP.event({kind:'parry',target:'parry'});
   if (melee && from.kind === 'enemy' && from.hp > 0) { from.stun = Math.max(from.stun || 0, from.E.boss ? PARRY.stun * .35 : PARRY.stun); from.atk = 0; from.anim = 'hurt'; from.frame = 1; from.kx = Math.cos(a) * 170; from.ky = Math.sin(a) * 170; }
   if (P.sk) P.sk.buffs.push({ kind: 'riposte', dur: PARRY.riposte, mods: [{ stat: 'nextHitDmg%', value: 1 }] }); // ответный удар вдвое сильнее
   P.stam = Math.min(STAM.max, (P.stam ?? STAM.max) + 12); // точное парирование возвращает дыхание
@@ -566,6 +570,7 @@ function doRest(p, until) {
   G.fires = G.fires || {}; const first = !G.fires[p.id]; G.fires[p.id] = true;
   G.rest = { id: p.id, zone: world.id, x: p.x, y: p.y + 30, name: p.name || 'Костёр' };
   G.stats.rests = (G.stats.rests || 0) + 1;
+  EXP.event({kind:'rest',target:p.id || 'fire',unique:(p.id || 'fire') + ':' + MEM.dayOf(G)});
   restoreAtFire();
   if (until) skipTo(until);
   const f = $('restfade'); f.classList.add('on'); setTimeout(() => f.classList.remove('on'), 420);
@@ -679,6 +684,7 @@ function killEnemy(e) {
   e.hp = 0; e.dead = 0.001; e.anim = 'hurt'; e.frame = 0;
   if (lock === e) { lock = null; updateLockHud(); }
   const E = e.E; G.stats.kills++;
+  EXP.event({kind:'kill',target:e.type});
   if (UNDEAD.has(e.type) && VFX.ok) fx.push({ type: 'anim', key: 'ghost_wisp', x: e.x, y: e.y - 6, t: 0, life: vfxLife('ghost_wisp') });
   SK.onKill(e); onKillMemory(e); if (STORY) STORY.onKill(e.type); G.kills[e.type] = (G.kills[e.type] || 0) + 1;
   gainXp(E.xp);
@@ -721,7 +727,7 @@ function hurtPlayer(dmg, from, melee, proj) {
   dmg = Math.max(1, Math.round(dmg * HURT_MUL * (from && from.E && from.E.boss ? .65 : 1) - player.ds.def * .6 * HERO_HP)); // босс оставляет право на две ошибки
   dmg = SK.onPlayerHurt(dmg, from, melee);
   if (dmg <= 0) return;
-  dmg = Math.max(1, Math.round(dmg));
+  dmg = Math.max(1, Math.round(dmg * (EXP.calm() ? .5 : 1)));
   player.hp -= dmg; player.inv = .5; player.flash = .2; sfx.hurt();
   fx.push({ type: 'num', x: player.x, y: player.y - 46, text: dmg, hurt: true, t: 0, life: .8 });
   if (from && from.x !== undefined) { const a = Math.atan2(player.y - from.y, player.x - from.x), kr = 1 - (player.ds.mods.knockbackResist || 0); player.kx = Math.cos(a) * 140 * kr; player.ky = Math.sin(a) * 140 * kr; }
@@ -730,7 +736,7 @@ function hurtPlayer(dmg, from, melee, proj) {
 }
 function selfDamage(n) { if (player.dead) return; player.hp = Math.max(1, player.hp - n); }
 function onDeath() {
-  const lost = Math.floor((G.echoes || 0) * .5);
+  const lost = EXP.calm() ? 0 : Math.floor((G.echoes || 0) * .5);
   if (lost > 0 && world.infinite) { G.echoes -= lost; G.skein = { x: player.x, y: player.y, v: lost, day: MEM.dayOf(G) }; }
   // the freshest region memory does not survive
   const M = MEM.initMemory(G), fresh = M.cards.filter((c) => c.type === 'region' && MEM.dayOf(G) - c.gainedDay < 1).pop(); if (fresh) MEM.removeCard(G, fresh.id);
@@ -836,12 +842,14 @@ const RUMORS = [
 function talk(e) {
   if (e.storyId) {
     e.state = 'talk'; e.dir = DIR_OF(player.x - e.x, player.y - e.y);
+    if (EXP.encounter(e.storyId, true)) return;
     if (STORY.onTalk(e.storyId)) return;
+    if (EXP.encounter(e.storyId)) return;
     const hub = hubFor(e.storyId); if (hub) { NARR.run(hub, { npc: e.storyId }); return; }
     if (MERCHANT_OF[e.storyId]) { openTrade(MERCHANT_OF[e.storyId]); return; }
     if (e.v.role) { openBuilding(e.v.role, null, e.storyId); return; }
     const n = STORY.npcById[e.storyId];
-    storyDialog({ npc: e.storyId, lines: [{ who: e.storyId, line: STORY.greeting(e.storyId) }], body: (G.memory.heroKnows || {})[e.storyId] >= 1 ? `<p class="aside">${GEN.esc(n.bio)}</p>` : '', options: [{ text: 'Пока', go: closeModal }] });
+    storyDialog({ npc: e.storyId, lines: [{ who: e.storyId, line: EXP.greeting(e.storyId) || STORY.greeting(e.storyId) }], body: (G.memory.heroKnows || {})[e.storyId] >= 1 ? `<p class="aside">${GEN.esc(n.bio)}</p>` : '', options: [{ text: 'Пока', go: closeModal }] });
     return;
   }
   const v = e.v, c = e.c, d = GEN.derive(c), F = c.female, name = GEN.fullName(c.name, c.race);
@@ -1141,10 +1149,11 @@ function skipTo(when) {
   toast(when === 'night' ? 'Стемнело' : 'Рассвело', 1600);
 }
 function showEnding(e) {
+  G.flags.ending = e.id; EXP.ending(e);
   save();
   const epi = (STORY_DATA.epilogue || []).filter((x) => STORY.test(x.if)).map((x) => x.text);
-  modal(`<h2>${GEN.esc(e.title)}</h2><p class="line">${GEN.esc(e.text)}</p>${epi.length ? `<h3 class="sub">Что стало с ними</h3>${epi.map((t) => `<p class="aside">${GEN.esc(t)}</p>`).join('')}` : ''}${STORY_DATA.arcHook ? `<p class="line"><i>${GEN.esc(STORY_DATA.arcHook)}</i></p>` : ''}<p class="aside">Ясность: ${clarityNow()}. Отдано воспоминаний: ${(G.memory.sacrificed || []).length}. Снов: ${(G.memory.dreams || []).length}. Падений: ${G.stats.deaths}.</p><p class="aside">Мир перевязывается дальше. Можно продолжать странствовать: побочные истории, края и Отпечатки никуда не делись.</p><div class="row"><button class="btn primary" data-close>Дальше</button></div>`);
-  G.flags.ending = e.id;
+  modal(`<h2>${GEN.esc(e.title)}</h2><p class="line">${GEN.esc(e.text)}</p>${epi.length ? `<h3 class="sub">Что стало с ними</h3>${epi.map((t) => `<p class="aside">${GEN.esc(t)}</p>`).join('')}` : ''}${STORY_DATA.arcHook ? `<p class="line"><i>${GEN.esc(STORY_DATA.arcHook)}</i></p>` : ''}<p class="aside">Ясность: ${clarityNow()}. Отдано воспоминаний: ${(G.memory.sacrificed || []).length}. Снов: ${(G.memory.dreams || []).length}. Падений: ${G.stats.deaths}.</p><p class="aside">Мир перевязывается дальше. Можно продолжать странствовать: побочные истории, края и Отпечатки никуда не делись.</p><div class="row"><button class="btn primary" data-close>Остаться в мире</button><button class="btn" data-a="album">Альбом и новая Перевязь</button></div>`);
+  modalHandlers = {album: () => openMenu('archive')};
 }
 function initStory() {
   if (!STORY_DATA) return;
@@ -1153,11 +1162,11 @@ function initStory() {
     clarity: clarityNow, school: () => CLS().school || 'phys', hasCard: (id) => MEM.hasCard(G, id), wasSacrificed: (id) => (G.memory.sacrificed || []).some((x) => x.id === id),
     gold: (n) => { G.gold += n; sfx.coin(); }, xp: (n) => gainXp(n), echoes: (n) => gainEchoes(n), item: (id) => { G.questItems = [...new Set([...(G.questItems || []), id])]; toast('Получено: ' + (QUEST_ITEMS[id] || id), 2000); },
     cardById: (id) => G.memory.cards.find((c) => c.id === id), addCard: (c) => { const r = MEM.addCard(G, c); if (r) { toast(`${MEM.CARD_TYPES[c.type].icon} Новое воспоминание: «${c.title}»`, 2400); clarityCache.t = -1; } return r; }, removeCard: (id) => MEM.removeCard(G, id),
-    questDone: (q, o) => { sfx.level(); modal(`<h2>${GEN.esc(q.title)}</h2><p class="line">${GEN.esc(o.text)}</p><p class="aside">${[o.rewards?.xp && `опыт +${o.rewards.xp}`, o.rewards?.gold && `золото +${o.rewards.gold}`, o.rewards?.echoes && `Отголоски +${o.rewards.echoes}`].filter(Boolean).join(' · ')}</p>${pendingDreams.length ? '<p class="aside">☾ Что-то всплывает из глубины. Чужое воспоминание.</p>' : ''}<div class="row"><button class="btn primary" data-close>Дальше</button></div>`, () => setTimeout(playNextDream, 200)); },
+    questDone: (q, o) => { EXP.event({kind:'quest',target:q.id}); sfx.level(); modal(`<h2>${GEN.esc(q.title)}</h2><p class="line">${GEN.esc(o.text)}</p><p class="aside">${[o.rewards?.xp && `опыт +${o.rewards.xp}`, o.rewards?.gold && `золото +${o.rewards.gold}`, o.rewards?.echoes && `Отголоски +${o.rewards.echoes}`].filter(Boolean).join(' · ')}</p>${pendingDreams.length ? '<p class="aside">☾ Что-то всплывает из глубины. Чужое воспоминание.</p>' : ''}<div class="row"><button class="btn primary" data-close>Дальше</button></div>`, () => setTimeout(playNextDream, 200)); },
     dream: (id) => { if (!pendingDreams.includes(id)) pendingDreams.push(id); },
     respawnNpcs, raid: (type, n, o = {}) => { for (let i = 0; i < n; i++) { const p = freeSpot([player.x, player.y], o.near ? 60 : 140, o.near ? 110 : 220); if (p) { const e = addEnemy(type, p[0], p[1], 1); e.state = 'chase'; if (o.name) e.E = { ...e.E, name: o.name }; if (o.tint) e.tint = o.tint; } } toast('Нападение!', 1400); },
     fog: (where, mode) => { if (mode === 'clear') { const c = locPos(where.replace(/^wild:.*/, '')) || [player.x, player.y]; const cx = Math.floor(c[0] / T / CS), cy = Math.floor(c[1] / T / CS); for (let y = -3; y <= 3; y++) for (let x = -3; x <= 3; x++) maps.world && maps.world.seen.add((cx + x) + ',' + (cy + y)); } },
-    forceForget: (spec) => { const [type, id] = spec.split(':'); const c = MEM.allCards(G, SK.node).find((x) => x.id === id); if (c) MEM.sacrifice(G, c, 'strong_thread', { onSkill: (sid) => { delete G.tree[sid]; } }); },
+    forceForget: (spec) => { const [type, id] = spec.split(':'); const c = MEM.allCards(G, SK.node).find((x) => x.id === id); if (c) { EXP.registerLoss(c); MEM.sacrifice(G, c, 'strong_thread', { onSkill: (sid) => { delete G.tree[sid]; } }); } },
     restoreLast: () => { const M = G.memory, last = M.sacrificed.pop(); if (last) { MEM.addCard(G, { id: last.id, type: last.type, title: last.title, weight: Math.max(1, (last.weight || 1) - 1), links: last.links, journal: last.journal }); toast(`Вернулось: «${last.title}»`, 2400); } },
     removeLastGift: () => { const M = G.memory, last = M.sacrificed[M.sacrificed.length - 1]; if (last && M.gifts[last.gift]) { M.gifts[last.gift] = Math.max(0, M.gifts[last.gift] - (last.weight || 1)); } },
     ending: showEnding, biome: () => world.infinite ? world.biomeAt(player.x, player.y) : '', nearWater: () => { for (let a = 0; a < 6.28; a += .8) if (world.infinite && world.tile(Math.floor((player.x + Math.cos(a) * 96) / T), Math.floor((player.y + Math.sin(a) * 96) / T)) === 4) return true; return world.infinite && world.biomeAt(player.x, player.y) === 'lake'; },
@@ -1170,6 +1179,7 @@ function initStory() {
   WS.initWS(G);
   NARR = INK_JSON ? new Narrative(INK_JSON, INK_INDEX, narrApi()) : null;
   if (NARR) NARR.load(G.ink);
+  for (const [qid,a] of Object.entries(STORY.S.active)) { const q=STORY.qById[qid]; if(!q) delete STORY.S.active[qid]; else if(!q.steps.some(s=>s.id===a.step)) { a.step=q.steps[0].id; a.counter=0; a.played=false; } }
 }
 // ---------- narrative bridge, consequences, chapters, merchants ----------
 const MERCHANT_OF = { vesna: 'vesna', tur: 'tur', gostena: 'gostena', yasna: 'yasna', ugar: 'ugar', kudel: 'kudel', stakh: 'stakh', khrum: 'khrum', krivoy: 'krivoy' };
@@ -1371,7 +1381,7 @@ function update(dt) {
   if (!P.dead) SK.tick(dt, l > .1);
   if (STORY) { storyNpcTick(dt); STORY.tick(dt); consequenceTick(dt); }
   worldSoundTick(dt);
-  tipsTick(dt);
+  tipsTick(dt); EXP.tick(dt);
   if (pendingDreams.length && !modalOpen()) playNextDream();
   if ((statT -= dt) <= 0) { statT = .25; const hp = P.hp, mp = P.mp; P.ds = derivedStats(G); P.hp = Math.min(hp, P.ds.maxHp); P.mp = Math.min(mp, P.ds.maxMp); }
   G.playTime = (G.playTime || 0) + dt;
@@ -1808,6 +1818,7 @@ function drawMinimap() {
   // quest target
   const tg = STORY && STORY.target(), target = tg ? [tg.pos[0] / T, tg.pos[1] / T] : null;
   if (target) { let X = (target[0] - ptx) * scale + S / 2, Y = (target[1] - pty) * scale + S / 2; const inside = X > 6 && Y > 6 && X < S - 6 && Y < S - 6; if (!inside) { const a = Math.atan2(Y - S / 2, X - S / 2); X = S / 2 + Math.cos(a) * (S / 2 - 8); Y = S / 2 + Math.sin(a) * (S / 2 - 8); } m.fillStyle = '#ffd25a'; m.beginPath(); m.arc(X, Y, inside ? 4 : 3, 0, 7); m.fill(); m.strokeStyle = '#000'; m.lineWidth = 1; m.stroke(); }
+  const jp = EXP.navigation(); if(jp){let X=(jp[0]/T-ptx)*scale+S/2,Y=(jp[1]/T-pty)*scale+S/2;const a=Math.atan2(Y-S/2,X-S/2),r=Math.min(Math.hypot(X-S/2,Y-S/2),S/2-9);X=S/2+Math.cos(a)*r;Y=S/2+Math.sin(a)*r;m.fillStyle='#8dcaff';m.fillRect(X-3,Y-3,6,6);m.strokeStyle='#111';m.strokeRect(X-3,Y-3,6,6);}
   m.fillStyle = '#ffffff'; m.fillRect(S / 2 - 2, S / 2 - 2, 4, 4); m.strokeStyle = '#000'; m.strokeRect(S / 2 - 2.5, S / 2 - 2.5, 5, 5);
   if (world.dark > .15) { m.fillStyle = `rgba(6,5,20,${world.dark * .6})`; m.fillRect(0, 0, S, S); }
 }
@@ -1817,7 +1828,7 @@ function updateHUD() { hudKey = ''; hudTick(); }
 const KEYS4 = ['K', 'L', 'U', 'I'];
 const ICON_IDX = {"meteor":29,"nova":13,"fire_ring":13,"incinerate":11,"fire_wall":22,"fire_dart":12,"blast":12,"flame_shield":28,"flame_step":17,"frostnova":41,"ice_prison":31,"blizzard":39,"absolute_zero":42,"ice_lance":0,"shard_burst":42,"break":36,"barrier":37,"snow_double":16,"ice_block":28,"raise":6,"raise_archer":6,"bone_golem":7,"corpse_blast":7,"harvest":27,"siphon":27,"rot":1,"black_harvest":8,"pull_memory":30,"terror":5,"borrow_flesh":23,"heal":18,"renew":35,"holy_ground":25,"miracle":24,"smite":21,"judgement_day":20,"ray":40,"faith_hammer":20,"faith_shield":37,"vow":4,"holy_word":19,"shield_bash":3,"shield_wall":37,"challenge":23,"dash":17,"whirlwind":43,"cry":34,"red_veil":34,"cleave":44,"parry":3,"execute":8,"thousand_cuts":44,"aimed_shot":15,"disengage":17,"heart_shot":15,"fan":44,"rain":39,"snare":10,"arrow_storm":39,"prey_mark":2,"beast_call":23,"net":10,"the_hunt":17,"tug":10,"bind_fates":5,"cocoon":31,"canvas":9,"stitch":17,"unravel":27,"hidden_seam":16,"thousand_stitches":43,"memory_knot":30,"weave_echo":35,"unpick_time":38,"reweave":0,"blood_swing":34,"blank_stare":2,"void_hunger":27,"nobody":16,"erase":5,"lapse_leap":17,"blank_spot":38,"eat_echo":14,"echo_strike":3,"self_ghost":23,"echo_choir":30,"cut_thread":10,"foreign_gait":17,"nameless_cry":5};
 const SCHOOL_ICON = { fire: 12, ice: 41, shadow: 15, holy: 20, memory: 34, phys: 43 };
-function iconStyle(n, px) { const i = n ? ICON_IDX[n.id] ?? SCHOOL_ICON[(n.effects.find((e) => e.school) || {}).school || 'phys'] ?? 43 : -1; if (i < 0) return ''; const k = px / 40; return `background-image:url(icons/spells.png);background-size:${360 * k}px auto;background-position:${-(i % 9) * px}px ${-Math.floor(i / 9) * px}px;background-repeat:no-repeat`; }
+function iconStyle(n, px) { const i = n ? ICON_IDX[n.id] ?? SCHOOL_ICON[(n.effects.find((e) => e.school) || {}).school || 'phys'] ?? 43 : -1; if (i < 0) return ''; const k = px / 40; return `background-image:url(${window.__assetUrl ? window.__assetUrl('icons/spells.png') : 'icons/spells.png'});background-size:${360 * k}px auto;background-position:${-(i % 9) * px}px ${-Math.floor(i / 9) * px}px;background-repeat:no-repeat`; }
 let skillHudT = 0;
 function skillHud() {
   if ((skillHudT -= 1) > 0) return; skillHudT = 4;
@@ -1894,7 +1905,7 @@ function openMenu(tab) {
   if (!G || modalOpen() && !tab) return;
   if (tab) menuTab = tab;
   const ds = player.ds, c = G.char, d = GEN.derive(c), C2 = CLS(), F = c.female;
-  const TABS = [['hero', 'Герой'], ['tree', 'Навыки' + (SK.pointsFree(G) > 0 ? ' •' : '')], ['gear', 'Вещи'], ['skein', 'Клубок'], ['chron', 'Летопись'], ['quests', 'Задания'], ['ties', 'Связи'], ['help', 'Управление']];
+  const TABS = [['hero', 'Герой'], ['tree', 'Навыки' + (SK.pointsFree(G) > 0 ? ' •' : '')], ['gear', 'Вещи'], ['skein', 'Клубок'], ['chron', 'Летопись'], ['quests', 'Задания'], ['ties', 'Связи'], ['journey', 'Походы'], ['archive', 'Альбом'], ['options', 'Настройки'], ['help', 'Управление']];
   let body = '';
   const name = menuTab;
   if (name === 'hero') {
@@ -1912,13 +1923,16 @@ function openMenu(tab) {
   if (name === 'chron') body = chronHtml();
   if (name === 'quests') body = questsHtml();
   if (name === 'ties') body = tiesHtml();
+  if (name === 'journey') body = EXP.boardHTML();
+  if (name === 'archive') body = EXP.archiveHTML();
+  if (name === 'options') body = EXP.optionsHTML();
   if (name === 'help') body = `<dl class="mini"><dt>Движение</dt><dd>WASD или стрелки; на телефоне — палец в левой части экрана</dd><dt>Атака</dt><dd>J; кнопка ⚔</dd><dt>Отскок</dt><dd>Пробел; кнопка ↷. Короткий прыжок, во время которого удары проходят мимо. С места — назад.</dd><dt>Парирование</dt><dd>H; кнопка ⛨. Нажми, когда над врагом вспыхнет «!»: удар отбит, враг оглушён, следующий твой удар вдвое сильнее. Впустую — короткая заминка.</dd><dt>Навыки</dt><dd>K, L, U, I (или Shift, Q, R, T); на телефоне — четыре кнопки у атаки</dd><dt>Действие</dt><dd>E или Enter; кнопка ◉</dd><dt>Захват цели</dt><dd>F или ◎ — захватить и отпустить; G или долгое нажатие ◎ — следующий враг; можно нажать на врага</dd><dt>Зелья</dt><dd>1 — здоровье, 2 — мана</dd><dt>Костры</dt><dd>Редкие, у деревни и мест истории, в подземельях — перед последним залом. Отдых возвращает здоровье и ману, пополняет зелья и сохраняет игру; «Продолжить» и пробуждение после гибели — у последнего костра. Враги вокруг при отдыхе возвращаются.</dd><dt>Выносливость</dt><dd>Кольцо у героя: отскок и парирование тратят дыхание, оно возвращается за пару секунд. Точное парирование возвращает часть.</dd><dt>Меню</dt><dd>Esc или Tab; Навыки — N, Клубок — B, Летопись — J в меню</dd><dt>Звук</dt><dd>M</dd></dl>
     <p class="aside"><b>Отголоски ✶</b> — осколки памяти: падают с врагов, мест и разговоров. Ими вплетают ранги навыков, закрепляют Отпечатки, платят ткачам. Больше предела носить нельзя — лишнее выцветает.</p>
     <p class="aside"><b>Забвение</b> — на Узле (алтарь, менгир, колодец) можно отдать своё воспоминание ради постоянного дара. Цена настоящая: люди перестают узнаваться, края уходят в туман, строки Летописи осыпаются.</p>`;
   modal(`<div class="tabs">${TABS.map(([id, n]) => `<button class="tab ${id === name ? 'on' : ''}" data-a="t_${id}">${n}</button>`).join('')}</div>${body}<div class="row">${name === 'help' ? `<button class="btn" data-a="sound">${audio.on ? 'Выключить звук' : 'Включить звук'}</button><button class="btn" data-a="life">${LIFE.on ? 'Выключить анимации мира' : 'Включить анимации мира'}</button><button class="btn" data-a="title">В главное меню</button>` : ''}<button class="btn primary" data-close>Продолжить</button></div>`, () => { atNode = null; sacrificeReq = null; }, () => { if ($('menuFace')) drawFace($('menuFace'), player.look); });
   modalHandlers = { sound: () => { music.toggle(); openMenu(name); }, life: () => { setLife(!LIFE.on); openMenu(name); }, title: () => { save(); closeModal(); showTitle(); } };
   for (const [id] of TABS) modalHandlers['t_' + id] = () => { nodeSel = null; cardSel = null; openMenu(id); };
-  Object.assign(modalHandlers, menuHandlers);
+  Object.assign(modalHandlers, menuHandlers, EXP.handlers());
 }
 $('modalBody').addEventListener('click', (e) => {
   const n = e.target.closest('[data-node]'); if (n) { nodeSel = n.dataset.node; openMenu('tree'); return; }
@@ -1993,6 +2007,7 @@ function confirmSacrifice(giftId) {
   modalHandlers = { back: () => openMenu('skein'), doit: () => doSacrifice(sel, giftId) };
 }
 function doSacrifice(card, giftId) {
+  EXP.registerLoss(card);
   const r = MEM.sacrifice(G, card, giftId, {
     snap: !atNode,
     onSkill: (id) => { delete G.tree[id]; G.slots = G.slots.map((s2) => (s2 === id ? null : s2)); },
@@ -2036,6 +2051,7 @@ function showTitle() {
   const sv = store.get(SAVE_KEY);
   $('continue').hidden = !sv;
   if (sv) $('continue').textContent = `Продолжить: ${sv.char.name.first}, ур. ${sv.lvl}`;
+  EXP.title();
 }
 let candidates = [];
 function showCreate() {
@@ -2081,12 +2097,16 @@ $('cards').addEventListener('click', (e) => {
   if (pk) { newGame(candidates[+pk.dataset.pick], 'human'); startGame(true); }
 });
 $('rerollAll').addEventListener('click', () => { candidates = [0, 1, 2].map(rollHero); candClass = []; renderCreate(); });
-$('newGame').addEventListener('click', () => { audio.unlock(); showCreate(); });
+$('newGame').addEventListener('click', () => { audio.unlock(); EXP.requestNew(); });
+$('openAlbum').addEventListener('click', () => EXP.openExtra('archive'));
+$('titleSettings').addEventListener('click', () => EXP.openExtra('options'));
+$('bJourney').addEventListener('click', () => openMenu('journey'));
 $('continue').addEventListener('click', () => { audio.unlock(); G = store.get(SAVE_KEY); if (G) { migrate(G); MEM.initMemory(G); for (const it of [...(G.bag || []), ...Object.values(G.gear || {})]) if (it) IT.finish(it); } if (G && !(G.zone === 'world' || String(G.zone).startsWith('dun:'))) { G.zone = 'world'; G.pos = null; } if (G) startGame(false); });
 $('backTitle').addEventListener('click', showTitle);
 
 function startGame(fresh) {
   Object.keys(maps).forEach((k) => delete maps[k]); bossShown = {};
+  pendingScenes.length=0; pendingDreams.length=0; pendingChapter=null; tipQueue.length=0; tipShown=null; $('tip').hidden=true; storyT=0; consT=0; statT=0; hudKey=''; hudHpLast=Infinity; navReset();
   initStory();
   makePlayer();
   showScreen('game');
@@ -2094,6 +2114,7 @@ function startGame(fresh) {
   // «Продолжить» — у последнего костра: костры и есть сохранения (сюжет и выборы пишутся всегда)
   if (!fresh && G.rest) enterZone(G.rest.zone, null, [G.rest.x, G.rest.y]); else enterZone(G.zone || 'world', 'start', fresh ? null : G.pos);
   paused = false;
+  EXP.afterStart(fresh);
   // test hook: automated tests may start with a path already learned
   if (fresh && window.__wantCls && window.__wantCls !== 'human') learnPath(window.__wantCls);
   if (fresh) { WS.initWS(G); chapterCard(1, () => { STORY.start('m1', true); STORY.markerT = 0; STORY.tick(1); }); }
@@ -2119,6 +2140,24 @@ async function boot() {
   if (matchMedia('(pointer: coarse)').matches) document.body.classList.add('touch');
   showTitle();
   requestAnimationFrame(loop);
-  window.__game = { dream: (id) => playDream(id, dreamApi()), get STORY() { return STORY; }, get NARR() { return NARR; }, WS, openTrade, chapterTo, learnPath, locPos, killEnemy, useStairs, interact, skipTo, heroLook: (char, cls, tier, legend) => new Look(heroSpec({ char, cls, equip: { weapon: 2, armor: tier, helm: 0 }, gear: legend ? { chest: { rarity: 'unique', slot: 'chest', cls } } : {} })), rollHero, SK, MEM, IT, setLock: (e) => setLock(e), useSkill, addEnemy: (t, x, y) => addEnemy(t, x, y), refreshPlayer, openMenu, get drops() { return drops; }, get maps() { return maps; }, worldTick, get G() { return G; }, get player() { return player; }, get world() { return world; }, get ents() { return ents; }, enterZone, gainXp, keys, interact, openMenu };
+  window.__game = { EXP, save, showEnding, doRest, talk, doSacrifice, confirmSacrifice, hurtPlayer, showTitle, get pendingScenes(){return pendingScenes;}, dream: (id) => playDream(id, dreamApi()), get STORY() { return STORY; }, get NARR() { return NARR; }, WS, openTrade, chapterTo, learnPath, locPos, killEnemy, useStairs, interact, skipTo, heroLook: (char, cls, tier, legend) => new Look(heroSpec({ char, cls, equip: { weapon: 2, armor: tier, helm: 0 }, gear: legend ? { chest: { rarity: 'unique', slot: 'chest', cls } } : {} })), rollHero, SK, MEM, IT, setLock: (e) => setLock(e), useSkill, addEnemy: (t, x, y) => addEnemy(t, x, y), refreshPlayer, openMenu, get drops() { return drops; }, get maps() { return maps; }, worldTick, get G() { return G; }, get player() { return player; }, get world() { return world; }, get ents() { return ents; }, enterZone, gainXp, keys };
 }
+
+function navReset() { const el=$('journeyHint'); if(el)el.hidden=true; }
+const EXP = createExpansion({
+  G:()=>G, player:()=>player, isOverworld:()=>!!world?.infinite, inGame:()=>screenNow==='game',
+  save, modal, close:closeModal, setHandlers:h=>{modalHandlers=h;}, openMenu, locPos,
+  firePos:id=>{const f=getMap('world').restFires().find(f=>f.id===id);return f?[f.x,f.y]:null;},
+  toast, heroName, npcName:id=>STORY?.npcById[id]?.name || id, endings:()=>STORY_DATA?.endings || [],
+  refresh:()=>{clarityCache.t=-1;refreshPlayer();updateHUD();},
+  reward:r=>{G.gold+=r.gold||0;if(r.echoes)gainEchoes(r.echoes);if(r.xp)gainXp(r.xp);updateHUD();},
+  mainSteps:()=>STORY?.activeSteps().filter(x=>x.q.chain==='main')||[], tip:tipLater,
+  hasSavedHero:()=>!!store.get(SAVE_KEY), showCreate,
+  loadSavedForExport:()=>{G=store.get(SAVE_KEY);},
+  validateImported:g=>{if(!GEN.RACES[g.char.race]||!GEN.JOBS.fantasy[g.char.job])throw new Error('Неизвестное происхождение героя.');const d=derivedStats(g);if(!Number.isFinite(d.maxHp)||!Number.isFinite(d.dmg))throw new Error('Повреждены характеристики героя.');GEN.derive(g.char);},
+  importHero:g=>{save();const current=store.get(SAVE_KEY);if(current)store.set('pryazha.backup.v1',current);closeModal();G=g;migrate(G);MEM.initMemory(G);for(const it of [...(G.bag||[]),...Object.values(G.gear||{})])if(it)IT.finish(it);store.set(SAVE_KEY,G);startGame(false);}
+});
+document.addEventListener('visibilitychange',()=>{if(document.hidden&&G&&player&&screenNow==='game')save();});
+window.addEventListener('pagehide',()=>{if(G&&player&&screenNow==='game')save();});
+
 boot();

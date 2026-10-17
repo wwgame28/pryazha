@@ -1,0 +1,10 @@
+import {test} from 'node:test';
+import assert from 'node:assert/strict';
+import * as GEN from '../site/gen.js';
+import {encodeSave,decodeSave,validateTree} from '../site/save_io.js';
+const hero=()=>({char:GEN.generate(null,new Set(),{genre:'fantasy',gender:'any',age:'adult',race:'any'},42),cls:'human',lvl:1,seed:42,equip:{weapon:1,armor:0,helm:0},gold:25,xp:0,echoes:0,time:30,bag:[],slots:[null,null,null,null],flags:{},tree:{},potions:{hp:3,mp:2},stats:{kills:0}});
+test('portable save retains hero, flags and shared album',()=>{const G=hero();G.flags.promise=true;const meta={endings:[{id:'e_home'}],collectibles:['tale_river_thread']};const data=decodeSave(encodeSave(G,meta));assert.deepEqual(data.hero,G);assert.deepEqual(data.meta,meta);});
+test('legacy bare hero is accepted',()=>assert.equal(decodeSave(JSON.stringify(hero())).hero.seed,42));
+test('invalid file cannot replace a save',()=>{for(const text of ['not json','{}',JSON.stringify({format:'other',version:1,hero:hero()}),JSON.stringify({...hero(),lvl:0}),JSON.stringify({...hero(),cls:'unknown'})])assert.throws(()=>decodeSave(text));});
+test('prototype-pollution keys are rejected recursively',()=>{assert.throws(()=>decodeSave('{"__proto__":{"isAdmin":true}}'));assert.throws(()=>validateTree(JSON.parse('{"safe":{"constructor":{}}}')));assert.equal({}.isAdmin,undefined);});
+test('oversized, infinite and excessively nested inputs are rejected',()=>{assert.throws(()=>decodeSave(' '.repeat(4194305)));assert.throws(()=>validateTree({n:Infinity}));let v={};for(let i=0;i<35;i++)v={child:v};assert.throws(()=>validateTree(v));});

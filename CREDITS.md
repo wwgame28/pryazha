@@ -42,5 +42,5 @@ CC-BY-SA, GPL), они указаны ниже, в `site/art/CREDITS.txt`, в `s
 - **Battle Theme A** — cynicmusic. CC0 по странице OpenGameArt (в копии файла лицензии не было).
 
 ## Шрифты и библиотеки
-- **Pixelify Sans**, **PT Sans** — Google Fonts (SIL Open Font License), подгружаются с fonts.googleapis.com.
+- **Pixelify Sans**, **PT Sans** — Google Fonts (SIL Open Font License), включены локально в `site/fonts/`, включая исходные лицензии.
 - **inkjs** 2.4.0 — MIT, `site/vendor/INKJS-LICENSE.md`.

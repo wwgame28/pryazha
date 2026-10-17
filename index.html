@@ -1,8 +1,9 @@
 <!doctype html><html lang="ru"><head><meta charset="utf-8"><base href="site/"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#0f0d16"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><title>Пряжа</title><meta name="description" content="Пряжа — браузерная сюжетная RPG о памяти, нитях и долгах."></head><body>
 <title>Пряжа</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;600;700&family=PT+Sans:wght@400;700&display=swap">
+
+
+
+<link rel="stylesheet" href="fonts/fonts.css">
 <style>
 /* One dark fantasy look on purpose: night village, parchment panels, gold accents. */
 :root {
@@ -254,6 +255,44 @@ body.touch #actbar { display: none; }
 @keyframes lowpulse { 0%, 100% { opacity: .5; } 50% { opacity: 1; } }
 #restfade { position: absolute; inset: 0; pointer-events: none; background: #120a06; opacity: 0; transition: opacity .2s ease-in; }
 #restfade.on { opacity: .85; transition: opacity .18s cubic-bezier(.2,.8,.2,1); }
+
+/* Законченная арка: новые походы, спокойное чтение, альбом между жизнями. */
+.title-eyebrow { font: 12px var(--text); letter-spacing: .2em; color: #cda46b; margin: 0 0 14px; }
+#title .tag { max-width: 58ch; font-size: 17px; line-height: 1.65; margin: 20px auto 16px; }
+.title-features { font-size: 12px; color: #cda46b; letter-spacing: .08em; margin: 0 auto 22px; }
+.title-album { font-size: 12px; margin: 17px 0 0; }
+#title .menu { width: min(350px,90vw); }
+#title .menu .btn.ghost { font-size: 15px; padding: 9px; }
+#bJourney { position: relative; padding: 6px 10px; font: 700 13px var(--pixel); border-color: var(--rim); }
+.exp-head small, .memory-scene>small { display: block; letter-spacing: .12em; font: 11px var(--text); color: var(--gold); margin-bottom: 8px; }
+.exp-head h2 { margin: 0 0 10px; }
+.journey-count { display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap; padding: 14px 0; border-block: 1px dashed var(--stitch); margin-bottom: 14px; }
+.journey-count b { font: 700 26px var(--pixel); color: var(--gold); }
+.journey-count span { font-size: 12px; color: var(--muted); margin-right: 10px; }
+.contract-grid { display: grid; gap: 12px; }
+.contract { background: linear-gradient(135deg,#2a211c,#1f1a26); border: 1px solid var(--rim); border-radius: 8px; padding: 16px; }
+.contract.ready { border-color: #91bc8a; }
+.contract h3, .album-card h3 { font: 700 20px var(--pixel); color: var(--linen); margin: 8px 0; }
+.contract>small, .album-card>small { font-size: 10px; color: var(--muted); letter-spacing: .08em; }
+.contract p { margin: 8px 0; font-size: 14px; }
+.contract-progress { height: 4px; background: #130f0e; border-radius: 3px; margin: 10px 0 5px; overflow: hidden; }
+.contract-progress i { display: block; height: 100%; background: #91bc8a; }
+.album-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 10px; margin: 12px 0; }
+.album-card { background: #28212b; border: 1px solid var(--line); border-radius: 7px; padding: 14px; }
+.album-card.found { border-color: #8b704b; background: linear-gradient(135deg,#30251d,#241e28); }
+.album-card p { font-size: 13px; line-height: 1.65; margin: 7px 0 0; }
+.album-card.unknown { opacity: .75; }
+.album-card.unknown h3 { color: var(--muted); font-size: 16px; }
+.settings-group { display: flex; flex-wrap: wrap; gap: 8px; padding: 12px 0; border-bottom: 1px dashed var(--stitch); }
+.settings-group h3, .settings-group p { width: 100%; margin: 4px 0; }
+#journeyHint { position: absolute; left: 50%; bottom: 76px; transform: translateX(-50%); max-width: 70vw; text-align: center; padding: 7px 12px; border: 1px solid #6094ba; background: rgba(15,20,30,.85); border-radius: 6px; color: #b5dcff; font: 12px var(--text); pointer-events: none; }
+body.large-text .modal .line, body.large-text .modal .aside, body.large-text .contract p, body.large-text .album-card p { font-size: 18px; line-height: 1.7; }
+body.large-text .modal .btn { font-size: 18px; }
+body.reduce-motion *, body.reduce-motion *::before, body.reduce-motion *::after { animation: none !important; transition: none !important; }
+body.reduce-motion #lowhp { display: none; }
+#modalBody { touch-action: pan-y; -webkit-user-select: text; user-select: text; }
+@media(max-width:560px) { .album-grid { grid-template-columns:1fr; } #bJourney { font-size:11px; padding:6px; } .title-eyebrow { font-size:10px; } #title .tag {font-size:15px;} .chip {padding:5px 7px;} #journeyHint {bottom:260px;} }
+
 </style>
 
 <div id="loading">Загрузка…</div>
@@ -261,12 +300,16 @@ body.touch #actbar { display: none; }
 <section id="title" class="screen" hidden>
   <div>
     <div class="moon" aria-hidden="true"></div>
-    <h1>Пряжа</h1><p class="sub1">Тот, кого вытащили из реки</p>
-    <p class="tag">Мир сшит из памяти. Магия оплачивается воспоминаниями: чтобы стать сильнее, ты будешь отдавать то, что только что пережил, — друзей, дороги, победы, даже своё имя. Люди перестанут тебя узнавать, края уйдут в туман, строки Летописи осыплются. Восемь классов, от пироманта до Беспамятного, бесконечная Перевязь и история с семью концовками.</p>
+    <p class="title-eyebrow">СЕВЕРНАЯ СКАЗКА О ПАМЯТИ</p><h1>Пряжа</h1><p class="sub1">Тот, кого вытащили из реки</p>
+    <p class="tag">Чтобы стать сильнее, придётся отдать воспоминание.<br>Но что делать, если ты больше не узнаёшь человека,<br>который всё ещё ждёт тебя домой?</p>
+    <p class="title-features">Шесть глав · Семь развязок · Походы без срока</p>
     <div class="menu">
       <button class="btn primary" id="newGame">Новая игра</button>
       <button class="btn" id="continue" hidden>Продолжить</button>
+      <button class="btn ghost" id="openAlbum">Альбом Перевязи</button>
+      <button class="btn ghost" id="titleSettings">Настройки и сохранения</button>
     </div>
+    <p id="albumCount" class="aside title-album"></p>
     <details id="credits"><summary>Авторы графики, звука и музыки</summary><p id="creditText"></p></details>
   </div>
 </section>
@@ -292,10 +335,12 @@ body.touch #actbar { display: none; }
     <span class="chip"><span class="g">●</span> <b id="gold"></b></span>
     <span class="chip" title="Отголоски"><span class="e">✶</span> <b id="echoes"></b></span>
     <span class="chip"><span class="r">♥</span> <b id="pHp"></b> <span class="b">♦</span> <b id="pMp"></b></span>
+    <button class="btn" id="bJourney" aria-label="Повторяемые походы" title="Походы Перевязи">Походы</button>
     <button class="btn" id="bMenu" aria-label="Меню">☰</button>
   </div>
   <canvas id="minimap" width="120" height="120" aria-label="Карта местности" title="Нажмите, чтобы увеличить"></canvas>
   <ul id="quests"></ul>
+  <div id="journeyHint" hidden role="status"></div>
   <div id="target" hidden><span id="targetName"></span><div class="bar"><i id="targetBar"></i></div><small>F — отпустить · G — следующий</small></div>
   <div id="skillbar"></div>
   <div id="actbar"><div class="slot" id="aDodge" title="Отскок — Пробел"><kbd>␣</kbd>↷<i></i></div><div class="slot" id="aParry" title="Парирование — H"><kbd>H</kbd>⛨<i></i></div></div>

@@ -1,0 +1,118 @@
+{
+  "facts": {
+    "f_red_winter_truth": {
+      "title": "Правда о Красной зиме",
+      "text": "Тридцать пять лет назад Богдан Ольха выдал держащие дворы Пепельному Кругу; Угрюмка поджёг дом Марфы и вынес Ясеньку, а Брод продал память о ночи Архиву."
+    },
+    "f_c5_agafya_testimony": {
+      "title": "Признание Агафьи",
+      "text": "Агафья видела, как мальчик с факелом поджёг дом Марфы, и не крикнула. Она одна не продала память о той ночи."
+    },
+    "f_c5_bogdan_list": {
+      "title": "Список Богдана Ольхи",
+      "text": "Отец Ивара выдал Пепельному Кругу три двора: Марфу, Луку с Дарьей и Ерофеевну. На бересте стояло слово «держит»."
+    },
+    "f_c5_tower_record": {
+      "title": "Опись ночи первого снега",
+      "text": "Башня купила у Брода коллективную память о пожаре и запечатала её. Рядом хранилось детство Ясеньки, ставшей Ясной Стынь."
+    },
+    "f_c5_ugar_deed": {
+      "title": "Поступок Угара",
+      "text": "Угрюмка, нынешний брат Угар, поджёг дом Марфы по приказу взрослых и вынес из соседнего огня шестилетнюю Ясеньку."
+    },
+    "f_c5_ashes_mark": {
+      "title": "Следы дома Марфы",
+      "text": "На пепелище остались печные камни, рыбья чешуя и детская буква. Дом не был пустым, как тридцать пять лет повторял Брод."
+    },
+    "f_c5_kudel_confession": {
+      "title": "Признание Кудели",
+      "text": "Кудель надрезала печать склепа, а у брода сшила героя из удерживаемых нитей песней своего ученика. Она спасала Пряжу и использовала героя как ключ."
+    }
+  },
+  "deeds": {
+    "d_c5_told_truth_public": {
+      "title": "Открыл Красную зиму Броду",
+      "rep": {"village": 5, "ash": -3},
+      "repAlways": true,
+      "rumor": "r_c5_red_winter_public",
+      "strength": 0.9
+    },
+    "d_c5_told_truth_private": {
+      "title": "Сказал правду только причастным",
+      "rep": {"village": 1},
+      "repAlways": true
+    },
+    "d_c5_burned_truth": {
+      "title": "Сжёг правду о Красной зиме",
+      "rep": {"ash": 8, "village": -3},
+      "repAlways": true
+    },
+    "d_c5_sold_truth": {
+      "title": "Продал правду Архиву",
+      "rep": {"archive": 10, "village": -8, "weavers": -3},
+      "repAlways": true,
+      "rumor": "r_c5_truth_sold",
+      "strength": 0.85
+    },
+    "d_c5_betrayed_kudel": {
+      "title": "Выдал Кудель Архиву",
+      "rep": {"archive": 8, "weavers": -50},
+      "repAlways": true,
+      "rumor": "r_c5_kudel_betrayed",
+      "strength": 0.95,
+      "npc": "kudel",
+      "faction": "weavers",
+      "betray": true
+    },
+    "d_c5_saved_agafya": {
+      "title": "Вывел Агафью из огня",
+      "rep": {"village": 10},
+      "repAlways": true
+    },
+    "d_c5_left_agafya": {
+      "title": "Погнался за поджигателем, оставив Агафью",
+      "rep": {"village": -20},
+      "repAlways": true,
+      "rumor": "r_c5_agafya_fire",
+      "strength": 1
+    }
+  },
+  "events": {},
+  "promises": {
+    "p_c5_agafya_red_winter": {
+      "to": "agafya",
+      "text": "Не рассказывать о признании Агафьи без её слова"
+    }
+  },
+  "rumors": {
+    "r_c5_red_winter_public": {
+      "text": "Брод сам сжёг Марфу и потом продал память о ночи Башне",
+      "truth": true,
+      "strength": 0.9,
+      "origin": ["vesna", "ivar"],
+      "rep": {"village": 1, "ash": -3}
+    },
+    "r_c5_truth_sold": {
+      "text": "Мокрый отнёс Красную зиму в Башню, как товар",
+      "truth": true,
+      "strength": 0.85,
+      "origin": ["gostena"],
+      "rep": {"village": -5, "weavers": -2}
+    },
+    "r_c5_kudel_betrayed": {
+      "text": "Мокрый выдал Мать Кудель за шов печати",
+      "truth": true,
+      "strength": 0.95,
+      "origin": ["kudel"],
+      "rep": {"weavers": -10}
+    },
+    "r_c5_agafya_fire": {
+      "text": "Агафья сгорела, пока Мокрый гнался за поджигателем",
+      "truth": true,
+      "strength": 1,
+      "origin": ["vesna", "ivar"],
+      "rep": {"village": -12}
+    }
+  },
+  "merchantRules": {}
+}

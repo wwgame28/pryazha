@@ -930,6 +930,125 @@
    },
    "greeting": "Тесно…",
    "bio": "Рыбак Ефим, брат Федота. Отпущен прошлой весной."
+  },
+  {
+   "id": "chad",
+   "name": "Брат Чад",
+   "role": "ревнитель Пепельного Круга",
+   "home": "camp",
+   "look": {
+    "body": "male",
+    "skin": "#c9ad98",
+    "hair": "buzzcut",
+    "hairColor": "#3b201b",
+    "layers": [
+     [
+      "ls2",
+      "#562721"
+     ],
+     [
+      "cape_tattered",
+      "#28201d"
+     ],
+     [
+      "pants",
+      "#33271e"
+     ],
+     [
+      "shoes",
+      "#211b18"
+     ],
+     [
+      "staff",
+      "#ae6837"
+     ]
+    ]
+   },
+   "greeting": "Детская рука чистая. Мёртвым в ней не место.",
+   "bio": "Сжёг дом родителей Мирты. Жжёт тех, кто держит мёртвых, и считает это милосердием. Последователь Угара, которого учитель не умеет остановить.",
+   "showIf": {
+    "all": [
+     {
+      "chapter_gte": 3
+     },
+     {
+      "chad_fate_not": "dead"
+     },
+     {
+      "chad_fate_not": "fled"
+     }
+    ]
+   }
+  },
+  {
+   "id": "khrustalina",
+   "name": "Хрусталина",
+   "role": "хранительница устава Неусыпных",
+   "home": "tower",
+   "look": {
+    "body": "female",
+    "skin": "#e2d9d6",
+    "hair": "braid",
+    "hairColor": "#a8c2d9",
+    "layers": [
+     [
+      "robe",
+      "#344d70"
+     ],
+     [
+      "cape",
+      "#afc2d3"
+     ],
+     [
+      "shoes",
+      "#26313e"
+     ],
+     [
+      "staff",
+      "#b9d8e7"
+     ]
+    ]
+   },
+   "greeting": "Порядок — это когда ничего не пропадает.",
+   "bio": "Заместительница Ясны. Держит запечатанное крыло и боится, что архивариус однажды предпочтёт человека уставу.",
+   "showIf": {
+    "chapter_gte": 3
+   }
+  },
+  {
+   "id": "krivoy",
+   "name": "Кривой",
+   "role": "подручный Безродных",
+   "home": "camp",
+   "look": {
+    "body": "male",
+    "skin": "#b5967b",
+    "hair": "messy1",
+    "hairColor": "#403326",
+    "layers": [
+     [
+      "ls2",
+      "#57432c"
+     ],
+     [
+      "pants",
+      "#3b302a"
+     ],
+     [
+      "boots",
+      "#291d18"
+     ],
+     [
+      "dagger",
+      "#a1a4a5"
+     ]
+    ]
+   },
+   "greeting": "Ничего личного. Сначала цена, потом разговор.",
+   "bio": "Знает цену чужому имени лучше, чем собственному слову. Встречается среди безродных путников.",
+   "showIf": {
+    "chapter_gte": 4
+   }
   }
  ],
  "quests": [
@@ -2016,1057 +2135,6 @@
      },
      "worldEffects": []
     }
-   ]
-  },
-  {
-   "id": "m3",
-   "title": "Тот, кто не забывает",
-   "giver": "ivar",
-   "chain": "main",
-   "summary": "Гоблины живут под крылом старого тролля Гурдыма. У него ключ от склепа, который двести лет назад дал ему сам Морвен.",
-   "steps": [
-    {
-     "id": "s1",
-     "type": "goto",
-     "target": "trollcamp",
-     "where": "trollcamp",
-     "text": "Найти Гурдымов Камень",
-     "scene": "m3_s1"
-    },
-    {
-     "id": "s2",
-     "type": "talk",
-     "target": "gurdym",
-     "where": "trollcamp",
-     "text": "Поговорить с Гурдымом",
-     "scene": "m3_s2"
-    },
-    {
-     "id": "s3",
-     "type": "choose",
-     "target": "gurdym",
-     "where": "trollcamp",
-     "text": "Как получить ключ",
-     "scene": "m3_s3"
-    },
-    {
-     "id": "s4",
-     "type": "defeat",
-     "target": "troll",
-     "count": 1,
-     "where": "trollcamp",
-     "requires": {
-      "gurdym": "dead"
-     },
-     "text": "Убить Гурдыма",
-     "scene": "m3_s4"
-    },
-    {
-     "id": "s5",
-     "type": "choose",
-     "target": "gurdym",
-     "where": "trollcamp",
-     "text": "Забрать у тролля память",
-     "scene": "m3_s5"
-    },
-    {
-     "id": "s6",
-     "type": "talk",
-     "target": "gurdym",
-     "where": "trollcamp",
-     "requires": {
-      "gurdym": "spared"
-     },
-     "text": "Получить ключ",
-     "scene": "m3_s6"
-    }
-   ],
-   "outcomes": [
-    {
-     "if": {
-      "gurdym": "dead"
-     },
-     "text": "Ключ тёплый от его ладони. Гоблины воют всю ночь, и Шуршок больше не подходит.",
-     "rewards": {
-      "gold": 90,
-      "xp": 160,
-      "echoes": 25,
-      "item": "crypt_key"
-     },
-     "worldEffects": [
-      "card+:quest:q_m3:4",
-      "npc:gurdym:gone",
-      "bond:shurshok:-3",
-      "spawn:goblin:wild:forest:x1.5",
-      "deed:d_killed_gurdym",
-      "later:2:ev_goblin_raid"
-     ]
-    },
-    {
-     "if": {
-      "gurdym": "eased"
-     },
-     "text": "В тебе теперь чужая зима: красная вода у брода, люди в огне, мальчик с факелом. Гурдым впервые за двести лет спит.",
-     "rewards": {
-      "xp": 160,
-      "echoes": 15,
-      "item": "crypt_key"
-     },
-     "worldEffects": [
-      "card+:quest:q_m3:4",
-      "card+:foreign:f_red_winter:3",
-      "bond:gurdym:+2",
-      "deed:d_eased_gurdym",
-      "learn:f_red_winter_gurdym"
-     ]
-    },
-    {
-     "if": {
-      "gurdym": "spared"
-     },
-     "text": "Гурдым отдал ключ и камешек с шеи — первый, самый маленький.",
-     "rewards": {
-      "xp": 160,
-      "echoes": 15,
-      "item": "crypt_key"
-     },
-     "worldEffects": [
-      "card+:quest:q_m3:4",
-      "bond:gurdym:+2",
-      "bond:shurshok:+1",
-      "deed:d_spared_gurdym"
-     ]
-    }
-   ],
-   "chapter": 2,
-   "after": [
-    "c1_council"
-   ]
-  },
-  {
-   "id": "m4",
-   "title": "Проводы",
-   "giver": "ivar",
-   "chain": "main",
-   "summary": "Ночь Проводов: деревня в последний раз называет имена умерших за год. Среди них — Митрий Вереск. Агафья его так и не отпустила. Архив хочет купить список.",
-   "steps": [
-    {
-     "id": "s1",
-     "type": "talk",
-     "target": "ivar",
-     "where": "village",
-     "text": "Узнать про Проводы",
-     "scene": "m4_s1"
-    },
-    {
-     "id": "s2",
-     "type": "talk",
-     "target": "agafya",
-     "where": "village",
-     "text": "Поговорить с Агафьей",
-     "scene": "m4_s2"
-    },
-    {
-     "id": "s3",
-     "type": "night",
-     "target": "ford",
-     "where": "village",
-     "text": "Дождаться ночи у брода"
-    },
-    {
-     "id": "s4",
-     "type": "talk",
-     "target": "yasna",
-     "where": "village",
-     "text": "Незваная гостья",
-     "scene": "m4_s4"
-    },
-    {
-     "id": "s5",
-     "type": "choose",
-     "target": "ivar",
-     "where": "village",
-     "text": "Решить судьбу имён",
-     "scene": "m4_s5"
-    },
-    {
-     "id": "s6",
-     "type": "sacrifice",
-     "target": "any",
-     "count": 2,
-     "where": "village",
-     "requires": {
-      "provody": "taken"
-     },
-     "text": "Освободить место для чужих имён (отдать память весом от 2)",
-     "scene": "m4_s6"
-    }
-   ],
-   "outcomes": [
-    {
-     "if": {
-      "provody": "spoken",
-      "mitya_hidden": true
-     },
-     "text": "Одиннадцать берестинок уплыли. Агафья держит узелок и смотрит на тебя так, будто ты сам Митрий. Ивар понял. Но промолчал.",
-     "rewards": {
-      "xp": 120,
-      "echoes": 20
-     },
-     "worldEffects": [
-      "card+:quest:q_m4:4",
-      "bond:agafya:+2",
-      "bond:ivar:-1",
-      "flag:mitya_kept=true",
-      "deed:d_read_names",
-      "deed:d_hid_mitya"
-     ]
-    },
-    {
-     "if": {
-      "provody": "spoken"
-     },
-     "text": "Береста уплыла. Агафья расплела косу, узелок упал в воду. Утром она назовёт тебя «милок» и не вспомнит почему плакала.",
-     "rewards": {
-      "gold": 30,
-      "xp": 120,
-      "echoes": 20
-     },
-     "worldEffects": [
-      "card+:quest:q_m4:4",
-      "bond:ivar:+2",
-      "flag:mitya_kept=false",
-      "line:agafya:forgot_mitya"
-     ]
-    },
-    {
-     "if": {
-      "provody": "sold"
-     },
-     "text": "Ясна заплатила деревне сто пятьдесят серебром. Утром никто не помнит умерших, а в Архиве на полке звенят двенадцать склянок.",
-     "rewards": {
-      "gold": 150,
-      "xp": 120,
-      "echoes": 10
-     },
-     "worldEffects": [
-      "card+:quest:q_m4:4",
-      "bond:yasna:+2",
-      "bond:agafya:-2",
-      "flag:mitya_kept=archive",
-      "shop:tower:discount10",
-      "deed:d_sold_names"
-     ]
-    },
-    {
-     "if": {
-      "provody": "taken"
-     },
-     "text": "Двенадцать имён теперь в тебе. Ночью слышишь, как они переговариваются. Агафья помнит сына. Ивар перестал с тобой здороваться.",
-     "rewards": {
-      "xp": 140,
-      "echoes": 30
-     },
-     "worldEffects": [
-      "card+:quest:q_m4:4",
-      "card+:foreign:f_twelve_names:3",
-      "bond:agafya:+3",
-      "bond:ivar:-2",
-      "flag:mitya_kept=hero",
-      "deed:d_took_names"
-     ]
-    }
-   ],
-   "chapter": 2,
-   "after": [
-    "m3"
-   ],
-   "endsChapter": 2
-  },
-  {
-   "id": "m5",
-   "title": "Печать изнутри",
-   "giver": "gurdym",
-   "chain": "main",
-   "summary": "Печать склепа выдавлена наружу, а не взломана. Внизу мёртвые, которых слишком много, и тот, кто их держит.",
-   "steps": [
-    {
-     "id": "s1",
-     "type": "investigate",
-     "target": "crypt_seal",
-     "count": 1,
-     "where": "oldgrave",
-     "text": "Осмотреть печать склепа",
-     "scene": "m5_s1"
-    },
-    {
-     "id": "s2",
-     "type": "enter",
-     "target": "crypt1",
-     "where": "oldgrave",
-     "text": "Спуститься в склеп"
-    },
-    {
-     "id": "s3",
-     "type": "talk",
-     "target": "ostap",
-     "where": "crypt1",
-     "text": "Скелет, который не нападает",
-     "scene": "m5_s3"
-    },
-    {
-     "id": "s4",
-     "type": "enter",
-     "target": "crypt2",
-     "where": "oldgrave",
-     "text": "Спуститься ниже"
-    },
-    {
-     "id": "s5",
-     "type": "talk",
-     "target": "morven",
-     "where": "crypt2",
-     "text": "Голос из темноты",
-     "scene": "m5_s5"
-    },
-    {
-     "id": "s6",
-     "type": "talk",
-     "target": "morven",
-     "where": "crypt2",
-     "text": "Ответ Морвена",
-     "scene": "m5_s6"
-    }
-   ],
-   "outcomes": [
-    {
-     "if": {},
-     "text": "Морвен не захотел драться. Это пугает сильнее, чем если бы захотел.",
-     "rewards": {
-      "xp": 100,
-      "echoes": 15
-     },
-     "worldEffects": [
-      "card+:quest:q_m5:4",
-      "flag:morven_met=1",
-      "unlock:m6"
-     ]
-    }
-   ],
-   "chapter": 3,
-   "after": [
-    "m4"
-   ]
-  },
-  {
-   "id": "m6",
-   "title": "Три неправды",
-   "giver": "morven",
-   "chain": "main",
-   "summary": "Архив, Пепельный Круг и ткачи по-своему рассказывают, кто такой Морвен и кто такой ты. Каждый врёт по-своему.",
-   "steps": [
-    {
-     "id": "s1",
-     "type": "talk",
-     "target": "yasna",
-     "where": "tower",
-     "text": "Спросить Архив",
-     "scene": "m6_s1"
-    },
-    {
-     "id": "s2",
-     "type": "talk",
-     "target": "ugar",
-     "where": "camp",
-     "text": "Спросить Пепельный Круг",
-     "scene": "m6_s2"
-    },
-    {
-     "id": "s3",
-     "type": "talk",
-     "target": "kudel",
-     "where": "ruins",
-     "text": "Спросить ткачиху",
-     "scene": "m6_s3"
-    },
-    {
-     "id": "s4",
-     "type": "choose",
-     "target": "self",
-     "where": "any",
-     "text": "Сложить три неправды",
-     "scene": "m6_s4"
-    }
-   ],
-   "outcomes": [
-    {
-     "if": {},
-     "text": "Три версии одной истории. В каждой ты кому-то принадлежишь.",
-     "rewards": {
-      "xp": 120,
-      "echoes": 20
-     },
-     "worldEffects": [
-      "card+:quest:q_m6:4",
-      "bond:yasna:+1",
-      "bond:ugar:+1",
-      "bond:kudel:+1",
-      "flag:met_kudel=true",
-      "unlock:m7"
-     ]
-    }
-   ],
-   "chapter": 3,
-   "after": [
-    "m5"
-   ],
-   "endsChapter": 3
-  },
-  {
-   "id": "m7",
-   "title": "Сухой Лог",
-   "giver": "kudel",
-   "chain": "main",
-   "summary": "Выцветь съедает деревню в степи. Люди забывают собственных детей. Как её спасти — решаешь ты, и от этого зависит, с кем ты дальше.",
-   "steps": [
-    {
-     "id": "s1",
-     "type": "goto",
-     "target": "hamlet_dry",
-     "where": "wild:steppe",
-     "text": "Найти Сухой Лог",
-     "scene": "m7_s1"
-    },
-    {
-     "id": "s2",
-     "type": "investigate",
-     "target": "fade_sign",
-     "count": 3,
-     "where": "wild:steppe",
-     "text": "Понять, что здесь происходит",
-     "scene": "m7_s2"
-    },
-    {
-     "id": "s3",
-     "type": "talk",
-     "target": "marya",
-     "where": "wild:steppe",
-     "text": "Поговорить с Марьей",
-     "scene": "m7_s3"
-    },
-    {
-     "id": "s4",
-     "type": "choose",
-     "target": "marya",
-     "where": "wild:steppe",
-     "text": "Спасти Сухой Лог",
-     "scene": "m7_s4"
-    },
-    {
-     "id": "s5",
-     "type": "cast",
-     "target": "ice",
-     "count": 3,
-     "where": "wild:steppe",
-     "requires": {
-      "faction": "archive"
-     },
-     "text": "Трижды ударить льдом по околице",
-     "scene": "m7_s5"
-    },
-    {
-     "id": "s6",
-     "type": "cast",
-     "target": "fire",
-     "count": 3,
-     "where": "wild:steppe",
-     "requires": {
-      "faction": "ash"
-     },
-     "text": "Трижды ударить огнём по белой кромке",
-     "scene": "m7_s6"
-    },
-    {
-     "id": "s7",
-     "type": "sacrifice",
-     "target": "region",
-     "count": 1,
-     "where": "wild:steppe",
-     "requires": {
-      "faction": "weavers"
-     },
-     "text": "Отдать свою карту края",
-     "scene": "m7_s7"
-    },
-    {
-     "id": "s8",
-     "type": "escort",
-     "target": "marya",
-     "where": "village",
-     "requires": {
-      "faction": "none"
-     },
-     "text": "Довести Марью и детей до Брода",
-     "scene": "m7_s8"
-    }
-   ],
-   "outcomes": [
-    {
-     "if": {
-      "faction": "archive"
-     },
-     "text": "Сухой Лог стоит во льду, как в стеклянной банке. Марья всё ещё качает пустую колыбель.",
-     "rewards": {
-      "gold": 100,
-      "xp": 180,
-      "echoes": 20
-     },
-     "worldEffects": [
-      "card+:quest:q_m7:4",
-      "bond:yasna:+2",
-      "bond:ugar:-2",
-      "biome:snow:grow:10",
-      "npc:marya:frozen"
-     ]
-    },
-    {
-     "if": {
-      "faction": "ash"
-     },
-     "text": "Белое отступило. Люди улыбаются и не знают своих имён. Угар раздаёт им новые.",
-     "rewards": {
-      "gold": 60,
-      "xp": 180,
-      "echoes": 35
-     },
-     "worldEffects": [
-      "card+:quest:q_m7:4",
-      "bond:ugar:+2",
-      "bond:yasna:-2",
-      "fog:wild:steppe:clear",
-      "npcKnows:marya:false"
-     ]
-    },
-    {
-     "if": {
-      "faction": "weavers"
-     },
-     "text": "Деревня держится, а ты ищешь знакомую тропу и не находишь. Подпасок из Лога смотрит на тебя и говорит: «Ты как наш Сенька стоишь».",
-     "rewards": {
-      "xp": 200,
-      "echoes": 15
-     },
-     "worldEffects": [
-      "card+:quest:q_m7:4",
-      "card+:dream:d_shepherd:5",
-      "bond:kudel:+2"
-     ]
-    },
-    {
-     "if": {
-      "faction": "none"
-     },
-     "text": "Двадцать душ в Броде. Ивар бурчит, но выделяет пустые избы. Сухой Лог за спиной тает в белом.",
-     "rewards": {
-      "xp": 180,
-      "echoes": 10
-     },
-     "worldEffects": [
-      "card+:quest:q_m7:4",
-      "card+:dream:d_shepherd:5",
-      "bond:ivar:+1",
-      "npc:marya:moved:village",
-      "fog:wild:steppe:regrow"
-     ]
-    }
-   ],
-   "chapter": 4,
-   "after": [
-    "m6"
-   ]
-  },
-  {
-   "id": "m8",
-   "title": "Сны о себе",
-   "giver": "agafya",
-   "chain": "main",
-   "summary": "Чужие жесты, чужие сны, чужие руки. Герой собирает своё прошлое и понимает, что оно не одно.",
-   "steps": [
-    {
-     "id": "s1",
-     "type": "talk",
-     "target": "agafya",
-     "where": "village",
-     "text": "Агафья что-то замечает",
-     "scene": "m8_s1"
-    },
-    {
-     "id": "s2",
-     "type": "night",
-     "target": "ford",
-     "where": "village",
-     "text": "Сон Митрия: ночь у брода",
-     "scene": "m8_s2"
-    },
-    {
-     "id": "s3",
-     "type": "night",
-     "target": "lake",
-     "where": "wild:lake",
-     "text": "Сон Лёси: ночь у озера",
-     "scene": "m8_s3"
-    },
-    {
-     "id": "s4",
-     "type": "investigate",
-     "target": "ash_wall",
-     "count": 2,
-     "where": "ruins",
-     "text": "Сон Остапа: обгоревшие ворота в Выцвети",
-     "scene": "m8_s4"
-    },
-    {
-     "id": "s5",
-     "type": "talk",
-     "target": "kudel",
-     "where": "ruins",
-     "text": "Спросить Кудель, что это значит",
-     "scene": "m8_s5"
-    },
-    {
-     "id": "s6",
-     "type": "choose",
-     "target": "self",
-     "where": "any",
-     "text": "Кто ты",
-     "scene": "m8_s6"
-    },
-    {
-     "id": "s7",
-     "type": "use",
-     "target": "name_input",
-     "where": "any",
-     "requires": {
-      "hero_self": "one"
-     },
-     "text": "Выбрать себе имя",
-     "scene": "m8_s7"
-    }
-   ],
-   "outcomes": [
-    {
-     "if": {
-      "hero_self": "one"
-     },
-     "text": "У тебя есть имя. Своё. Первая вещь в этом мире, которую ни у кого не взяли.",
-     "rewards": {
-      "xp": 200,
-      "echoes": 20
-     },
-     "worldEffects": [
-      "card+:quest:q_m8:4",
-      "card+:dream:d_mitriy:5",
-      "card+:dream:d_lesya:5",
-      "card+:dream:d_ostap:5",
-      "card+:name:n_self:10",
-      "unlock:m9"
-     ]
-    },
-    {
-     "if": {
-      "hero_self": "many"
-     },
-     "text": "Ты отзываешься на чужое имя. Внутри стало тише: голоса решили, что ты их.",
-     "rewards": {
-      "xp": 200,
-      "echoes": 20
-     },
-     "worldEffects": [
-      "card+:quest:q_m8:4",
-      "card+:dream:d_mitriy:5",
-      "card+:dream:d_lesya:5",
-      "card+:dream:d_ostap:5",
-      "card+:name:n_borrowed:10",
-      "unlock:m9"
-     ]
-    }
-   ],
-   "chapter": 4,
-   "after": [
-    "m7"
-   ],
-   "endsChapter": 4
-  },
-  {
-   "id": "m9",
-   "title": "Инструмент",
-   "giver": "kudel",
-   "chain": "main",
-   "summary": "Тот, на чью сторону ты встал, даёт средство против Морвена. Остальные пытаются помешать.",
-   "steps": [
-    {
-     "id": "s1",
-     "type": "talk",
-     "target": "$faction_leader",
-     "where": "any",
-     "text": "Получить инструмент",
-     "scene": "m9_s1"
-    },
-    {
-     "id": "s2",
-     "type": "collect",
-     "target": "$faction_tool",
-     "count": 1,
-     "where": "any",
-     "text": "Взять инструмент"
-    },
-    {
-     "id": "s3",
-     "type": "defeat",
-     "target": "cultist",
-     "count": 4,
-     "where": "oldgrave",
-     "requires": {
-      "faction": "archive"
-     },
-     "text": "Пепельный Круг перекрыл кладбище",
-     "scene": "m9_s3"
-    },
-    {
-     "id": "s4",
-     "type": "defeat",
-     "target": "witch",
-     "count": 3,
-     "where": "oldgrave",
-     "requires": {
-      "faction": "ash"
-     },
-     "text": "Ведьмы Архива стерегут склеп",
-     "scene": "m9_s4"
-    },
-    {
-     "id": "s5",
-     "type": "defeat",
-     "target": "skeleton",
-     "count": 8,
-     "where": "oldgrave",
-     "requires": {
-      "faction": "weavers"
-     },
-     "text": "Мёртвые лезут наружу",
-     "scene": "m9_s5"
-    },
-    {
-     "id": "s6",
-     "type": "talk",
-     "target": "gurdym",
-     "where": "trollcamp",
-     "requires": {
-      "faction": "none"
-     },
-     "text": "Спросить совета у того, кто помнит Морвена",
-     "scene": "m9_s6"
-    }
-   ],
-   "outcomes": [
-    {
-     "if": {
-      "faction": "none"
-     },
-     "text": "У тебя нет ни лампы, ни факела. Только узелок и то, что Морвен боялся пауков.",
-     "rewards": {
-      "xp": 160,
-      "echoes": 20,
-      "item": "agafya_knot"
-     },
-     "worldEffects": [
-      "card+:quest:q_m9:4",
-      "flag:morven_spiders=true"
-     ]
-    },
-    {
-     "if": {},
-     "text": "Инструмент тяжелее, чем кажется. Он помнит, для чего его сделали.",
-     "rewards": {
-      "xp": 160,
-      "echoes": 20,
-      "item": "$faction_tool"
-     },
-     "worldEffects": [
-      "card+:quest:q_m9:4"
-     ]
-    }
-   ],
-   "chapter": 5,
-   "after": [
-    "m8"
-   ],
-   "endsChapter": 5
-  },
-  {
-   "id": "m10",
-   "title": "Двести лет тишины",
-   "giver": "morven",
-   "chain": "main",
-   "summary": "Нижний зал склепа. Морвен на троне из бересты с Проводов. Решение, ради которого ты был сшит.",
-   "steps": [
-    {
-     "id": "s1",
-     "type": "enter",
-     "target": "crypt3",
-     "where": "oldgrave",
-     "text": "Спуститься в нижний зал"
-    },
-    {
-     "id": "s2",
-     "type": "talk",
-     "target": "ostap",
-     "where": "crypt3",
-     "text": "Последнее слово Остапа",
-     "scene": "m10_s2"
-    },
-    {
-     "id": "s3",
-     "type": "talk",
-     "target": "morven",
-     "where": "crypt3",
-     "text": "Говорить с Морвеном",
-     "scene": "m10_s3"
-    },
-    {
-     "id": "s4",
-     "type": "choose",
-     "target": "morven",
-     "where": "crypt3",
-     "text": "Решить, что будет с Морвеном и его мёртвыми",
-     "scene": "m10_s4"
-    },
-    {
-     "id": "s5",
-     "type": "use",
-     "target": "frost_lamp",
-     "where": "crypt3",
-     "requires": {
-      "morven": "frozen"
-     },
-     "text": "Поставить лампу у трона",
-     "scene": "m10_s5"
-    },
-    {
-     "id": "s6",
-     "type": "defeat",
-     "target": "lich",
-     "count": 1,
-     "where": "crypt3",
-     "text": "Бой с Морвеном",
-     "scene": "m10_s6"
-    },
-    {
-     "id": "s7",
-     "type": "sacrifice",
-     "target": "any",
-     "count": 5,
-     "where": "crypt3",
-     "requires": {
-      "morven": "released"
-     },
-     "text": "Отдать память весом от 5, чтобы хватило рук на все нити",
-     "scene": "m10_s7"
-    },
-    {
-     "id": "s8",
-     "type": "sacrifice",
-     "target": "name",
-     "count": 10,
-     "where": "crypt3",
-     "requires": {
-      "morven": "keeper"
-     },
-     "text": "Отдать своё Имя и сесть на трон",
-     "scene": "m10_s8"
-    }
-   ],
-   "outcomes": [
-    {
-     "if": {
-      "morven": "frozen"
-     },
-     "text": "Склеп стал хрустальным. Мёртвые стоят, как в музее. Ясна плачет от красоты — чужими слезами.",
-     "rewards": {
-      "gold": 200,
-      "xp": 400,
-      "echoes": 40
-     },
-     "worldEffects": [
-      "card+:quest:q_m10:4",
-      "biome:snow:grow:20",
-      "bond:yasna:+3",
-      "unlock:m11"
-     ]
-    },
-    {
-     "if": {
-      "morven": "burned"
-     },
-     "text": "Пламя идёт по бересте, по лентам, по именам. Девятьсот сорок три вздоха. Наверху ветер тёплый и пахнет ничем.",
-     "rewards": {
-      "gold": 200,
-      "xp": 400,
-      "echoes": 120
-     },
-     "worldEffects": [
-      "card+:quest:q_m10:4",
-      "fog:oldgrave:clear",
-      "spawn:skeleton:oldgrave:x0",
-      "bond:ugar:+3",
-      "unlock:m11"
-     ]
-    },
-    {
-     "if": {
-      "morven": "released"
-     },
-     "text": "Пусто и тихо. В Броде вспоминают тех, кого не должны. Некоторые этому рады.",
-     "rewards": {
-      "xp": 400,
-      "echoes": 30
-     },
-     "worldEffects": [
-      "card+:quest:q_m10:4",
-      "card+:dream:d_morven:5",
-      "bond:kudel:+3",
-      "unlock:m11"
-     ]
-    },
-    {
-     "if": {
-      "morven": "keeper"
-     },
-     "text": "Ты на троне. Девятьсот сорок три имени в голове. Своего нет.",
-     "rewards": {
-      "xp": 400,
-      "echoes": 60
-     },
-     "worldEffects": [
-      "card+:quest:q_m10:4",
-      "npc:morven:gone",
-      "unlock:m11"
-     ]
-    },
-    {
-     "if": {
-      "morven": "persuaded"
-     },
-     "text": "Морвен называет имена. Одно за другим, вслух, своим скрипучим голосом. Ты держишь его за кость руки. Это занимает всю ночь.",
-     "rewards": {
-      "xp": 450,
-      "echoes": 30
-     },
-     "worldEffects": [
-      "card+:quest:q_m10:4",
-      "card+:dream:d_morven:5",
-      "card+:shared:sh_morven:4",
-      "unlock:m11"
-     ]
-    },
-    {
-     "if": {
-      "morven": "killed"
-     },
-     "text": "Корона из бересты катится к твоим ногам. Мёртвые стоят. Потом, тихо, по одному, идут к лестнице. Наверх.",
-     "rewards": {
-      "gold": 300,
-      "xp": 400,
-      "echoes": 80,
-      "item": "birch_crown"
-     },
-     "worldEffects": [
-      "card+:quest:q_m10:4",
-      "spawn:skeleton:village:x1",
-      "spawn:zombie:village:x1",
-      "unlock:m11"
-     ]
-    }
-   ],
-   "chapter": 6,
-   "after": [
-    "m9"
-   ]
-  },
-  {
-   "id": "m11",
-   "title": "Ночь Перевязки",
-   "giver": "agafya",
-   "chain": "main",
-   "summary": "Мир перевязывается после того, что случилось в склепе. Последний узел завязывает герой — тем, что он готов отдать.",
-   "steps": [
-    {
-     "id": "s1",
-     "type": "talk",
-     "target": "ivar",
-     "where": "village",
-     "text": "Что стало с Бродом",
-     "scene": "m11_s1"
-    },
-    {
-     "id": "s2",
-     "type": "talk",
-     "target": "agafya",
-     "where": "village",
-     "text": "Агафья",
-     "scene": "m11_s2"
-    },
-    {
-     "id": "s3",
-     "type": "night",
-     "target": "ford",
-     "where": "village",
-     "text": "Ночь Перевязки у брода",
-     "scene": "m11_s3"
-    },
-    {
-     "id": "s4",
-     "type": "choose",
-     "target": "self",
-     "where": "village",
-     "text": "Последний узел",
-     "scene": "m11_s4"
-    },
-    {
-     "id": "s5",
-     "type": "sacrifice",
-     "target": "$last_knot",
-     "where": "village",
-     "requires": {
-      "last_knot_not": "whole"
-     },
-     "text": "Завязать узел",
-     "scene": "m11_s5"
-    },
-    {
-     "id": "s6",
-     "type": "wait",
-     "target": "dawn",
-     "where": "village",
-     "text": "Дождаться рассвета",
-     "scene": "m11_s6"
-    }
-   ],
-   "outcomes": [
-    {
-     "if": {},
-     "text": "Концовка определяется по таблице endings.",
-     "rewards": {
-      "xp": 500
-     },
-     "worldEffects": [
-      "ending:resolve"
-     ]
-    }
-   ],
-   "chapter": 6,
-   "after": [
-    "m10"
    ]
   },
   {
@@ -4613,6 +3681,2034 @@
    "offerIf": {
     "sacrificed_any": true
    }
+  },
+  {
+   "id": "m3",
+   "title": "Тот, кто не забывает",
+   "giver": "ivar",
+   "chain": "main",
+   "chapter": 2,
+   "after": [
+    "c1_council"
+   ],
+   "summary": "Ключ от склепа хранит Гурдым — тролль, которому Морвен велел отдать его тому, кто придёт мокрым. Гурдым помнит слишком много зим.",
+   "onStart": [
+    "scene:chapter_2_start"
+   ],
+   "steps": [
+    {
+     "id": "s1",
+     "type": "goto",
+     "target": "trollcamp",
+     "where": "trollcamp",
+     "scene": "m3_s1",
+     "text": "Найти Гурдымов Камень"
+    },
+    {
+     "id": "s2",
+     "type": "talk",
+     "target": "gurdym",
+     "where": "trollcamp",
+     "scene": "m3_s2",
+     "text": "Поговорить с Гурдымом"
+    },
+    {
+     "id": "s3",
+     "type": "choose",
+     "target": "gurdym",
+     "where": "trollcamp",
+     "scene": "m3_s3",
+     "text": "Решить, как получить ключ"
+    },
+    {
+     "id": "s4",
+     "type": "defeat",
+     "target": "troll",
+     "count": 1,
+     "where": "trollcamp",
+     "requires": {
+      "gurdym": "dead"
+     },
+     "scene": "m3_s4",
+     "text": "Одолеть Гурдыма"
+    },
+    {
+     "id": "s5",
+     "type": "choose",
+     "target": "gurdym",
+     "where": "trollcamp",
+     "requires": {
+      "c2_gurdym_route": "easing"
+     },
+     "scene": "m3_s5",
+     "text": "Решить, брать ли красную зиму"
+    },
+    {
+     "id": "s6",
+     "type": "talk",
+     "target": "gurdym",
+     "where": "trollcamp",
+     "requires": {
+      "gurdym": "spared"
+     },
+     "scene": "m3_s6",
+     "text": "Получить ключ миром"
+    }
+   ],
+   "outcomes": [
+    {
+     "if": {
+      "gurdym": "dead"
+     },
+     "text": "Ключ тёплый от ладони Гурдыма. В ельнике всю ночь воют гоблины; теперь они знают, что старика можно было не убивать.",
+     "rewards": {
+      "gold": 90,
+      "xp": 160,
+      "echoes": 25,
+      "item": "crypt_key"
+     },
+     "worldEffects": [
+      "card+:quest:q_m3:4",
+      "npc:gurdym:gone",
+      "bond:shurshok:-3",
+      "spawn:goblin:wild:forest:x1.5",
+      "deed:d_killed_gurdym",
+      "later:2:ev_goblin_raid"
+     ]
+    },
+    {
+     "if": {
+      "all": [
+       {
+        "gurdym": "eased"
+       },
+       {
+        "c2_gurdym_memory": "borne"
+       }
+      ]
+     },
+     "text": "В тебе теперь чужая зима: красная вода, горящие окна и мальчик с факелом. Гурдым впервые за двести лет спит.",
+     "rewards": {
+      "xp": 160,
+      "echoes": 15,
+      "item": "crypt_key"
+     },
+     "worldEffects": [
+      "card+:quest:q_m3:4",
+      "card+:foreign:f_red_winter:3",
+      "bond:gurdym:+2",
+      "deed:d_eased_gurdym",
+      "learn:f_red_winter_gurdym"
+     ]
+    },
+    {
+     "if": {
+      "gurdym": "eased"
+     },
+     "text": "Огонь взял красную зиму, а Гурдым остался смотреть на пустую ладонь. Ключ он отдал молча.",
+     "rewards": {
+      "xp": 160,
+      "echoes": 15,
+      "item": "crypt_key"
+     },
+     "worldEffects": [
+      "card+:quest:q_m3:4",
+      "bond:gurdym:+1",
+      "deed:d_eased_gurdym"
+     ]
+    },
+    {
+     "if": {},
+     "text": "Гурдым отдал ключ не потому, что забыл, а потому, что ему впервые не приказали забыть.",
+     "rewards": {
+      "xp": 160,
+      "echoes": 15,
+      "item": "crypt_key"
+     },
+     "worldEffects": [
+      "card+:quest:q_m3:4",
+      "bond:gurdym:+2",
+      "bond:shurshok:+1",
+      "deed:d_spared_gurdym"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "m4",
+   "title": "Проводы",
+   "giver": "ivar",
+   "chain": "main",
+   "chapter": 2,
+   "after": [
+    "m3"
+   ],
+   "endsChapter": 2,
+   "summary": "В ночь Проводов Брод в последний раз назовёт имена умерших за год. Среди них — Митрий Вереск; Ясна предлагает купить весь список.",
+   "steps": [
+    {
+     "id": "s1",
+     "type": "talk",
+     "target": "ivar",
+     "where": "village",
+     "scene": "m4_s1",
+     "text": "Узнать, как пройдут Проводы"
+    },
+    {
+     "id": "s2",
+     "type": "talk",
+     "target": "agafya",
+     "where": "village",
+     "scene": "m4_s2",
+     "text": "Поговорить с Агафьей о Митрии"
+    },
+    {
+     "id": "s3",
+     "type": "night",
+     "target": "ford",
+     "where": "village",
+     "text": "Прийти ночью к броду"
+    },
+    {
+     "id": "s4",
+     "type": "talk",
+     "target": "ivar",
+     "where": "village",
+     "scene": "m4_s4",
+     "text": "Встретить Ясну у воды"
+    },
+    {
+     "id": "s5",
+     "type": "choose",
+     "target": "ivar",
+     "where": "village",
+     "scene": "m4_s5",
+     "text": "Решить судьбу имён"
+    },
+    {
+     "id": "s6",
+     "type": "sacrifice",
+     "target": "any",
+     "count": 2,
+     "where": "village",
+     "requires": {
+      "provody": "taken"
+     },
+     "scene": "m4_s6",
+     "text": "Освободить место для чужих имён (отдать память весом от 2)"
+    }
+   ],
+   "outcomes": [
+    {
+     "if": {
+      "all": [
+       {
+        "provody": "spoken"
+       },
+       {
+        "mitya_hidden": true
+       }
+      ]
+     },
+     "text": "Одиннадцать берестинок уплыли. Агафья держит узелок и смотрит на тебя так, будто ты сам Митрий. Ивар всё понял, но промолчал.",
+     "rewards": {
+      "xp": 120,
+      "echoes": 20
+     },
+     "worldEffects": [
+      "card+:quest:q_m4:4",
+      "bond:agafya:+2",
+      "bond:ivar:-1",
+      "flag:mitya_kept=true",
+      "deed:d_read_names",
+      "deed:d_hid_mitya",
+      "greeting:agafya:c2_mitya_held"
+     ]
+    },
+    {
+     "if": {
+      "provody": "spoken"
+     },
+     "text": "Береста уплыла. Агафья расплела косу, и узелок ушёл за огоньками. Утром она назовёт тебя «милок» и не вспомнит, почему плакала.",
+     "rewards": {
+      "gold": 30,
+      "xp": 120,
+      "echoes": 20
+     },
+     "worldEffects": [
+      "card+:quest:q_m4:4",
+      "bond:ivar:+2",
+      "flag:mitya_kept=false",
+      "line:agafya:forgot_mitya"
+     ]
+    },
+    {
+     "if": {
+      "provody": "sold"
+     },
+     "text": "Ясна заплатила деревне сто пятьдесят серебром. Утром никто не помнит умерших, а в Архиве на полке звенят двенадцать склянок.",
+     "rewards": {
+      "gold": 150,
+      "xp": 120,
+      "echoes": 10
+     },
+     "worldEffects": [
+      "card+:quest:q_m4:4",
+      "bond:yasna:+2",
+      "bond:agafya:-2",
+      "flag:mitya_kept=archive",
+      "shop:yasna:discount10",
+      "deed:d_sold_names"
+     ]
+    },
+    {
+     "if": {},
+     "text": "Двенадцать имён теперь в тебе. Ночью слышно, как они переговариваются. Агафья помнит сына; Ивар перестал здороваться первым.",
+     "rewards": {
+      "xp": 140,
+      "echoes": 30
+     },
+     "worldEffects": [
+      "card+:quest:q_m4:4",
+      "card+:foreign:f_twelve_names:3",
+      "bond:agafya:+3",
+      "bond:ivar:-2",
+      "flag:mitya_kept=hero",
+      "deed:d_took_names"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "c2_birch",
+   "title": "Береста",
+   "giver": "ivar",
+   "chain": "side",
+   "chapter": 2,
+   "after": [
+    "m3"
+   ],
+   "auto": true,
+   "summary": "Ивар велел собрать у шести дворов истории тех, чьи имена он внесёт в бересту Проводов. Некоторые живые просят не отдавать своих мёртвых.",
+   "steps": [
+    {
+     "id": "s1",
+     "type": "talk",
+     "target": "ivar",
+     "where": "village",
+     "scene": "c2_birch_s1",
+     "text": "Взять бересту у Ивара"
+    },
+    {
+     "id": "s2",
+     "type": "count",
+     "target": "c2_birch_names",
+     "count": 6,
+     "where": "village",
+     "text": "Обойти шесть дворов: Весна, Улита, Пелагея, Федот, Дуня, Агафья"
+    },
+    {
+     "id": "s3",
+     "type": "talk",
+     "target": "ivar",
+     "where": "village",
+     "scene": "c2_birch_s3",
+     "text": "Вернуть бересту Ивару"
+    }
+   ],
+   "outcomes": [
+    {
+     "if": {
+      "c2_birch_mitya": "hidden"
+     },
+     "text": "В списке осталось пустое восьмое место. Ивар не спросил, чьё оно. Береста помнит и без чернил.",
+     "rewards": {
+      "xp": 70,
+      "echoes": 8
+     },
+     "worldEffects": [
+      "card+:quest:q_c2_birch:2",
+      "rel:agafya:trust:1"
+     ]
+    },
+    {
+     "if": {},
+     "text": "Береста собрала шесть домашних историй. Имена стали тяжелее, но не сделались проще.",
+     "rewards": {
+      "xp": 70,
+      "echoes": 8
+     },
+     "worldEffects": [
+      "card+:quest:q_c2_birch:2"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "c2_pebbles",
+   "title": "Камешки",
+   "giver": "khrum",
+   "chain": "side",
+   "chapter": 2,
+   "after": [
+    "m3"
+   ],
+   "summary": "Гоблины растащили три камешка-зимы с шеи Гурдыма. Один из них красный и хранит то, чего тролль хотел бы не помнить.",
+   "steps": [
+    {
+     "id": "s1",
+     "type": "talk",
+     "target": "khrum",
+     "where": "far_bank",
+     "scene": "c2_pebbles_s1",
+     "text": "Узнать, куда делись камешки"
+    },
+    {
+     "id": "s2",
+     "type": "investigate",
+     "target": "c2_pebble",
+     "count": 3,
+     "where": "wild:forest",
+     "scene": "c2_pebbles_s2",
+     "text": "Найти три камешка в Подшёрстке"
+    },
+    {
+     "id": "s3",
+     "type": "choose",
+     "target": "gurdym",
+     "where": "trollcamp",
+     "scene": "c2_pebbles_s3",
+     "text": "Решить судьбу красного камешка"
+    }
+   ],
+   "outcomes": [
+    {
+     "if": {
+      "c2_pebble_kept": true
+     },
+     "text": "Красный камешек лежит в кармане, тяжёлый как недосказанная правда. Он не заменит свидетеля, но не даст делу стать сказкой.",
+     "rewards": {
+      "xp": 45,
+      "echoes": 5
+     },
+     "worldEffects": [
+      "card+:quest:q_c2_pebbles:1"
+     ]
+    },
+    {
+     "if": {},
+     "text": "Красный камешек ушёл в реку. У Гурдыма стало меньше тяжести на шее, но у Брода — на одну улику меньше.",
+     "rewards": {
+      "xp": 45,
+      "echoes": 8
+     },
+     "worldEffects": [
+      "card+:quest:q_c2_pebbles:1"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "m5",
+   "title": "Печать изнутри",
+   "giver": "ivar",
+   "chain": "main",
+   "chapter": 3,
+   "after": [
+    "m4"
+   ],
+   "summary": "Печать склепа выдавлена наружу, а не взломана. Внизу мёртвые, которым тесно, и тот, кто держит их двести лет.",
+   "steps": [
+    {
+     "id": "s1",
+     "type": "investigate",
+     "target": "crypt_seal",
+     "count": 3,
+     "spots": [
+      "oldgrave",
+      "oldgrave",
+      "oldgrave"
+     ],
+     "where": "oldgrave",
+     "scene": "m5_s1",
+     "text": "Осмотреть печать склепа: камень, след, шов"
+    },
+    {
+     "id": "s2",
+     "type": "enter",
+     "target": "crypt1",
+     "where": "oldgrave",
+     "text": "Спуститься в склеп"
+    },
+    {
+     "id": "s3",
+     "type": "talk",
+     "target": "ostap",
+     "where": "crypt1",
+     "scene": "m5_s3",
+     "text": "Поговорить с Остапом и именованными мёртвыми"
+    },
+    {
+     "id": "s4",
+     "type": "enter",
+     "target": "crypt2",
+     "where": "oldgrave",
+     "text": "Спуститься ниже"
+    },
+    {
+     "id": "s5",
+     "type": "talk",
+     "target": "morven",
+     "where": "crypt2",
+     "scene": "m5_s5",
+     "text": "Услышать Морвена"
+    },
+    {
+     "id": "s6",
+     "type": "talk",
+     "target": "morven",
+     "where": "crypt2",
+     "scene": "m5_s6",
+     "text": "Выслушать ответ Морвена"
+    }
+   ],
+   "outcomes": [
+    {
+     "if": {},
+     "text": "Морвен велел подняться и спросить других. Он не назвал тебя своим — но сказал, что ты выпал у него из рук.",
+     "rewards": {
+      "xp": 100,
+      "echoes": 15
+     },
+     "worldEffects": [
+      "card+:quest:q_m5:4",
+      "flag:morven_met=1",
+      "unlock:m6"
+     ]
+    }
+   ],
+   "then": [
+    "c3_deadnight",
+    "c3_truth"
+   ]
+  },
+  {
+   "id": "c3_truth",
+   "title": "Сложи враньё",
+   "giver": "ostap",
+   "chain": "investigation",
+   "chapter": 3,
+   "after": [
+    "m5"
+   ],
+   "summary": "Морвен велел сложить три неправды. На листе сходятся слова Остапа, Ясны, Угара, Кудель и след на печати.",
+   "steps": [
+    {
+     "id": "s1",
+     "type": "talk",
+     "target": "ostap",
+     "where": "crypt1",
+     "scene": "c3_truth_s1",
+     "text": "Взять у Остапа чистую бересту"
+    },
+    {
+     "id": "s2",
+     "type": "investigate",
+     "target": "three_lies",
+     "count": 3,
+     "spots": [
+      "tower",
+      "camp",
+      "ruins"
+     ],
+     "where": "wild:any",
+     "scene": "c3_truth_s2",
+     "text": "Сверить три чужие правды: Башня, костры, руины"
+    },
+    {
+     "id": "s3",
+     "type": "choose",
+     "target": "self",
+     "where": "oldgrave",
+     "scene": "c3_truth_s3",
+     "text": "Сложить ответ о себе"
+    }
+   ],
+   "outcomes": [
+    {
+     "if": {
+      "truth_board": "stitched"
+     },
+     "text": "Ты не протечка, не щепка и не чужая вещь. Тебя сшили из тех, кого живые не отпустили.",
+     "rewards": {
+      "xp": 70,
+      "echoes": 8
+     },
+     "worldEffects": [
+      "learn:f_stitched",
+      "card+:quest:q_c3_truth:2"
+     ]
+    },
+    {
+     "if": {},
+     "text": "Ответ лёгкий, как плохо завязанный узел. Ты понимаешь это, но пока держишься за него.",
+     "rewards": {
+      "xp": 35
+     },
+     "worldEffects": [
+      "learn:f_wrong_self",
+      "card+:quest:q_c3_truth:1"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "c3_deadnight",
+   "title": "Ночь недопетых",
+   "giver": "ivar",
+   "chain": "main",
+   "chapter": 3,
+   "auto": true,
+   "after": [
+    "m5"
+   ],
+   "summary": "Печать открыта. Ивар держит околицу, Федот раздаёт багры, а из склепа идут те, кого когда-то отпустили. Их можно остановить или проводить обратно.",
+   "steps": [
+    {
+     "id": "s1",
+     "type": "talk",
+     "target": "ivar",
+     "where": "village",
+     "scene": "c3_deadnight_s1",
+     "text": "Выйти к Ивару на околицу"
+    },
+    {
+     "id": "s2",
+     "type": "choose",
+     "target": "self",
+     "where": "village",
+     "scene": "c3_deadnight_s2",
+     "text": "Решить, как встретить недопетых"
+    },
+    {
+     "id": "s3",
+     "type": "defeat",
+     "target": "skeleton",
+     "count": 3,
+     "spawn": 3,
+     "spawnName": "Недопетые у околицы",
+     "tint": "#9ab8d8",
+     "where": "village",
+     "scene": "c3_deadnight_s3",
+     "text": "Удержать околицу"
+    },
+    {
+     "id": "s4",
+     "type": "talk",
+     "target": "ivar",
+     "where": "village",
+     "scene": "c3_deadnight_s4",
+     "text": "Дождаться рассвета у околицы"
+    }
+   ],
+   "outcomes": [
+    {
+     "if": {
+      "deadnight_way": "fence"
+     },
+     "text": "Околица устояла. Утром на снегу лежат щепки, багры и три чужих пуговицы. Брод благодарит тебя вполголоса.",
+     "rewards": {
+      "xp": 100,
+      "echoes": 10
+     },
+     "worldEffects": [
+      "card+:quest:q_c3_deadnight:3"
+     ]
+    },
+    {
+     "if": {
+      "deadnight_way": "agafya"
+     },
+     "text": "Агафья увела мёртвых серым узелком. Живые отворачивались, но утром у её крыльца стояла горячая каша на всех.",
+     "rewards": {
+      "xp": 105,
+      "echoes": 14
+     },
+     "worldEffects": [
+      "card+:quest:q_c3_deadnight:3"
+     ]
+    },
+    {
+     "if": {},
+     "text": "Ты шёл впереди и называл тех, чьи имена знал. Остальным сказал честно: «Не знаю. Но вижу вас». К рассвету склеп принял их обратно.",
+     "rewards": {
+      "xp": 110,
+      "echoes": 16
+     },
+     "worldEffects": [
+      "card+:quest:q_c3_deadnight:3"
+     ]
+    }
+   ],
+   "then": [
+    "m6"
+   ]
+  },
+  {
+   "id": "m6",
+   "title": "Три неправды",
+   "giver": "morven",
+   "chain": "main",
+   "chapter": 3,
+   "after": [
+    "c3_deadnight"
+   ],
+   "endsChapter": 3,
+   "summary": "Архив называет тебя протечкой, Круг — щепкой, ткачи — швом. Три ответа удобны им. Выбирать, с кем идти дальше, придётся тебе.",
+   "steps": [
+    {
+     "id": "s1",
+     "type": "talk",
+     "target": "yasna",
+     "where": "tower",
+     "scene": "m6_s1",
+     "text": "Спросить Архив"
+    },
+    {
+     "id": "s2",
+     "type": "talk",
+     "target": "ugar",
+     "where": "camp",
+     "scene": "m6_s2",
+     "text": "Спросить Пепельный Круг"
+    },
+    {
+     "id": "s3",
+     "type": "talk",
+     "target": "kudel",
+     "where": "ruins",
+     "scene": "m6_s3",
+     "text": "Спросить ткачиху"
+    },
+    {
+     "id": "s4",
+     "type": "choose",
+     "target": "self",
+     "where": "oldgrave",
+     "scene": "m6_s4",
+     "text": "Выбрать, чьим путём идти к Сухому Логу"
+    },
+    {
+     "id": "s5",
+     "type": "talk",
+     "target": "kudel",
+     "where": "oldgrave",
+     "scene": "m6_s5",
+     "text": "Встретить рассвет у кладбища"
+    }
+   ],
+   "outcomes": [
+    {
+     "if": {
+      "faction": "archive"
+     },
+     "text": "Ты выбрал Архив не за холод, а за шанс не потерять ещё одно имя. Ясна идёт к белой кромке с лампой.",
+     "rewards": {
+      "xp": 120,
+      "echoes": 20
+     },
+     "worldEffects": [
+      "card+:quest:q_m6:4",
+      "bond:yasna:+2",
+      "bond:ugar:-1",
+      "bond:kudel:-1",
+      "unlock:m7"
+     ]
+    },
+    {
+     "if": {
+      "faction": "ash"
+     },
+     "text": "Ты выбрал Круг не за лёгкость огня, а за право не тащить боль вечно. Угар идёт к белой кромке без песни.",
+     "rewards": {
+      "xp": 120,
+      "echoes": 20
+     },
+     "worldEffects": [
+      "card+:quest:q_m6:4",
+      "bond:yasna:-1",
+      "bond:ugar:+2",
+      "bond:kudel:-1",
+      "unlock:m7"
+     ]
+    },
+    {
+     "if": {
+      "faction": "weavers"
+     },
+     "text": "Ты выбрал ткачей не потому, что шов безболезнен, а потому, что рваное можно чинить не криком. Кудель ждёт тебя у степной дороги.",
+     "rewards": {
+      "xp": 120,
+      "echoes": 20
+     },
+     "worldEffects": [
+      "card+:quest:q_m6:4",
+      "bond:yasna:-1",
+      "bond:ugar:-1",
+      "bond:kudel:+2",
+      "flag:met_kudel=true",
+      "unlock:m7"
+     ]
+    },
+    {
+     "if": {},
+     "text": "Ты не отдал себя ни в опись, ни в костёр, ни в чужие руки. Дорога в степь всё равно есть — просто идти по ней придётся самому.",
+     "rewards": {
+      "xp": 120,
+      "echoes": 20
+     },
+     "worldEffects": [
+      "card+:quest:q_m6:4",
+      "bond:yasna:+1",
+      "bond:ugar:+1",
+      "bond:kudel:+1",
+      "flag:met_kudel=true",
+      "unlock:m7"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "c3_orphans",
+   "title": "Детские склянки",
+   "giver": "yasna",
+   "chain": "archive",
+   "chapter": 3,
+   "after": [
+    "s6"
+   ],
+   "summary": "После описи тебе не даёт покоя полка с детскими склянками. Ясна говорит: сохранённое можно вернуть только тому, кто вправе его взять.",
+   "steps": [
+    {
+     "id": "s1",
+     "type": "talk",
+     "target": "yasna",
+     "where": "tower",
+     "scene": "c3_orphans_s1",
+     "text": "Спросить о детских склянках"
+    },
+    {
+     "id": "s2",
+     "type": "choose",
+     "target": "self",
+     "where": "tower",
+     "scene": "c3_orphans_s2",
+     "text": "Решить, что делать с чужим первым снегом"
+    }
+   ],
+   "outcomes": [
+    {
+     "if": {
+      "orphans_jars": "returned"
+     },
+     "text": "Склянки не стали ничьей добычей. Ты оставил для детей имена, даты и дорогу обратно — если они когда-нибудь захотят идти.",
+     "rewards": {
+      "xp": 45
+     },
+     "worldEffects": [
+      "deed:d_c3_returned_jars",
+      "card+:quest:q_c3_orphans:1"
+     ]
+    },
+    {
+     "if": {
+      "orphans_jars": "hidden"
+     },
+     "text": "Ты спрятал полку от описи. Это не свобода, но и не продажа. Хрусталина заметила пустое место в журнале.",
+     "rewards": {
+      "xp": 35,
+      "echoes": 5
+     },
+     "worldEffects": [
+      "card+:quest:q_c3_orphans:1"
+     ]
+    },
+    {
+     "if": {},
+     "text": "Ты ушёл, ничего не решив. Склянки остались ровно стоять в синем свете.",
+     "rewards": {
+      "xp": 20
+     },
+     "worldEffects": [
+      "card+:quest:q_c3_orphans:1"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "m7",
+   "title": "Сухой Лог",
+   "giver": "kudel",
+   "chain": "main",
+   "chapter": 4,
+   "after": [
+    "m6"
+   ],
+   "summary": "Выцветь подбирается к Сухому Логу. Четыре способа помочь оставляют людям четыре разные цены.",
+   "steps": [
+    {
+     "id": "s1",
+     "type": "goto",
+     "target": "hamlet_dry",
+     "where": "wild:steppe",
+     "text": "Найти Сухой Лог вместе с Куделью",
+     "scene": "m7_s1"
+    },
+    {
+     "id": "s2",
+     "type": "investigate",
+     "target": "fade_sign",
+     "count": 3,
+     "clues": true,
+     "where": "wild:steppe",
+     "text": "Осмотреть три следа Выцвети в Сухом Логе",
+     "scene": "m7_s2"
+    },
+    {
+     "id": "s3",
+     "type": "talk",
+     "target": "marya",
+     "where": "wild:steppe",
+     "text": "Выслушать Марью и жителей Лога",
+     "scene": "m7_s3"
+    },
+    {
+     "id": "s4",
+     "type": "choose",
+     "target": "self",
+     "where": "wild:steppe",
+     "text": "Решить, как поступить с работами на белой кромке",
+     "scene": "m7_s4"
+    },
+    {
+     "id": "s5",
+     "type": "defeat",
+     "target": "witch",
+     "count": 3,
+     "spawn": 3,
+     "where": "wild:steppe",
+     "text": "Отбиться от ведьм Архива",
+     "scene": "m7_s5"
+    },
+    {
+     "id": "s6",
+     "type": "defeat",
+     "target": "cultist",
+     "count": 3,
+     "spawn": 3,
+     "where": "wild:steppe",
+     "text": "Отбиться от культистов Чада",
+     "scene": "m7_s6"
+    },
+    {
+     "id": "s7",
+     "type": "choose",
+     "target": "marya",
+     "where": "wild:steppe",
+     "text": "Назвать Марье цену спасения Сухого Лога",
+     "scene": "m7_s7"
+    }
+   ],
+   "outcomes": [
+    {
+     "if": {
+      "faction": "archive"
+     },
+     "text": "Сухой Лог стоит во льду. Люди целы, но Марья каждое утро заново учится любить детей.",
+     "rewards": {
+      "gold": 100,
+      "xp": 180,
+      "echoes": 20
+     },
+     "worldEffects": [
+      "card+:quest:q_m7:4",
+      "bond:yasna:+2",
+      "bond:ugar:-2",
+      "biome:snow:grow:10",
+      "npc:marya:frozen"
+     ]
+    },
+    {
+     "if": {
+      "faction": "ash"
+     },
+     "text": "Белое отступило. Люди уцелели, но носят новые имена, выданные им у костра.",
+     "rewards": {
+      "gold": 60,
+      "xp": 180,
+      "echoes": 35
+     },
+     "worldEffects": [
+      "card+:quest:q_m7:4",
+      "bond:ugar:+2",
+      "bond:yasna:-2",
+      "fog:wild:steppe:clear",
+      "npcKnows:marya:false"
+     ]
+    },
+    {
+     "if": {
+      "faction": "weavers"
+     },
+     "text": "Сухой Лог снова держится на карте. Твоя дорога к нему стала короче, а память о ней — тоньше.",
+     "rewards": {
+      "xp": 200,
+      "echoes": 15
+     },
+     "worldEffects": [
+      "card+:quest:q_m7:4",
+      "card+:dream:d_shepherd:5",
+      "bond:kudel:+2"
+     ]
+    },
+    {
+     "if": {},
+     "text": "Двадцать душ пришли в Брод, а Сухой Лог исчез за их спинами. Марья несёт пустую колыбель сама.",
+     "rewards": {
+      "xp": 180,
+      "echoes": 10
+     },
+     "worldEffects": [
+      "card+:quest:q_m7:4",
+      "card+:dream:d_shepherd:5",
+      "bond:ivar:+1",
+      "npc:marya:moved:village",
+      "fog:wild:steppe:regrow"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "c4_whistle",
+   "title": "Свисток",
+   "giver": "sivy",
+   "chain": "side",
+   "chapter": 4,
+   "after": [
+    "m7"
+   ],
+   "offerIf": {
+    "c4_whistle_found": true
+   },
+   "summary": "В Сухом Логе найден ивовый свисток Сеньки. Дед Сивый помнит мальчика и решает, отпускать ли его.",
+   "steps": [
+    {
+     "id": "s1",
+     "type": "talk",
+     "target": "sivy",
+     "where": "wild:steppe",
+     "text": "Показать Сивому ивовый свисток",
+     "scene": "c4_whistle_s1"
+    },
+    {
+     "id": "s2",
+     "type": "choose",
+     "target": "sivy",
+     "where": "wild:steppe",
+     "text": "Решить, держать ли Сеньку памятью",
+     "scene": "c4_whistle_s2"
+    }
+   ],
+   "outcomes": [
+    {
+     "if": {
+      "c4_sivy_whistle": "released"
+     },
+     "text": "Сивый отпустил Сеньку. Свисток умолк, зато в степи перестало быть так тесно.",
+     "rewards": {
+      "xp": 90,
+      "echoes": 12
+     },
+     "worldEffects": [
+      "card+:dream:d_shepherd:5",
+      "rel:sivy:trust:2"
+     ]
+    },
+    {
+     "if": {},
+     "text": "Сивый оставил свисток при себе. Память Сеньки крепче, но старик снова идёт к волкам один.",
+     "rewards": {
+      "xp": 70,
+      "echoes": 15
+     },
+     "worldEffects": [
+      "rel:sivy:fear:1"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "m8",
+   "title": "Сны о себе",
+   "giver": "agafya",
+   "chain": "main",
+   "chapter": 4,
+   "after": [
+    "m7"
+   ],
+   "endsChapter": 4,
+   "summary": "Чужие жесты и сны складываются в человека. Тебе решать, быть ли множеством, своим именем или утешением для Агафьи.",
+   "steps": [
+    {
+     "id": "s1",
+     "type": "talk",
+     "target": "agafya",
+     "where": "village",
+     "text": "Поговорить с Агафьей о чужих жестах",
+     "scene": "m8_s1"
+    },
+    {
+     "id": "s2",
+     "type": "night",
+     "target": "ford",
+     "where": "village",
+     "text": "Увидеть сон Митрия у брода",
+     "scene": "m8_s2"
+    },
+    {
+     "id": "s3",
+     "type": "night",
+     "target": "lake",
+     "where": "wild:lake",
+     "text": "Увидеть сон Лёси у озера",
+     "scene": "m8_s3"
+    },
+    {
+     "id": "s4",
+     "type": "investigate",
+     "target": "ash_wall",
+     "count": 2,
+     "clues": true,
+     "where": "ruins",
+     "text": "Прочесть два следа Остапова сна у ворот",
+     "scene": "m8_s4"
+    },
+    {
+     "id": "s5",
+     "type": "talk",
+     "target": "kudel",
+     "where": "ruins",
+     "text": "Спросить Кудель, из кого ты сшит",
+     "scene": "m8_s5"
+    },
+    {
+     "id": "s6",
+     "type": "choose",
+     "target": "self",
+     "where": "any",
+     "text": "Сказать, кто ты",
+     "scene": "m8_s6"
+    },
+    {
+     "id": "s7",
+     "type": "use",
+     "target": "name_input",
+     "where": "any",
+     "requires": {
+      "hero_self": "one"
+     },
+     "text": "Назвать себя",
+     "scene": "m8_s7"
+    },
+    {
+     "id": "s8",
+     "type": "choose",
+     "target": "self",
+     "where": "any",
+     "text": "Дослушать последнюю ночь Марфы",
+     "scene": "m8_s8"
+    }
+   ],
+   "outcomes": [
+    {
+     "if": {
+      "hero_self": "one"
+     },
+     "text": "У тебя есть имя. Своё — первая вещь в мире, которую ни у кого не взяли.",
+     "rewards": {
+      "xp": 200,
+      "echoes": 20
+     },
+     "worldEffects": [
+      "card+:quest:q_m8:4",
+      "card+:dream:d_mitriy:5",
+      "card+:dream:d_lesya:5",
+      "card+:dream:d_ostap:5",
+      "card+:name:n_self:10",
+      "unlock:m9"
+     ]
+    },
+    {
+     "if": {},
+     "text": "Ты отзываешься на имена тех, кто в тебе живёт. Внутри стало тише, но не пусто.",
+     "rewards": {
+      "xp": 200,
+      "echoes": 20
+     },
+     "worldEffects": [
+      "card+:quest:q_m8:4",
+      "card+:dream:d_mitriy:5",
+      "card+:dream:d_lesya:5",
+      "card+:dream:d_ostap:5",
+      "card+:name:n_borrowed:10",
+      "unlock:m9"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "m9",
+   "title": "Красная зима",
+   "giver": "agafya",
+   "chain": "main",
+   "chapter": 5,
+   "auto": true,
+   "summary": "Красная зима больше не помещается в чужих молчаниях. Собери три из пяти свидетельств, реши, кому достанется правда, и не дай старому огню повториться.",
+   "after": [
+    "m8"
+   ],
+   "endsChapter": 5,
+   "steps": [
+    {
+     "id": "s1",
+     "type": "talk",
+     "target": "agafya",
+     "where": "village",
+     "scene": "m9_s1",
+     "text": "Вернуться к Агафье"
+    },
+    {
+     "id": "s2",
+     "type": "count",
+     "target": "c5_witness_count",
+     "count": 3,
+     "where": "village",
+     "text": "Собрать любые три из пяти свидетельств Красной зимы"
+    },
+    {
+     "id": "s3",
+     "type": "choose",
+     "target": "self",
+     "where": "village",
+     "scene": "m9_s3",
+     "text": "Решить, кому достанется правда"
+    },
+    {
+     "id": "s4",
+     "type": "choose",
+     "target": "self",
+     "where": "ashes",
+     "scene": "m9_s4",
+     "text": "Свести Ясну и Угара у пепелища"
+    },
+    {
+     "id": "s5",
+     "type": "talk",
+     "target": "kudel",
+     "where": "ruins",
+     "scene": "m9_s5",
+     "text": "Спросить Кудель, кто сшил героя"
+    },
+    {
+     "id": "s6",
+     "type": "night",
+     "target": "village",
+     "where": "village",
+     "scene": "m9_s6",
+     "text": "Ночью прийти к избе Агафьи"
+    },
+    {
+     "id": "s7",
+     "type": "wait",
+     "target": "dawn",
+     "where": "village",
+     "scene": "m9_s7",
+     "text": "Дождаться рассвета и принять инструмент"
+    }
+   ],
+   "outcomes": [
+    {
+     "if": {
+      "faction": "none"
+     },
+     "text": "У тебя нет ни лампы, ни факела. Есть узелок, память о страхе Морвена перед пауками и правда, за которую пришлось заплатить живым.",
+     "rewards": {
+      "xp": 220,
+      "echoes": 25,
+      "item": "agafya_knot"
+     },
+     "worldEffects": [
+      "card+:quest:q_m9:4",
+      "flag:morven_spiders=true"
+     ]
+    },
+    {
+     "if": {},
+     "text": "Инструмент для Морвена лежит в руках тяжело. Теперь он не отменяет твоего выбора — только делает его возможным.",
+     "rewards": {
+      "xp": 220,
+      "echoes": 25,
+      "item": "$faction_tool"
+     },
+     "worldEffects": [
+      "card+:quest:q_m9:4"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "c5_witness",
+   "title": "Пять свидетельств",
+   "giver": "agafya",
+   "chain": "investigation",
+   "chapter": 5,
+   "hidden": true,
+   "summary": "Агафья назвала пять следов Красной зимы. Трёх достаточно, чтобы узнать правду; все пять не сделают её легче.",
+   "steps": [
+    {
+     "id": "s1",
+     "type": "count",
+     "target": "c5_witness_count",
+     "count": 3,
+     "where": "village",
+     "text": "Собрать три свидетельства: узелок, список, полка, поступок или пепелище"
+    }
+   ],
+   "outcomes": [
+    {
+     "if": {},
+     "text": "Три разных следа сходятся в одну ночь: список, огонь и память, которую Брод продал, чтобы не смотреть на себя.",
+     "rewards": {
+      "xp": 65
+     },
+     "worldEffects": []
+    }
+   ]
+  },
+  {
+   "id": "c5_knot",
+   "title": "Серый узелок",
+   "giver": "agafya",
+   "chain": "investigation",
+   "chapter": 5,
+   "hidden": true,
+   "summary": "Под красным узелком Митрия Агафья тридцать пять лет носит серый — память о Марфе и собственном молчании.",
+   "steps": [
+    {
+     "id": "s1",
+     "type": "talk",
+     "target": "agafya",
+     "where": "village",
+     "scene": "c5_knot_s1",
+     "text": "Спросить Агафью о сером узелке"
+    }
+   ],
+   "outcomes": [
+    {
+     "if": {},
+     "text": "Агафья призналась: она видела огонь и молчала. Что делать с её серым узлом — теперь не только её выбор.",
+     "rewards": {
+      "xp": 45
+     },
+     "worldEffects": []
+    }
+   ]
+  },
+  {
+   "id": "c5_list",
+   "title": "Список старосты",
+   "giver": "ivar",
+   "chain": "investigation",
+   "chapter": 5,
+   "hidden": true,
+   "summary": "В сундуке Богдана Ольхи лежит берестяной список дворов, которые он выдал Пепельному Кругу.",
+   "steps": [
+    {
+     "id": "s1",
+     "type": "talk",
+     "target": "ivar",
+     "where": "village",
+     "scene": "c5_list_s1",
+     "text": "Попросить Ивара открыть сундук Богдана"
+    }
+   ],
+   "outcomes": [
+    {
+     "if": {
+      "ivar_list": "village"
+     },
+     "text": "Ивар отдаёт список деревне. Отец больше не может прятаться за сундуком, а сын — за его именем.",
+     "rewards": {
+      "xp": 50
+     },
+     "worldEffects": []
+    },
+    {
+     "if": {
+      "ivar_list": "burned"
+     },
+     "text": "Список сгорел, но Ивар успел прочесть каждое имя. Береста исчезла, ответственность — нет.",
+     "rewards": {
+      "xp": 45
+     },
+     "worldEffects": []
+    },
+    {
+     "if": {},
+     "text": "Ивар спрятал список от Чада. Правда осталась у вас, но не стала его оружием.",
+     "rewards": {
+      "xp": 45
+     },
+     "worldEffects": []
+    }
+   ]
+  },
+  {
+   "id": "c5_shelf",
+   "title": "Опечатанная полка",
+   "giver": "yasna",
+   "chain": "investigation",
+   "chapter": 5,
+   "hidden": true,
+   "summary": "В запечатанном крыле Башни лежат купленные память Брода и детство Ясны, отданное после пожара.",
+   "steps": [
+    {
+     "id": "s1",
+     "type": "talk",
+     "target": "yasna",
+     "where": "tower",
+     "scene": "c5_shelf_s1",
+     "text": "Попросить Ясну открыть запечатанное крыло"
+    },
+    {
+     "id": "s2",
+     "type": "choose",
+     "target": "yasna",
+     "where": "tower",
+     "scene": "c5_shelf_s2",
+     "text": "Решить судьбу детства Ясны"
+    }
+   ],
+   "outcomes": [
+    {
+     "if": {
+      "yasna_childhood": "returned"
+     },
+     "text": "Ясна взяла своё детство. Вместе с ним вернулся дым, но и маленькая девочка, которую когда-то вынесли из дома.",
+     "rewards": {
+      "xp": 60,
+      "echoes": 5
+     },
+     "worldEffects": []
+    },
+    {
+     "if": {},
+     "text": "Запись о ночи первого снега больше нельзя назвать случайным пожаром. Детство Ясны осталось за печатью — по её воле или по твоей.",
+     "rewards": {
+      "xp": 50
+     },
+     "worldEffects": []
+    }
+   ]
+  },
+  {
+   "id": "c5_deed",
+   "title": "Поступок",
+   "giver": "ugar",
+   "chain": "investigation",
+   "chapter": 5,
+   "hidden": true,
+   "summary": "Угар сжёг память о ночи первого снега. В её отражении он одновременно мальчик с факелом и ребёнок, который вынес Ясеньку.",
+   "steps": [
+    {
+     "id": "s1",
+     "type": "talk",
+     "target": "ugar",
+     "where": "camp",
+     "scene": "c5_deed_s1",
+     "text": "Поговорить с Угаром о мальчике с факелом"
+    }
+   ],
+   "outcomes": [
+    {
+     "if": {
+      "ugar_fate": "atoning"
+     },
+     "text": "Угар принял память целиком. Он не стал невиновным, но может не дать Чаду повторить его поступок.",
+     "rewards": {
+      "xp": 55
+     },
+     "worldEffects": []
+    },
+    {
+     "if": {},
+     "text": "Угар увидел свой поступок, но не нашёл для него простого имени. Огонь у Круга теперь горит неровно.",
+     "rewards": {
+      "xp": 45
+     },
+     "worldEffects": []
+    }
+   ]
+  },
+  {
+   "id": "c5_ashes",
+   "title": "Пепел на снегу",
+   "giver": "agafya",
+   "chain": "investigation",
+   "chapter": 5,
+   "hidden": true,
+   "summary": "Пепелище у брода хранит не рассказ, а простые следы дома: камни, чешую и детскую букву на печи.",
+   "steps": [
+    {
+     "id": "s1",
+     "type": "investigate",
+     "target": "ashes",
+     "count": 1,
+     "where": "ashes",
+     "scene": "c5_ashes_s1",
+     "text": "Осмотреть пепелище ещё раз"
+    }
+   ],
+   "outcomes": [
+    {
+     "if": {},
+     "text": "Даже засыпанный снегом пепел не становится пустым местом. У дома Марфы были люди, имена и печь.",
+     "rewards": {
+      "xp": 35
+     },
+     "worldEffects": []
+    }
+   ]
+  },
+  {
+   "id": "c6_allies",
+   "title": "Кто придёт",
+   "giver": "ivar",
+   "chain": "main",
+   "chapter": 6,
+   "after": [
+    "m9"
+   ],
+   "then": [
+    "c6_siege"
+   ],
+   "auto": true,
+   "summary": "У кладбища собираются все, кому есть дело до склепа. До ночи можно позвать держащих и закрыть старые счета.",
+   "steps": [
+    {
+     "id": "s1",
+     "type": "goto",
+     "target": "village_well",
+     "where": "village",
+     "text": "Собраться у колодца",
+     "scene": "c6_allies_s1"
+    },
+    {
+     "id": "s2",
+     "type": "choose",
+     "target": "self",
+     "where": "village",
+     "text": "Решить, кого позвать в склеп",
+     "scene": "c6_allies_s2"
+    },
+    {
+     "id": "s3",
+     "type": "talk",
+     "target": "gostena",
+     "where": "village",
+     "text": "Закрыть старые счета у амбара",
+     "scene": "c6_allies_s3"
+    }
+   ],
+   "outcomes": [
+    {
+     "if": {
+      "c6_holders_called_gte": 3
+     },
+     "text": "К склепу идут не воины, а люди, которые помнят, за чью руку держались. Их голоса пригодятся больше оружия.",
+     "rewards": {
+      "xp": 120,
+      "echoes": 15
+     },
+     "worldEffects": [
+      "card+:quest:q_c6_allies:3",
+      "flag:c6_allies=holders"
+     ]
+    },
+    {
+     "if": {},
+     "text": "Людей мало, но каждый знает, зачем идёт. Иногда этого достаточно, чтобы не разбежаться.",
+     "rewards": {
+      "xp": 90,
+      "echoes": 10
+     },
+     "worldEffects": [
+      "card+:quest:q_c6_allies:3",
+      "flag:c6_allies=thin"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "c6_siege",
+   "title": "Тихая Сторона",
+   "giver": "ivar",
+   "chain": "main",
+   "chapter": 6,
+   "after": [
+    "c6_allies"
+   ],
+   "then": [
+    "c6_hall"
+   ],
+   "auto": true,
+   "summary": "У ворот Старого кладбища сошлись Архив, Пепельный Круг, ткачи и Брод. До Морвена нужно пройти не только дверь, но и чужой страх.",
+   "steps": [
+    {
+     "id": "s1",
+     "type": "goto",
+     "target": "oldgrave",
+     "where": "oldgrave",
+     "text": "Прийти к воротам Тихой Стороны",
+     "scene": "c6_siege_s1"
+    },
+    {
+     "id": "s2",
+     "type": "choose",
+     "target": "self",
+     "where": "oldgrave",
+     "text": "Провести людей через заслон",
+     "scene": "c6_siege_s2"
+    },
+    {
+     "id": "s3",
+     "type": "count",
+     "target": "c6_siege_passed",
+     "count": 1,
+     "where": "oldgrave",
+     "text": "Дать спору утихнуть у лестницы"
+    },
+    {
+     "id": "s4",
+     "type": "talk",
+     "target": "ivar",
+     "where": "oldgrave",
+     "text": "Решить, кому держать дверь",
+     "scene": "c6_siege_s3"
+    }
+   ],
+   "outcomes": [
+    {
+     "if": {
+      "c6_siege_route": "words"
+     },
+     "text": "Никто не победил в споре. Зато дверь осталась открыта для тех, кто захочет выйти сам.",
+     "rewards": {
+      "xp": 130,
+      "echoes": 10
+     },
+     "worldEffects": [
+      "card+:quest:q_c6_siege:4",
+      "rep:village:4",
+      "rep:undead:4"
+     ]
+    },
+    {
+     "if": {},
+     "text": "Ты прошёл к склепу силой. На земле остались следы, которые придётся помнить.",
+     "rewards": {
+      "xp": 150,
+      "echoes": 15
+     },
+     "worldEffects": [
+      "card+:quest:q_c6_siege:4",
+      "rep:undead:-2"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "c6_siege_battle",
+   "title": "У лестницы",
+   "giver": "ivar",
+   "chain": "support",
+   "chapter": 6,
+   "after": [
+    "c6_allies"
+   ],
+   "auto": false,
+   "summary": "Ты выбрал пробиться к склепу силой. Недопетые у лестницы не дают живым разойтись без драки.",
+   "steps": [
+    {
+     "id": "s1",
+     "type": "defeat",
+     "target": "skeleton",
+     "count": 3,
+     "spawn": 3,
+     "spawnName": "Недопетые у ворот",
+     "tint": "#b7cad2",
+     "where": "oldgrave",
+     "text": "Отбиться от недопетых у лестницы",
+     "scene": "c6_siege_battle_s1"
+    }
+   ],
+   "outcomes": [
+    {
+     "if": {},
+     "text": "Ты оставил у лестницы достаточно места, чтобы мёртвые и живые разошлись. Победа не похожа на правоту.",
+     "rewards": {
+      "xp": 90,
+      "echoes": 10
+     },
+     "worldEffects": [
+      "card+:quest:q_c6_siege_battle:1"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "c6_hall",
+   "title": "Зал имён",
+   "giver": "ostap",
+   "chain": "main",
+   "chapter": 6,
+   "after": [
+    "c6_siege"
+   ],
+   "then": [
+    "m10"
+   ],
+   "auto": true,
+   "summary": "Перед нижним залом держащие встретятся со своими мёртвыми. Их выбор не отменит боли, но изменит, что останется в герое.",
+   "steps": [
+    {
+     "id": "s1",
+     "type": "enter",
+     "target": "crypt1",
+     "where": "oldgrave",
+     "text": "Войти в зал имён",
+     "scene": "c6_hall_s1"
+    },
+    {
+     "id": "s2",
+     "type": "choose",
+     "target": "self",
+     "where": "crypt3",
+     "text": "Дать держащим сказать своё",
+     "scene": "c6_hall_s2"
+    },
+    {
+     "id": "s3",
+     "type": "talk",
+     "target": "ostap",
+     "where": "crypt3",
+     "text": "Подойти к нижнему залу",
+     "scene": "c6_hall_s3"
+    }
+   ],
+   "outcomes": [
+    {
+     "if": {
+      "c6_holders_released_gte": 1
+     },
+     "text": "Хотя бы одна нить перестала тянуть руку. Отпустить не значит сделать вид, что человека не было.",
+     "rewards": {
+      "xp": 150,
+      "echoes": 20
+     },
+     "worldEffects": [
+      "card+:quest:q_c6_hall:3"
+     ]
+    },
+    {
+     "if": {},
+     "text": "Ленты остались тёплыми от голосов. Держать можно бережно, но легче от этого не становится.",
+     "rewards": {
+      "xp": 120,
+      "echoes": 15
+     },
+     "worldEffects": [
+      "card+:quest:q_c6_hall:3"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "m10",
+   "title": "Двести лет тишины",
+   "giver": "morven",
+   "chain": "main",
+   "chapter": 6,
+   "after": [
+    "c6_hall"
+   ],
+   "then": [
+    "m11"
+   ],
+   "summary": "Нижний зал склепа. Морвен на троне из бересты с Проводов. Решение, ради которого ты был сшит.",
+   "steps": [
+    {
+     "id": "s1",
+     "type": "enter",
+     "target": "crypt3",
+     "where": "oldgrave",
+     "text": "Спуститься в нижний зал"
+    },
+    {
+     "id": "s2",
+     "type": "talk",
+     "target": "ostap",
+     "where": "crypt3",
+     "text": "Последнее слово Остапа",
+     "scene": "m10_s2"
+    },
+    {
+     "id": "s3",
+     "type": "talk",
+     "target": "morven",
+     "where": "crypt3",
+     "text": "Говорить с Морвеном",
+     "scene": "m10_s3"
+    },
+    {
+     "id": "s4",
+     "type": "choose",
+     "target": "morven",
+     "where": "crypt3",
+     "text": "Решить, что будет с Морвеном и его мёртвыми",
+     "scene": "m10_s4"
+    },
+    {
+     "id": "s5",
+     "type": "use",
+     "target": "frost_lamp",
+     "where": "crypt3",
+     "requires": {
+      "morven": "frozen"
+     },
+     "text": "Поставить лампу у трона",
+     "scene": "m10_s5"
+    },
+    {
+     "id": "s6",
+     "type": "defeat",
+     "target": "lich",
+     "count": 1,
+     "where": "crypt3",
+     "text": "Бой с Морвеном",
+     "scene": "m10_s6"
+    },
+    {
+     "id": "s7",
+     "type": "sacrifice",
+     "target": "any",
+     "count": 5,
+     "where": "crypt3",
+     "requires": {
+      "morven": "released"
+     },
+     "text": "Отдать память весом от 5, чтобы хватило рук на все нити",
+     "scene": "m10_s7"
+    },
+    {
+     "id": "s8",
+     "type": "sacrifice",
+     "target": "name",
+     "count": 10,
+     "where": "crypt3",
+     "requires": {
+      "morven": "keeper"
+     },
+     "text": "Отдать своё Имя и сесть на трон",
+     "scene": "m10_s8"
+    }
+   ],
+   "outcomes": [
+    {
+     "if": {
+      "morven": "frozen"
+     },
+     "text": "Склеп стал хрустальным. Мёртвые стоят, как в музее. Ясна плачет от красоты — чужими слезами.",
+     "rewards": {
+      "gold": 200,
+      "xp": 400,
+      "echoes": 40
+     },
+     "worldEffects": [
+      "card+:quest:q_m10:4",
+      "biome:snow:grow:20",
+      "bond:yasna:+3",
+      "unlock:m11"
+     ]
+    },
+    {
+     "if": {
+      "morven": "burned"
+     },
+     "text": "Пламя идёт по бересте, по лентам, по именам. Девятьсот сорок три вздоха. Наверху ветер тёплый и пахнет ничем.",
+     "rewards": {
+      "gold": 200,
+      "xp": 400,
+      "echoes": 120
+     },
+     "worldEffects": [
+      "card+:quest:q_m10:4",
+      "fog:oldgrave:clear",
+      "spawn:skeleton:oldgrave:x0",
+      "bond:ugar:+3",
+      "unlock:m11"
+     ]
+    },
+    {
+     "if": {
+      "morven": "released"
+     },
+     "text": "Пусто и тихо. В Броде вспоминают тех, кого не должны. Некоторые этому рады.",
+     "rewards": {
+      "xp": 400,
+      "echoes": 30
+     },
+     "worldEffects": [
+      "card+:quest:q_m10:4",
+      "card+:dream:d_morven:5",
+      "bond:kudel:+3",
+      "unlock:m11"
+     ]
+    },
+    {
+     "if": {
+      "morven": "keeper"
+     },
+     "text": "Ты на троне. Девятьсот сорок три имени в голове. Своего нет.",
+     "rewards": {
+      "xp": 400,
+      "echoes": 60
+     },
+     "worldEffects": [
+      "card+:quest:q_m10:4",
+      "npc:morven:gone",
+      "unlock:m11"
+     ]
+    },
+    {
+     "if": {
+      "morven": "persuaded"
+     },
+     "text": "Морвен называет имена. Одно за другим, вслух, своим скрипучим голосом. Другие голоса подхватывают там, где он устал.",
+     "rewards": {
+      "xp": 450,
+      "echoes": 30
+     },
+     "worldEffects": [
+      "card+:quest:q_m10:4",
+      "card+:dream:d_morven:5",
+      "card+:shared:sh_morven:4",
+      "unlock:m11"
+     ]
+    },
+    {
+     "if": {
+      "morven": "killed"
+     },
+     "text": "Корона из бересты катится к твоим ногам. Мёртвые стоят. Потом, тихо, по одному, идут к лестнице. Наверх.",
+     "rewards": {
+      "gold": 300,
+      "xp": 400,
+      "echoes": 80,
+      "item": "birch_crown"
+     },
+     "worldEffects": [
+      "card+:quest:q_m10:4",
+      "spawn:skeleton:village:x1",
+      "spawn:zombie:village:x1",
+      "unlock:m11"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "m11",
+   "title": "Ночь Перевязки",
+   "giver": "agafya",
+   "chain": "main",
+   "chapter": 6,
+   "after": [
+    "m10"
+   ],
+   "endsChapter": 6,
+   "summary": "Мир перевязывается после того, что случилось в склепе. Последний узел завязывает герой — тем, что он готов отдать.",
+   "steps": [
+    {
+     "id": "s1",
+     "type": "talk",
+     "target": "ivar",
+     "where": "village",
+     "text": "Узнать, что стало с Бродом",
+     "scene": "m11_s1"
+    },
+    {
+     "id": "s2",
+     "type": "talk",
+     "target": "vesna",
+     "where": "village",
+     "text": "Поговорить у избы Агафьи",
+     "scene": "m11_s2"
+    },
+    {
+     "id": "s3",
+     "type": "night",
+     "target": "ford",
+     "where": "village",
+     "text": "Прийти к броду в Ночь Перевязки",
+     "scene": "m11_s3"
+    },
+    {
+     "id": "s4",
+     "type": "choose",
+     "target": "self",
+     "where": "village",
+     "text": "Выбрать последний узел",
+     "scene": "m11_s4"
+    },
+    {
+     "id": "s5",
+     "type": "choose",
+     "target": "self",
+     "where": "village",
+     "text": "Завязать последний узел",
+     "scene": "m11_s5"
+    },
+    {
+     "id": "s6",
+     "type": "wait",
+     "target": "dawn",
+     "where": "village",
+     "text": "Дождаться рассвета",
+     "scene": "m11_s6"
+    }
+   ],
+   "outcomes": [
+    {
+     "if": {},
+     "text": "К рассвету нить лежит иначе. Ты сделал всё, что мог. Теперь мир отвечает.",
+     "rewards": {
+      "xp": 500
+     },
+     "worldEffects": [
+      "ending:resolve"
+     ]
+    }
+   ]
   }
  ],
  "endings": [
@@ -4652,7 +5748,14 @@
       ]
      },
      {
-      "provody": "taken"
+      "any": [
+       {
+        "provody": "taken"
+       },
+       {
+        "pominy": true
+       }
+      ]
      },
      {
       "gurdym_not": "dead"
@@ -4726,5 +5829,130 @@
    },
    "text": "Мёртвые вышли из склепа и остались. Стоят у колодцев, сидят на завалинках, ждут, пока их позовут по имени. Брод учится жить с ними рядом: кто-то кормит, кто-то гонит, кто-то зовёт. Остап ходит за Улитой с корзиной. Морвена больше нет, держать некому, и Пряжа тяжелеет. Но это тяжесть дома, где много родни. Ты остаёшься на переправе: показываешь мёртвым дорогу к тем, кто их ещё помнит."
   }
- ]
+ ],
+ "places": {},
+ "greetings": {
+  "c2_mitya_held": "Косу не трогай, милок. Она и так тяжёлая."
+ },
+ "epilogue": [
+  {
+   "if": {
+    "agafya_fate": "safe"
+   },
+   "text": "Агафья перестала прятать серый узелок под красным. По вечерам она учит детей развязывать, а не затягивать."
+  },
+  {
+   "if": {
+    "agafya_fate": "burned"
+   },
+   "text": "Агафья носит на руках варежки и всё равно сама колет дрова. Узелок Митрия лежит у печи, развязанный не до конца."
+  },
+  {
+   "if": {
+    "agafya_fate": "dead"
+   },
+   "text": "У Агафьиной избы Весна по привычке ставит вторую миску каши. Потом съедает сама, чтоб не остыла."
+  },
+  {
+   "if": {
+    "truth": "public"
+   },
+   "text": "Брод помнит Красную зиму. На пепелище поставили окно без дома и не отворачиваются, проходя мимо."
+  },
+  {
+   "if": {
+    "truth": "private"
+   },
+   "text": "Знавшие о Красной зиме сперва обходят друг друга стороной, потом начинают здороваться. Так и начинается трудное прощение."
+  },
+  {
+   "if": {
+    "truth": "burned"
+   },
+   "text": "О правде никто не спорит: гореть нечему. Но весной у пепелища вырастает красная герань, и её не выдёргивают."
+  },
+  {
+   "if": {
+    "truth": "sold"
+   },
+   "text": "В Архиве появилось дело о Красной зиме. Ясна оставила на корешке пустое место — для того, чего опись не умеет вернуть."
+  },
+  {
+   "if": {
+    "yasna_childhood": "returned"
+   },
+   "text": "Ясна впервые помнит себя маленькой и не спешит запирать это в склянку. Башня открывает читальню у окна."
+  },
+  {
+   "if": {
+    "yasna_childhood": "sealed"
+   },
+   "text": "Ясна пока не открыла полку детства, но перестала называть её вещью. Иногда этого достаточно для первого шага."
+  },
+  {
+   "if": {
+    "ugar_fate": "atoning"
+   },
+   "text": "Угар погасил большой костёр и оставил маленький — для супа и замёрзших рук. Он больше не зовёт это очищением."
+  },
+  {
+   "if": {
+    "kudel_fate": "arrested"
+   },
+   "text": "Кудель увели из Брода, но люди всё равно находят на порогах её серые нитки. Неясно, кто их кладёт."
+  },
+  {
+   "if": {
+    "kudel_fate": "forgiven"
+   },
+   "text": "Кудель шьёт не прорехи, а рукавицы. Лицо своё она так и не помнит, зато помнит, кому какая пара."
+  },
+  {
+   "if": {
+    "iskra": "burned"
+   },
+   "text": "Искра долго не подходит к воде. Потом всё же бросает в реку одну гладкую брошку — и не просит огонь забрать её."
+  },
+  {
+   "if": {
+    "shurshok_in": [
+     "freed",
+     "guide"
+    ]
+   },
+   "text": "Шуршок поставил у кладбища столик для потерянных пуговиц. Возвращает не все. Но теперь спрашивает, чья."
+  },
+  {
+   "if": {
+    "gurdym_not": "dead"
+   },
+   "text": "Гурдым снял с шеи один красный камешек и оставил у пепелища. «Эту зиму теперь не я один помню», — сказал он."
+  },
+  {
+   "if": {
+    "stakh_not": "betrayed"
+   },
+   "text": "Стах с Пелагеей всё ещё не помнят прежней жизни, зато научились спорить о новой. Безродные иногда ночуют у Брода без ножей под подушкой."
+  },
+  {
+   "if": {
+    "efim_in": [
+     "named",
+     "federot_named"
+    ]
+   },
+   "text": "Федот чинит сеть у молчащей воды. Он перестал ждать, что брат выйдет за ней, и от этого работает аккуратнее."
+  },
+  {
+   "if": {
+    "pisma_in": [
+     "truth",
+     "meet"
+    ]
+   },
+   "text": "Улита хранит письма Остапа в коробке из-под соли. Раз в неделю читает одно вслух — не чтобы удержать, а чтобы поблагодарить."
+  }
+ ],
+ "arcHook": "С края Выцвети кто-то зовёт тебя по имени — по тому, которое ты выбрал. Или по тому, которого у тебя нет. Мать Кудель (или её Отголосок) смотрит на твоё запястье: «Восьмую нитку я не вязала».",
+ "lateNpcs": []
 }

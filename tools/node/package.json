@@ -12,5 +12,9 @@
   "dependencies": {
     "inkjs": "^2.4.0",
     "yarnspinner-typescript": "^1.1.0"
+  },
+  "devDependencies": {
+    "esbuild": "^0.28.2",
+    "playwright": "^1.64.1"
   }
 }

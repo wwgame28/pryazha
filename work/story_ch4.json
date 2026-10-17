@@ -1,0 +1,277 @@
+{
+  "quests": [
+    {
+      "id": "m7",
+      "title": "Сухой Лог",
+      "giver": "kudel",
+      "chain": "main",
+      "chapter": 4,
+      "after": ["m6"],
+      "summary": "Выцветь подбирается к Сухому Логу. Четыре способа помочь оставляют людям четыре разные цены.",
+      "steps": [
+        {
+          "id": "s1",
+          "type": "goto",
+          "target": "hamlet_dry",
+          "where": "wild:steppe",
+          "text": "Найти Сухой Лог вместе с Куделью",
+          "scene": "m7_s1"
+        },
+        {
+          "id": "s2",
+          "type": "investigate",
+          "target": "fade_sign",
+          "count": 3,
+          "clues": true,
+          "where": "wild:steppe",
+          "text": "Осмотреть три следа Выцвети в Сухом Логе",
+          "scene": "m7_s2"
+        },
+        {
+          "id": "s3",
+          "type": "talk",
+          "target": "marya",
+          "where": "wild:steppe",
+          "text": "Выслушать Марью и жителей Лога",
+          "scene": "m7_s3"
+        },
+        {
+          "id": "s4",
+          "type": "choose",
+          "target": "self",
+          "where": "wild:steppe",
+          "text": "Решить, как поступить с работами на белой кромке",
+          "scene": "m7_s4"
+        },
+        {
+          "id": "s5",
+          "type": "defeat",
+          "target": "witch",
+          "count": 3,
+          "spawn": 3,
+          "where": "wild:steppe",
+          "text": "Отбиться от ведьм Архива",
+          "scene": "m7_s5"
+        },
+        {
+          "id": "s6",
+          "type": "defeat",
+          "target": "cultist",
+          "count": 3,
+          "spawn": 3,
+          "where": "wild:steppe",
+          "text": "Отбиться от культистов Чада",
+          "scene": "m7_s6"
+        },
+        {
+          "id": "s7",
+          "type": "choose",
+          "target": "marya",
+          "where": "wild:steppe",
+          "text": "Назвать Марье цену спасения Сухого Лога",
+          "scene": "m7_s7"
+        }
+      ],
+      "outcomes": [
+        {
+          "if": {"faction": "archive"},
+          "text": "Сухой Лог стоит во льду. Люди целы, но Марья каждое утро заново учится любить детей.",
+          "rewards": {"gold": 100, "xp": 180, "echoes": 20},
+          "worldEffects": [
+            "card+:quest:q_m7:4",
+            "bond:yasna:+2",
+            "bond:ugar:-2",
+            "biome:snow:grow:10",
+            "npc:marya:frozen"
+          ]
+        },
+        {
+          "if": {"faction": "ash"},
+          "text": "Белое отступило. Люди уцелели, но носят новые имена, выданные им у костра.",
+          "rewards": {"gold": 60, "xp": 180, "echoes": 35},
+          "worldEffects": [
+            "card+:quest:q_m7:4",
+            "bond:ugar:+2",
+            "bond:yasna:-2",
+            "fog:wild:steppe:clear",
+            "npcKnows:marya:false"
+          ]
+        },
+        {
+          "if": {"faction": "weavers"},
+          "text": "Сухой Лог снова держится на карте. Твоя дорога к нему стала короче, а память о ней — тоньше.",
+          "rewards": {"xp": 200, "echoes": 15},
+          "worldEffects": [
+            "card+:quest:q_m7:4",
+            "card+:dream:d_shepherd:5",
+            "bond:kudel:+2"
+          ]
+        },
+        {
+          "if": {},
+          "text": "Двадцать душ пришли в Брод, а Сухой Лог исчез за их спинами. Марья несёт пустую колыбель сама.",
+          "rewards": {"xp": 180, "echoes": 10},
+          "worldEffects": [
+            "card+:quest:q_m7:4",
+            "card+:dream:d_shepherd:5",
+            "bond:ivar:+1",
+            "npc:marya:moved:village",
+            "fog:wild:steppe:regrow"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "c4_whistle",
+      "title": "Свисток",
+      "giver": "sivy",
+      "chain": "side",
+      "chapter": 4,
+      "after": ["m7"],
+      "offerIf": {"c4_whistle_found": true},
+      "summary": "В Сухом Логе найден ивовый свисток Сеньки. Дед Сивый помнит мальчика и решает, отпускать ли его.",
+      "steps": [
+        {
+          "id": "s1",
+          "type": "talk",
+          "target": "sivy",
+          "where": "wild:steppe",
+          "text": "Показать Сивому ивовый свисток",
+          "scene": "c4_whistle_s1"
+        },
+        {
+          "id": "s2",
+          "type": "choose",
+          "target": "sivy",
+          "where": "wild:steppe",
+          "text": "Решить, держать ли Сеньку памятью",
+          "scene": "c4_whistle_s2"
+        }
+      ],
+      "outcomes": [
+        {
+          "if": {"c4_sivy_whistle": "released"},
+          "text": "Сивый отпустил Сеньку. Свисток умолк, зато в степи перестало быть так тесно.",
+          "rewards": {"xp": 90, "echoes": 12},
+          "worldEffects": ["card+:dream:d_shepherd:5", "rel:sivy:trust:2"]
+        },
+        {
+          "if": {},
+          "text": "Сивый оставил свисток при себе. Память Сеньки крепче, но старик снова идёт к волкам один.",
+          "rewards": {"xp": 70, "echoes": 15},
+          "worldEffects": ["rel:sivy:fear:1"]
+        }
+      ]
+    },
+    {
+      "id": "m8",
+      "title": "Сны о себе",
+      "giver": "agafya",
+      "chain": "main",
+      "chapter": 4,
+      "after": ["m7"],
+      "endsChapter": 4,
+      "summary": "Чужие жесты и сны складываются в человека. Тебе решать, быть ли множеством, своим именем или утешением для Агафьи.",
+      "steps": [
+        {
+          "id": "s1",
+          "type": "talk",
+          "target": "agafya",
+          "where": "village",
+          "text": "Поговорить с Агафьей о чужих жестах",
+          "scene": "m8_s1"
+        },
+        {
+          "id": "s2",
+          "type": "night",
+          "target": "ford",
+          "where": "village",
+          "text": "Увидеть сон Митрия у брода",
+          "scene": "m8_s2"
+        },
+        {
+          "id": "s3",
+          "type": "night",
+          "target": "lake",
+          "where": "wild:lake",
+          "text": "Увидеть сон Лёси у озера",
+          "scene": "m8_s3"
+        },
+        {
+          "id": "s4",
+          "type": "investigate",
+          "target": "ash_wall",
+          "count": 2,
+          "clues": true,
+          "where": "ruins",
+          "text": "Прочесть два следа Остапова сна у ворот",
+          "scene": "m8_s4"
+        },
+        {
+          "id": "s5",
+          "type": "talk",
+          "target": "kudel",
+          "where": "ruins",
+          "text": "Спросить Кудель, из кого ты сшит",
+          "scene": "m8_s5"
+        },
+        {
+          "id": "s6",
+          "type": "choose",
+          "target": "self",
+          "where": "any",
+          "text": "Сказать, кто ты",
+          "scene": "m8_s6"
+        },
+        {
+          "id": "s7",
+          "type": "use",
+          "target": "name_input",
+          "where": "any",
+          "requires": {"hero_self": "one"},
+          "text": "Назвать себя",
+          "scene": "m8_s7"
+        },
+        {
+          "id": "s8",
+          "type": "choose",
+          "target": "self",
+          "where": "any",
+          "text": "Дослушать последнюю ночь Марфы",
+          "scene": "m8_s8"
+        }
+      ],
+      "outcomes": [
+        {
+          "if": {"hero_self": "one"},
+          "text": "У тебя есть имя. Своё — первая вещь в мире, которую ни у кого не взяли.",
+          "rewards": {"xp": 200, "echoes": 20},
+          "worldEffects": [
+            "card+:quest:q_m8:4",
+            "card+:dream:d_mitriy:5",
+            "card+:dream:d_lesya:5",
+            "card+:dream:d_ostap:5",
+            "card+:name:n_self:10",
+            "unlock:m9"
+          ]
+        },
+        {
+          "if": {},
+          "text": "Ты отзываешься на имена тех, кто в тебе живёт. Внутри стало тише, но не пусто.",
+          "rewards": {"xp": 200, "echoes": 20},
+          "worldEffects": [
+            "card+:quest:q_m8:4",
+            "card+:dream:d_mitriy:5",
+            "card+:dream:d_lesya:5",
+            "card+:dream:d_ostap:5",
+            "card+:name:n_borrowed:10",
+            "unlock:m9"
+          ]
+        }
+      ]
+    }
+  ],
+  "modify": {},
+  "places": {},
+  "greetings": {}
+}

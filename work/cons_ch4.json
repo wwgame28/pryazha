@@ -1,0 +1,126 @@
+{
+  "facts": {
+    "f_c4_kudel_song": {
+      "title": "Недопетая песня Кудели",
+      "text": "Кудель помнит песню ученика без последнего куплета. Та же строка выцарапана на воротах Руин."
+    },
+    "f_c4_chad_burns_holders": {
+      "title": "Чад ищет держащих",
+      "text": "Чад выспрашивает в Сухом Логе, кто держит мёртвых за рукав, и готов жечь дома ради ответа. Угар отводит глаза."
+    },
+    "f_c4_sivys_whistle": {
+      "title": "Свисток Сеньки",
+      "text": "Ивовый свисток вырезал Сивый для внука Сеньки. Память о подпаске держится в нём, как ветер в пустой дудке."
+    },
+    "f_c4_kudel_knows": {
+      "title": "Кудель знает слишком много",
+      "text": "Кудель без запинки назвала, кто держит Митрия, Лёсю и Остапа. О тебе она знает не как о случайном шве."
+    },
+    "f_c4_marfa_fire": {
+      "title": "Последняя ночь Марфы",
+      "text": "В огне был мальчик с факелом. Марфа пыталась добраться до ребёнка в соседней избе. Это не был пожар от лучины."
+    },
+    "f_c4_yasenka": {
+      "title": "Имя в дыму: Ясенька",
+      "text": "В Марфиной ночи прозвучало: «Не бойся, Ясенька». Агафья испугалась этого имени сильнее огня."
+    },
+    "f_c4_redwinter_hint": {
+      "title": "След Красной зимы",
+      "text": "Дым, мальчик с факелом и детский плач связывают пожар у Брода с Красной зимой. Правду о ней ещё предстоит вынести на свет."
+    }
+  },
+  "deeds": {
+    "d_c4_backed_archive": {
+      "title": "Помог Архиву у белой кромки",
+      "rep": {"archive": 2},
+      "repAlways": true
+    },
+    "d_c4_backed_ash": {
+      "title": "Помог Пепельному Кругу у белой кромки",
+      "rep": {"ash": 2},
+      "repAlways": true
+    },
+    "d_c4_backed_weavers": {
+      "title": "Помог Кудели связать Лог",
+      "rep": {"weavers": 2},
+      "repAlways": true
+    },
+    "d_c4_brokered_edge": {
+      "title": "Заставил фракции назвать цену помощи",
+      "rep": {"archive": 2, "ash": 2, "village": 2},
+      "repAlways": true
+    },
+    "d_c4_broke_ice": {
+      "title": "Сорвал ледяную стену Архива",
+      "rep": {"archive": -8, "village": 1},
+      "repAlways": true
+    },
+    "d_c4_broke_fire": {
+      "title": "Сорвал костры Чада",
+      "rep": {"ash": -8, "village": 1},
+      "repAlways": true
+    },
+    "d_c4_froze_log": {
+      "title": "Оставил Сухой Лог во льду",
+      "rep": {"archive": 5, "village": -1},
+      "repAlways": true,
+      "rumor": "r_c4_log_in_ice"
+    },
+    "d_c4_burned_log": {
+      "title": "Отдал Сухой Лог огню",
+      "rep": {"ash": 5, "village": -3},
+      "repAlways": true,
+      "rumor": "r_c4_log_in_fire"
+    },
+    "d_c4_stitched_log": {
+      "title": "Перевязал Сухой Лог",
+      "rep": {"weavers": 6, "village": 3},
+      "repAlways": true
+    },
+    "d_c4_led_log_away": {
+      "title": "Увёл людей из Сухого Лога",
+      "rep": {"village": 4},
+      "repAlways": true
+    },
+    "d_c4_released_senka": {
+      "title": "Попросил Сивого отпустить Сеньку",
+      "rep": {"undead": 2},
+      "repAlways": true
+    },
+    "d_c4_held_senka": {
+      "title": "Оставил Сеньку в памяти Сивого",
+      "rep": {"undead": -1},
+      "repAlways": true
+    },
+    "d_c4_identity_many": {
+      "title": "Назвал себя многими",
+      "rep": {"undead": 2},
+      "repAlways": true
+    },
+    "d_c4_identity_one": {
+      "title": "Выбрал собственное имя",
+      "rep": {"weavers": 1},
+      "repAlways": true
+    },
+    "d_c4_identity_mitriy": {
+      "title": "Взял имя Митрия",
+      "rel": {"agafya": {"trust": 2}},
+      "repAlways": true
+    }
+  },
+  "events": {},
+  "promises": {},
+  "rumors": {
+    "r_c4_log_in_ice": {
+      "text": "Сухой Лог во льду стоит, а люди там просыпаются ровно такими, какими легли",
+      "truth": true,
+      "rep": {"archive": 2}
+    },
+    "r_c4_log_in_fire": {
+      "text": "В Сухом Логе белое огнём выжгли — люди живы, только прежних имён не знают",
+      "truth": true,
+      "rep": {"ash": 2, "village": -1}
+    }
+  },
+  "merchantRules": {}
+}

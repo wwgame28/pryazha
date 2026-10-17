@@ -1,0 +1,565 @@
+{
+ "quests": [
+  {
+   "id": "m5",
+   "title": "Печать изнутри",
+   "giver": "ivar",
+   "chain": "main",
+   "chapter": 3,
+   "after": [
+    "m4"
+   ],
+   "summary": "Печать склепа выдавлена наружу, а не взломана. Внизу мёртвые, которым тесно, и тот, кто держит их двести лет.",
+   "steps": [
+    {
+     "id": "s1",
+     "type": "investigate",
+     "target": "crypt_seal",
+     "count": 3,
+     "spots": [
+      "oldgrave",
+      "oldgrave",
+      "oldgrave"
+     ],
+     "where": "oldgrave",
+     "scene": "m5_s1",
+     "text": "Осмотреть печать склепа: камень, след, шов"
+    },
+    {
+     "id": "s2",
+     "type": "enter",
+     "target": "crypt1",
+     "where": "oldgrave",
+     "text": "Спуститься в склеп"
+    },
+    {
+     "id": "s3",
+     "type": "talk",
+     "target": "ostap",
+     "where": "crypt1",
+     "scene": "m5_s3",
+     "text": "Поговорить с Остапом и именованными мёртвыми"
+    },
+    {
+     "id": "s4",
+     "type": "enter",
+     "target": "crypt2",
+     "where": "oldgrave",
+     "text": "Спуститься ниже"
+    },
+    {
+     "id": "s5",
+     "type": "talk",
+     "target": "morven",
+     "where": "crypt2",
+     "scene": "m5_s5",
+     "text": "Услышать Морвена"
+    },
+    {
+     "id": "s6",
+     "type": "talk",
+     "target": "morven",
+     "where": "crypt2",
+     "scene": "m5_s6",
+     "text": "Выслушать ответ Морвена"
+    }
+   ],
+   "outcomes": [
+    {
+     "if": {},
+     "text": "Морвен велел подняться и спросить других. Он не назвал тебя своим — но сказал, что ты выпал у него из рук.",
+     "rewards": {
+      "xp": 100,
+      "echoes": 15
+     },
+     "worldEffects": [
+      "card+:quest:q_m5:4",
+      "flag:morven_met=1",
+      "unlock:m6"
+     ]
+    }
+   ],
+   "then": [
+    "c3_deadnight",
+    "c3_truth"
+   ]
+  },
+  {
+   "id": "c3_truth",
+   "title": "Сложи враньё",
+   "giver": "ostap",
+   "chain": "investigation",
+   "chapter": 3,
+   "after": [
+    "m5"
+   ],
+   "summary": "Морвен велел сложить три неправды. На листе сходятся слова Остапа, Ясны, Угара, Кудель и след на печати.",
+   "steps": [
+    {
+     "id": "s1",
+     "type": "talk",
+     "target": "ostap",
+     "where": "crypt1",
+     "scene": "c3_truth_s1",
+     "text": "Взять у Остапа чистую бересту"
+    },
+    {
+     "id": "s2",
+     "type": "investigate",
+     "target": "three_lies",
+     "count": 3,
+     "spots": [
+      "tower",
+      "camp",
+      "ruins"
+     ],
+     "where": "wild:any",
+     "scene": "c3_truth_s2",
+     "text": "Сверить три чужие правды: Башня, костры, руины"
+    },
+    {
+     "id": "s3",
+     "type": "choose",
+     "target": "self",
+     "where": "oldgrave",
+     "scene": "c3_truth_s3",
+     "text": "Сложить ответ о себе"
+    }
+   ],
+   "outcomes": [
+    {
+     "if": {
+      "truth_board": "stitched"
+     },
+     "text": "Ты не протечка, не щепка и не чужая вещь. Тебя сшили из тех, кого живые не отпустили.",
+     "rewards": {
+      "xp": 70,
+      "echoes": 8
+     },
+     "worldEffects": [
+      "learn:f_stitched",
+      "card+:quest:q_c3_truth:2"
+     ]
+    },
+    {
+     "if": {},
+     "text": "Ответ лёгкий, как плохо завязанный узел. Ты понимаешь это, но пока держишься за него.",
+     "rewards": {
+      "xp": 35
+     },
+     "worldEffects": [
+      "learn:f_wrong_self",
+      "card+:quest:q_c3_truth:1"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "c3_deadnight",
+   "title": "Ночь недопетых",
+   "giver": "ivar",
+   "chain": "main",
+   "chapter": 3,
+   "auto": true,
+   "after": [
+    "m5"
+   ],
+   "summary": "Печать открыта. Ивар держит околицу, Федот раздаёт багры, а из склепа идут те, кого когда-то отпустили. Их можно остановить или проводить обратно.",
+   "steps": [
+    {
+     "id": "s1",
+     "type": "talk",
+     "target": "ivar",
+     "where": "village",
+     "scene": "c3_deadnight_s1",
+     "text": "Выйти к Ивару на околицу"
+    },
+    {
+     "id": "s2",
+     "type": "choose",
+     "target": "self",
+     "where": "village",
+     "scene": "c3_deadnight_s2",
+     "text": "Решить, как встретить недопетых"
+    },
+    {
+     "id": "s3",
+     "type": "defeat",
+     "target": "skeleton",
+     "count": 3,
+     "spawn": 3,
+     "spawnName": "Недопетые у околицы",
+     "tint": "#9ab8d8",
+     "where": "village",
+     "scene": "c3_deadnight_s3",
+     "text": "Удержать околицу"
+    },
+    {
+     "id": "s4",
+     "type": "talk",
+     "target": "ivar",
+     "where": "village",
+     "scene": "c3_deadnight_s4",
+     "text": "Дождаться рассвета у околицы"
+    }
+   ],
+   "outcomes": [
+    {
+     "if": {
+      "deadnight_way": "fence"
+     },
+     "text": "Околица устояла. Утром на снегу лежат щепки, багры и три чужих пуговицы. Брод благодарит тебя вполголоса.",
+     "rewards": {
+      "xp": 100,
+      "echoes": 10
+     },
+     "worldEffects": [
+      "card+:quest:q_c3_deadnight:3"
+     ]
+    },
+    {
+     "if": {
+      "deadnight_way": "agafya"
+     },
+     "text": "Агафья увела мёртвых серым узелком. Живые отворачивались, но утром у её крыльца стояла горячая каша на всех.",
+     "rewards": {
+      "xp": 105,
+      "echoes": 14
+     },
+     "worldEffects": [
+      "card+:quest:q_c3_deadnight:3"
+     ]
+    },
+    {
+     "if": {},
+     "text": "Ты шёл впереди и называл тех, чьи имена знал. Остальным сказал честно: «Не знаю. Но вижу вас». К рассвету склеп принял их обратно.",
+     "rewards": {
+      "xp": 110,
+      "echoes": 16
+     },
+     "worldEffects": [
+      "card+:quest:q_c3_deadnight:3"
+     ]
+    }
+   ],
+   "then": [
+    "m6"
+   ]
+  },
+  {
+   "id": "m6",
+   "title": "Три неправды",
+   "giver": "morven",
+   "chain": "main",
+   "chapter": 3,
+   "after": [
+    "c3_deadnight"
+   ],
+   "endsChapter": 3,
+   "summary": "Архив называет тебя протечкой, Круг — щепкой, ткачи — швом. Три ответа удобны им. Выбирать, с кем идти дальше, придётся тебе.",
+   "steps": [
+    {
+     "id": "s1",
+     "type": "talk",
+     "target": "yasna",
+     "where": "tower",
+     "scene": "m6_s1",
+     "text": "Спросить Архив"
+    },
+    {
+     "id": "s2",
+     "type": "talk",
+     "target": "ugar",
+     "where": "camp",
+     "scene": "m6_s2",
+     "text": "Спросить Пепельный Круг"
+    },
+    {
+     "id": "s3",
+     "type": "talk",
+     "target": "kudel",
+     "where": "ruins",
+     "scene": "m6_s3",
+     "text": "Спросить ткачиху"
+    },
+    {
+     "id": "s4",
+     "type": "choose",
+     "target": "self",
+     "where": "oldgrave",
+     "scene": "m6_s4",
+     "text": "Выбрать, чьим путём идти к Сухому Логу"
+    },
+    {
+     "id": "s5",
+     "type": "talk",
+     "target": "kudel",
+     "where": "oldgrave",
+     "scene": "m6_s5",
+     "text": "Встретить рассвет у кладбища"
+    }
+   ],
+   "outcomes": [
+    {
+     "if": {
+      "faction": "archive"
+     },
+     "text": "Ты выбрал Архив не за холод, а за шанс не потерять ещё одно имя. Ясна идёт к белой кромке с лампой.",
+     "rewards": {
+      "xp": 120,
+      "echoes": 20
+     },
+     "worldEffects": [
+      "card+:quest:q_m6:4",
+      "bond:yasna:+2",
+      "bond:ugar:-1",
+      "bond:kudel:-1",
+      "unlock:m7"
+     ]
+    },
+    {
+     "if": {
+      "faction": "ash"
+     },
+     "text": "Ты выбрал Круг не за лёгкость огня, а за право не тащить боль вечно. Угар идёт к белой кромке без песни.",
+     "rewards": {
+      "xp": 120,
+      "echoes": 20
+     },
+     "worldEffects": [
+      "card+:quest:q_m6:4",
+      "bond:yasna:-1",
+      "bond:ugar:+2",
+      "bond:kudel:-1",
+      "unlock:m7"
+     ]
+    },
+    {
+     "if": {
+      "faction": "weavers"
+     },
+     "text": "Ты выбрал ткачей не потому, что шов безболезнен, а потому, что рваное можно чинить не криком. Кудель ждёт тебя у степной дороги.",
+     "rewards": {
+      "xp": 120,
+      "echoes": 20
+     },
+     "worldEffects": [
+      "card+:quest:q_m6:4",
+      "bond:yasna:-1",
+      "bond:ugar:-1",
+      "bond:kudel:+2",
+      "flag:met_kudel=true",
+      "unlock:m7"
+     ]
+    },
+    {
+     "if": {},
+     "text": "Ты не отдал себя ни в опись, ни в костёр, ни в чужие руки. Дорога в степь всё равно есть — просто идти по ней придётся самому.",
+     "rewards": {
+      "xp": 120,
+      "echoes": 20
+     },
+     "worldEffects": [
+      "card+:quest:q_m6:4",
+      "bond:yasna:+1",
+      "bond:ugar:+1",
+      "bond:kudel:+1",
+      "flag:met_kudel=true",
+      "unlock:m7"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "c3_orphans",
+   "title": "Детские склянки",
+   "giver": "yasna",
+   "chain": "archive",
+   "chapter": 3,
+   "after": [
+    "s6"
+   ],
+   "summary": "После описи тебе не даёт покоя полка с детскими склянками. Ясна говорит: сохранённое можно вернуть только тому, кто вправе его взять.",
+   "steps": [
+    {
+     "id": "s1",
+     "type": "talk",
+     "target": "yasna",
+     "where": "tower",
+     "scene": "c3_orphans_s1",
+     "text": "Спросить о детских склянках"
+    },
+    {
+     "id": "s2",
+     "type": "choose",
+     "target": "self",
+     "where": "tower",
+     "scene": "c3_orphans_s2",
+     "text": "Решить, что делать с чужим первым снегом"
+    }
+   ],
+   "outcomes": [
+    {
+     "if": {
+      "orphans_jars": "returned"
+     },
+     "text": "Склянки не стали ничьей добычей. Ты оставил для детей имена, даты и дорогу обратно — если они когда-нибудь захотят идти.",
+     "rewards": {
+      "xp": 45
+     },
+     "worldEffects": [
+      "deed:d_c3_returned_jars",
+      "card+:quest:q_c3_orphans:1"
+     ]
+    },
+    {
+     "if": {
+      "orphans_jars": "hidden"
+     },
+     "text": "Ты спрятал полку от описи. Это не свобода, но и не продажа. Хрусталина заметила пустое место в журнале.",
+     "rewards": {
+      "xp": 35,
+      "echoes": 5
+     },
+     "worldEffects": [
+      "card+:quest:q_c3_orphans:1"
+     ]
+    },
+    {
+     "if": {},
+     "text": "Ты ушёл, ничего не решив. Склянки остались ровно стоять в синем свете.",
+     "rewards": {
+      "xp": 20
+     },
+     "worldEffects": [
+      "card+:quest:q_c3_orphans:1"
+     ]
+    }
+   ]
+  }
+ ],
+ "modify": {},
+ "places": {},
+ "greetings": {},
+ "npcs": [
+  {
+   "id": "chad",
+   "name": "Брат Чад",
+   "role": "ревнитель Пепельного Круга",
+   "home": "camp",
+   "look": {
+    "body": "male",
+    "skin": "#c9ad98",
+    "hair": "buzzcut",
+    "hairColor": "#3b201b",
+    "layers": [
+     [
+      "ls2",
+      "#562721"
+     ],
+     [
+      "cape_tattered",
+      "#28201d"
+     ],
+     [
+      "pants",
+      "#33271e"
+     ],
+     [
+      "shoes",
+      "#211b18"
+     ],
+     [
+      "staff",
+      "#ae6837"
+     ]
+    ]
+   },
+   "greeting": "Детская рука чистая. Мёртвым в ней не место.",
+   "bio": "Сжёг дом родителей Мирты. Жжёт тех, кто держит мёртвых, и считает это милосердием. Последователь Угара, которого учитель не умеет остановить.",
+   "showIf": {
+    "all": [
+     {
+      "chapter_gte": 3
+     },
+     {
+      "chad_fate_not": "dead"
+     },
+     {
+      "chad_fate_not": "fled"
+     }
+    ]
+   }
+  },
+  {
+   "id": "khrustalina",
+   "name": "Хрусталина",
+   "role": "хранительница устава Неусыпных",
+   "home": "tower",
+   "look": {
+    "body": "female",
+    "skin": "#e2d9d6",
+    "hair": "braid",
+    "hairColor": "#a8c2d9",
+    "layers": [
+     [
+      "robe",
+      "#344d70"
+     ],
+     [
+      "cape",
+      "#afc2d3"
+     ],
+     [
+      "shoes",
+      "#26313e"
+     ],
+     [
+      "staff",
+      "#b9d8e7"
+     ]
+    ]
+   },
+   "greeting": "Порядок — это когда ничего не пропадает.",
+   "bio": "Заместительница Ясны. Держит запечатанное крыло и боится, что архивариус однажды предпочтёт человека уставу.",
+   "showIf": {
+    "chapter_gte": 3
+   }
+  },
+  {
+   "id": "krivoy",
+   "name": "Кривой",
+   "role": "подручный Безродных",
+   "home": "camp",
+   "look": {
+    "body": "male",
+    "skin": "#b5967b",
+    "hair": "messy1",
+    "hairColor": "#403326",
+    "layers": [
+     [
+      "ls2",
+      "#57432c"
+     ],
+     [
+      "pants",
+      "#3b302a"
+     ],
+     [
+      "boots",
+      "#291d18"
+     ],
+     [
+      "dagger",
+      "#a1a4a5"
+     ]
+    ]
+   },
+   "greeting": "Ничего личного. Сначала цена, потом разговор.",
+   "bio": "Знает цену чужому имени лучше, чем собственному слову. Встречается среди безродных путников.",
+   "showIf": {
+    "chapter_gte": 4
+   }
+  }
+ ]
+}
