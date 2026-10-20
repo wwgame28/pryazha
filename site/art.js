@@ -159,7 +159,22 @@ export function drawPropLPC(x, p, t) {
     case 'fence': return drawSprite(x, 'fence', X, Y);
     case 'bones': return drawSprite(x, v < .5 ? 'bones' : 'skull', X, Y + 4);
     case 'well': if (p.fountain === false || p.roofed) { shadow(30, 6); return drawSprite(x, 'well_roof', X, Y + 6); } shadow(26, 6); return drawSprite(x, 'fountain', X, Y + 4);
-    case 'grave': return drawSprite(x, v < .08 ? 'grave2' : ['grave1', 'grave3', 'grave4', 'grave5', 'grave6', 'grave1', 'grave3'][Math.floor(v * 7)], X, Y + 2);
+    case 'grave': {
+      const g = p.epi;
+      if (g && g.risen && !p.released) { // земля разрыта изнутри: мертвец ушёл из этой могилы
+        x.fillStyle = 'rgba(28,20,14,.8)'; x.beginPath(); x.ellipse(X, Y + 9, 10, 3.5, 0, 0, 7); x.fill();
+        x.fillStyle = '#5a4630'; for (const [a, b] of [[-13, 7], [11, 8], [-7, 12], [6, 13]]) x.fillRect(X + a, Y + b, 3, 2);
+      }
+      const r = drawSprite(x, v < .08 ? 'grave2' : ['grave1', 'grave3', 'grave4', 'grave5', 'grave6', 'grave1', 'grave3'][Math.floor(v * 7)], X, Y + 2);
+      if (g && g.intact && !p.released) { // «огоньки на могилах синие — значит, им тесно»: имя цело, покойника не проводили
+        const f = Math.sin(t * 9 + X) * .5 + .5, fx0 = X + 12, fy = Math.round(Y - 9 - Math.sin(t * 2.1 + Y) * 2), h = 7 + Math.round(f * 2);
+        x.fillStyle = `rgba(110,170,255,${.2 + .12 * f})`; x.beginPath(); x.arc(fx0, fy, 8, 0, 7); x.fill();
+        x.fillStyle = 'rgba(80,140,255,.85)'; x.beginPath(); x.moveTo(fx0, fy - h); x.quadraticCurveTo(fx0 + 4, fy - 1, fx0, fy + 3); x.quadraticCurveTo(fx0 - 4, fy - 1, fx0, fy - h); x.fill();
+        x.fillStyle = `rgba(200,230,255,${.8 + .2 * f})`; x.fillRect(fx0 - 1, fy - 2, 2, 4);
+      }
+      if (p.released) { x.fillStyle = '#8f8b84'; x.fillRect(X + 8, Y + 4, 4, 3); x.fillStyle = 'rgba(255,255,255,.25)'; x.fillRect(X + 8, Y + 4, 2, 1); } // камешек: кого назвали, тот ушёл
+      return r;
+    }
     case 'tent': shadow(46, 7); return drawSprite(x, 'tent', X, Y + 4);
     case 'tower': shadow(44, 10); return drawSprite(x, 'tower_blue', X, Y + 4);
     case 'mausoleum': shadow(50, 8); return drawSprite(x, 'mausoleum', X, Y);

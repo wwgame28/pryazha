@@ -616,6 +616,15 @@
      "fear": 1
     }
    }
+  },
+  "d_named_dead": {
+   "title": "Назвал недопетого по имени на кладбище",
+   "rep": {
+    "undead": 2
+   },
+   "repAlways": true,
+   "rumor": "r_speaks_to_dead",
+   "strength": 0.35
   }
  },
  "rumors": {

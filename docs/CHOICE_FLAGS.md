@@ -87,7 +87,7 @@
 | `ruins_open` | true | s5 (исход) | — | см. сцену s5 (исход) |
 | `savva` | returned, dunya, wolf, killed | s8_s4 | s8.s5, s8 (исход) | см. сцену s8_s4 |
 | `shirts` | bought, truth, left | c1_shirts_s2 | c1_shirts_s3, c1_council_s1 | рубашки Пелагеи: bought / truth / left |
-| `shurshok` | freed, guide, captive | m2_s4 | m2_s5, c1_council_s1, c1_trader_s1, talk_agafya, talk_khrum, m3_s1 | судьба гоблинёнка (m2): freed / guide / captive |
+| `shurshok` | freed, guide, captive | m2_s4 | m3_s1, m3_s3, m2_s5, c1_council_s1, c1_trader_s1, talk_agafya | судьба гоблинёнка (m2): freed / guide / captive |
 | `shurshok_button` | true | m2_s4 | m2_s5, m2 (исход) | см. сцену m2_s4 |
 | `shurshok_gift` | region, quest, shared | s12_s2 | s12.s4, s12.s5, s12 (исход) | см. сцену s12_s2 |
 | `stakh` | robbed, bought, told, betrayed | s2_s4 | s2.s5, s2 (исход) | см. сцену s2_s4 |
@@ -180,6 +180,7 @@
 | `d_struck_federot` | Ударил Федота | village -6 (всегда) | r_beat_federot |
 | `d_paid_federot` | Заплатил Федоту за порванные сети |  | — |
 | `d_asked_ashes` | Расспрашивал про пепелище |  | — |
+| `d_named_dead` | Назвал недопетого по имени на кладбище | undead +2 (всегда) | r_speaks_to_dead |
 
 ## Слухи
 | id | Текст | Правда? | Удар по репутации, когда дойдёт |

@@ -20,6 +20,7 @@ import { playDream, DREAMS, dreamMods } from './dream.js';
 import { LOC_REGION, RT, PLACES } from './overworld.js';
 import { OUTFITS, ITEM_BASES, AFFIXES, UNIQUES, SETS } from './classes.js';
 import { CLASSES2, WEIGHTS } from './classes.js';
+import { graveWho } from './graves.js';
 import { CLASS_OF, CLASSES, CASTER, SCHOOL, UNDEAD, METALS, ARMOR, HELMS, ENEMIES, SPAWNS, POTIONS, MAIN_QUESTS, SIDE_TARGETS, RELICS, WEAPON_NAME, HERO_HP, HURT_MUL } from './data.js';
 const armorList = (cls) => ARMOR[CASTER.has(cls) ? 'mage' : ARMOR[cls] ? cls : 'warrior'];
 for (const k of Object.keys(CLASSES2)) if (CLASSES2[k].resource.secondary === 'mp' && k !== 'weaver') CASTER.add(k);
@@ -241,13 +242,16 @@ function spawnChunk(c, first, onlyEnemies) {
   if (spawned.has(c.key)) return; spawned.add(c.key);
   const lvl = chunkLevel(c), safe = (x, y) => Math.hypot(x - player.x, y - player.y) > 240;
   for (const p of c.props) if (p.type === 'chest' && p.key && G.opened && G.opened[p.key]) p.open = true;
+  for (const p of c.props) if (p.type === 'grave' && p.gkey && G.graves && G.graves[p.gkey]) p.released = true;
   for (const st of c.structs) {
     const home = Math.floor(st.cx / CS) === c.cx && Math.floor(st.cy / CS) === c.cy; if (!home) continue;
-    for (const [type, dx, dy, tag] of st.spawns) {
+    for (const [type, dx, dy, tag, gk] of st.spawns) {
       if (type === 'troll' && (G.flags.troll || (STORY && !STORY.wantsEnemy('troll')))) continue;
+      if (gk && G.graves && G.graves[gk]) continue; // этого мертвеца назвали по имени — он больше не встанет
       const x = (st.cx + dx) * T + 16, y = (st.cy + dy) * T + 16;
       if (!safe(x, y) && !first) continue;
       const e = addEnemy(type, x, y, 1 + st.dist * .05); e.chunk = c.key;
+      if (gk) { const g = st.props.find((p) => p.gkey === gk); if (g && g.epi) { e.grave = g; e.yard = st.name; } }
     }
     if (st.hub && !onlyEnemies) spawnVillage(st, c.key);
   }
@@ -591,6 +595,56 @@ function addDungeonFire(m, base) {
     m.props.push({ type: 'campfire', rest: true, light: true, id: base + ':fire', name: 'Костёр перед последним залом', x: tx * T + 16, y: ty * T + 20 }); return;
   }
 }
+// ---------- имена на могилах: прочесть, запомнить, позвать недопетого ----------
+const yardOf = (gk) => gk.slice(0, gk.lastIndexOf(':g'));
+function readGrave(p) {
+  const g = p.epi, who = graveWho(g);
+  if (p.released) { toast(`${who}. Земля над могилой осела и выровнялась. На камне лежит камешек.`, 2600); return; }
+  if (!g.intact) { toast(`Имя на камне сбито. Не временем — зубилом. Так здесь делают после Проводов. Ниже уцелело: «${g.line}»`, 3200); return; }
+  const fresh = learnName(p);
+  modal(`<h2>Надпись на камне</h2><p class="line">«${GEN.esc(who)}. ${GEN.esc(g.line)}»</p><p class="aside">Имя цело: зубило его не тронуло. Значит, не проводили.${g.risen ? ' Земля у камня разрыта изнутри — того, кто здесь лежал, на месте нет.' : ' Под камнем тихо.'}</p>${fresh ? `<p class="aside">Ты запомнил имя: ${GEN.esc(g.name)}.</p>` : ''}<div class="row"><button class="btn" data-close>Отойти</button></div>`);
+  modalHandlers = {};
+  if (fresh) tipLater('names', 'Имена', 'Целое имя на камне — знак, что покойника не проводили. Такие встают. Подойди к мертвецу с этого кладбища и позови его по имени (E): он остановится и уйдёт навсегда. Прислушайся, что он бормочет, — так поймёшь, чьё это имя. Чужое имя его разозлит.');
+}
+function learnName(p) {
+  G.names = G.names || []; if (G.names.some((n) => n.gk === p.gkey)) return false;
+  G.names.push({ gk: p.gkey, name: p.epi.name, role: p.epi.role, yard: p.yard || '' });
+  if (G.names.length > 30) { const i = G.names.findIndex((n) => G.graves && G.graves[n.gk]); G.names.splice(i >= 0 ? i : 0, 1); }
+  save(); return true;
+}
+function callByName(e) {
+  const here = yardOf(e.grave.gkey), left = (G.names || []).filter((n) => !(G.graves && G.graves[n.gk]));
+  const list = [...left.filter((n) => yardOf(n.gk) === here), ...left.filter((n) => yardOf(n.gk) !== here)].slice(0, 8);
+  if (!list.length) { toast('Ты не знаешь ни одного имени. Имена — на камнях.', 2200); return; }
+  const m = e.grave.epi.mutter[(e.mutN || 0) % e.grave.epi.mutter.length];
+  modal(`<h2>Позвать по имени</h2><p class="line">Мертвец бормочет: «${GEN.esc(m)}»</p><p class="aside">Назовёшь верно — остановится и уйдёт. Чужое имя его разозлит.</p><div class="row col">${list.map((n, i) => `<button class="btn" data-a="n${i}">${GEN.esc(n.name)} <small>— ${GEN.esc(n.role)}${yardOf(n.gk) !== here && n.yard ? ', ' + GEN.esc(n.yard) : ''}</small></button>`).join('')}<button class="btn" data-close>Промолчать</button></div>`);
+  modalHandlers = {}; list.forEach((n, i) => { modalHandlers['n' + i] = () => { closeModal(); if (n.gk === e.grave.gkey) releaseDead(e); else wrongName(e, n); }; });
+}
+// верное имя: мертвец останавливается и уходит насовсем — могила больше не поднимет его и после отдыха у костра
+function releaseDead(e) {
+  const p = e.grave; if (!p || e.dead || e.hp <= 0) return;
+  G.graves = G.graves || {}; G.graves[p.gkey] = 1; p.released = true;
+  G.stats.released = (G.stats.released || 0) + 1;
+  e.released = true; e.hp = 0; e.dead = .001; e.atk = 0; e.anim = 'walk'; e.frame = 0; e.dir = DIR_OF(p.x - e.x, p.y - e.y);
+  if (lock === e) { lock = null; updateLockHud(); }
+  fx.push({ type: 'num', x: e.x - 10, y: e.y - 56, text: p.epi.name + '…', small: true, school: 'ice', t: 0, life: 1.6 });
+  fx.push({ type: 'pillar', x: e.x, y: e.y, t: 0, life: 1.2, color: '#9fc8ff' });
+  if (VFX.ok) fx.push({ type: 'anim', key: 'ghost_wisp', x: e.x, y: e.y - 6, t: 0, life: vfxLife('ghost_wisp') });
+  gainXp(e.E.xp); gainEchoes(3);
+  if (STORY) STORY.onKill(e.type); questKill(e);
+  if (G.stats.released <= 8) WS.deed(G, 'd_named_dead', { witnesses: witnessesNear() }); // слава у Недопетых растёт с первыми восемью
+  sfx.memory();
+  toast(`«${p.epi.name}…» Мертвец останавливается. Поворачивается к своей могиле, будто вспомнил дорогу, — и уходит. Больше он не встанет.`, 3400);
+  save(); updateHUD();
+}
+function wrongName(e, n) {
+  e.enraged = 6; e.state = 'chase';
+  fx.push({ type: 'num', x: e.x - 16, y: e.y - 56, text: 'не моё имя!', small: true, hurt: true, t: 0, life: 1.1 });
+  sfx.hit();
+  toast(`«${n.name}?» Мертвец дёргается, как от пощёчины. Это чужое имя — и он в ярости.`, 2400);
+}
+// Недопетые при доброй славе (FACTIONS: репутация ≥ 15) ночью не нападают первыми
+const peacefulDead = (e) => UNDEAD.has(e.type) && !e.E.boss && isNight() && WS.rep(G, 'undead') >= 15 && !(e.enraged > 0);
 function nearestEnemy(r = 260) { let best = null, bd = r; for (const e of ents) if (e.kind === 'enemy' && e.hp > 0) { const d = dist(e, player); if (d < bd) { bd = d; best = e; } } return best; }
 function areaPoint() { const e = validLock() || nearestEnemy(); if (e) return [e.x, e.y]; const dv = DV[player.dir]; return [player.x + dv[0] * 110, player.y + dv[1] * 110]; }
 let warnT = 0;
@@ -687,13 +741,14 @@ function killEnemy(e) {
   if (rand() < (E.boss ? 1 : .12)) drops.push({ type: rand() < .6 ? 'hp' : 'mp', x: e.x + 10, y: e.y, t: 0 });
   if (E.boss) bossLoot(e);
   if (rand() < (E.boss ? 1 : ['shaman', 'necro', 'witch', 'cultist'].includes(e.type) ? .14 : .06)) dropItem(e.x - 8, e.y + 4, { ilvl: Math.max(1, Math.round(G.lvl * (e.area || 1))), rarity: E.boss && rand() < .5 ? 'unique' : undefined });
-  for (const q of activeQuests()) if (q.type === 'kill' && q.target === e.type && !q.done) { q.progress = (q.progress || 0) + 1; if (q.progress >= q.count) { q.done = true; toast(`Задание выполнено: «${q.title}»`); } else toast(`${q.title}: ${q.progress} из ${q.count}`, 1200); }
+  questKill(e);
   if (e.type === 'troll') { G.flags.troll = true; }
   if (e.type === 'minotaur' && world.tag === 'crypt2') G.flags.minotaur = true;
   if (e.dunBoss) { G.flags['boss:' + world.id] = true; upgrade(rand() < .5 ? 'weapon' : 'armor', 'Добыча хозяина подземелья'); }
   if (e.type === 'lich') { G.flags.lich = true; }
   updateHUD();
 }
+function questKill(e) { for (const q of activeQuests()) if (q.type === 'kill' && q.target === e.type && !q.done) { q.progress = (q.progress || 0) + 1; if (q.progress >= q.count) { q.done = true; toast(`Задание выполнено: «${q.title}»`); } else toast(`${q.title}: ${q.progress} из ${q.count}`, 1200); } }
 function bossLoot(e) {
   if (e.type === 'troll') { upgrade('armor', 'Тролль носил на себе трофейный доспех'); toast('Найден ключ от склепа'); }
   if (e.type === 'minotaur' && world.tag === 'crypt2') upgrade('weapon', 'В руке минотавра был отличный клинок');
@@ -751,6 +806,7 @@ function nearestInteract() {
   let best = null, bd = 1e9;
   const consider = (o, d, kind, r) => { if (d < r && d < bd) { bd = d; best = { o, kind }; } };
   for (const e of ents) if (e.kind === 'npc') consider(e, dist(e, player), 'npc', 38);
+  if (G.names && G.names.length) for (const e of ents) if (e.kind === 'enemy' && e.grave && e.hp > 0 && !e.dead) consider(e, dist(e, player) - 20, 'call', 70);
   if (STORY) { const m = STORY.markerNear(player.x, player.y); if (m) consider(m, Math.hypot(m.x - player.x, m.y - player.y) - 6, 'marker', 40); }
   for (const p of propsNear(player.x, player.y, 70)) {
     if (p.type === 'altar' || p.type === 'menhir' || p.type === 'well') consider(p, Math.hypot(p.x - player.x, p.y - player.y), p.type === 'altar' ? 'altar' : 'node', 40);
@@ -758,6 +814,7 @@ function nearestInteract() {
     if (p.type === 'chest' && !p.open) consider(p, Math.hypot(p.x - player.x, p.y + 6 - player.y), 'chest', 34);
     if ((p.type === 'stairs_down' || p.type === 'stairs_up') && p.to) consider(p, Math.hypot(p.x - player.x, p.y - player.y), 'stairs', 30);
     if (p.type === 'sign') consider(p, Math.hypot(p.x - player.x, p.y + 10 - player.y), 'sign', 30);
+    if (p.type === 'grave' && p.epi) consider(p, Math.hypot(p.x - player.x, p.y + 6 - player.y) + 8, 'grave', 34);
     if (p.type === 'campfire' && p.rest) consider(p, Math.hypot(p.x - player.x, p.y + 14 - player.y), 'fire', 46);
   }
   if (best && best.kind === 'fire') tipLater('fire', 'Костёр', 'У костра можно отдохнуть: вернутся здоровье и мана, зелья пополнятся, игра сохранится. Если нить порвётся — очнёшься у последнего костра. Но и враги вокруг вернутся.');
@@ -777,6 +834,8 @@ function interact() {
   else if (n.kind === 'stairs') useStairs(n.o);
   else if (n.kind === 'sign') toast(n.o.text, 2600);
   else if (n.kind === 'fire') restAt(n.o);
+  else if (n.kind === 'grave') readGrave(n.o);
+  else if (n.kind === 'call') callByName(n.o);
 }
 function useStairs(p) {
   if (p.dun && p.dun.tags && p.dun.tags[0] === 'crypt1' && STORY && !(STORY.isActive('m5') || STORY.isDone('m5') || G.flags.troll)) { toast('Склеп запечатан изнутри. Печать держится на чьём-то упрямстве. Сейчас не открыть.', 3000); return; }
@@ -1451,14 +1510,17 @@ function updNpc(e, dt) {
 }
 function updEnemy(e, dt) {
   const P = player, E = e.E;
-  if (e.dead) { e.dead += dt; e.frame = Math.min(5, e.dead * 9); return; }
+  if (e.dead) { e.dead += dt; e.frame = e.released ? 0 : Math.min(5, e.dead * 9); return; }
   e.cd -= dt; e.hurtT = Math.max(0, e.hurtT - dt);
   const st = SK.tickEnemy(e, dt);
   if (e.dead || e.hp <= 0) return;
   if (e.kx || e.ky) { moveEnt(e, e.kx * dt, e.ky * dt, 8); e.kx *= .8; e.ky *= .8; if (Math.abs(e.kx) < 3) e.kx = 0; if (Math.abs(e.ky) < 3) e.ky = 0; }
   if (st) { e.frame = 0; if (st === 'frozen') e.atk = 0; return; }
   e.slow = Math.max(0, (e.slow || 0) - dt);
-  const spd = e.speed * SK.enemySpeedMul(e) * (world.dark > .3 && UNDEAD.has(e.type) ? 1.1 : 1);
+  if (e.enraged > 0) e.enraged -= dt;
+  // мертвец с целым именем бормочет о своём ремесле — по этому и узнают, как его звали
+  if (e.grave && !P.dead) { e.mutT = (e.mutT ?? 1 + rand() * 3) - dt; if (e.mutT <= 0) { e.mutT = 5 + rand() * 4; if (dist(e, P) < 190) { const ms = e.grave.epi.mutter, m = ms[(e.mutN = (e.mutN || 0) + 1) % ms.length]; fx.push({ type: 'num', x: e.x - m.length * 2, y: e.y - 60 * e.scale, text: m, small: true, school: 'ice', t: 0, life: 2.4 }); } } }
+  const spd = e.speed * SK.enemySpeedMul(e) * (world.dark > .3 && UNDEAD.has(e.type) ? 1.1 : 1) * (e.enraged > 0 ? 1.15 : 1);
   if (e.fear > 0) { const a = Math.atan2(e.y - P.y, e.x - P.x); e.dir = DIR_OF(Math.cos(a), Math.sin(a)); moveEnt(e, Math.cos(a) * spd * dt, Math.sin(a) * spd * dt, 8); e.walkT = (e.walkT || 0) + dt; e.frame = 1 + Math.floor(e.walkT * 10) % 8; e.atk = 0; return; }
   if (e.forget > 0 || SK.heroHidden(e)) { if (e.state === 'chase') e.state = 'idle'; }
   const tgt = pickTarget(e), d = dist(e, tgt), aggro = (E.boss ? 260 : 170) * (e.forget > 0 || SK.heroHidden(e) ? 0 : 1); e.tgt = tgt;
@@ -1474,7 +1536,7 @@ function updEnemy(e, dt) {
   }
   if (P.dead && tgt === P) { e.state = 'idle'; }
   if (e.state === 'idle' || e.state === 'wander') {
-    if (d < aggro && !P.dead && !(e.forget > 0)) { e.state = 'chase'; if (E.boss) bossIntro(e); }
+    if (d < aggro && !P.dead && !(e.forget > 0) && !peacefulDead(e)) { e.state = 'chase'; if (E.boss) bossIntro(e); }
     e.t -= dt; if (e.t <= 0) { e.t = 2 + rand() * 3; const a = rand() * 6.283; e.wander = [e.home[0] + Math.cos(a) * 60, e.home[1] + Math.sin(a) * 60]; }
     if (e.wander) { const dx = e.wander[0] - e.x, dy = e.wander[1] - e.y, l = Math.hypot(dx, dy); if (l > 4) { e.dir = DIR_OF(dx, dy); moveEnt(e, dx / l * e.speed * .4 * dt, dy / l * e.speed * .4 * dt, 8); e.walkT = (e.walkT || 0) + dt; e.frame = 1 + Math.floor(e.walkT * 6) % 8; } else e.frame = 0; }
     return;
@@ -1581,7 +1643,7 @@ function bossBarTick() {
   bar.hidden = false; $('bossName').textContent = b.E.name + (b.shielded ? ' — щит из имён' : b.vuln > 0 ? ' — оглушён' : '');
   $('bossFill').style.width = Math.max(0, 100 * b.hp / b.maxHp) + '%'; bar.classList.toggle('shield', !!b.shielded);
 }
-function enemyDmgMul(e) { let m = world.dark > .3 && UNDEAD.has(e.type) ? 1.15 : 1; for (const d of e.debuffs || []) for (const md of d.mods || []) if (md.stat === 'dmg%') m *= 1 + md.value; return m; }
+function enemyDmgMul(e) { let m = (world.dark > .3 && UNDEAD.has(e.type) ? 1.15 : 1) * (e.enraged > 0 ? 1.3 : 1); for (const d of e.debuffs || []) for (const md of d.mods || []) if (md.stat === 'dmg%') m *= 1 + md.value; return m; }
 function pickTarget(e) {
   if (e.taunt > 0 && !player.dead) return player;
   let best = player, bd = player.dead ? 1e9 : dist(e, player) + (SK.isInvis() ? 400 : 0);
@@ -1659,14 +1721,14 @@ function render() {
   // interaction hint
   const n = player && !player.dead && !modalOpen() ? nearestInteract() : null;
   $('hint').hidden = !n;
-  if (n) $('hint').textContent = { fire: 'Отдохнуть у костра', marker: n.o.type === 'night' ? 'Ждать ночи' : n.o.type === 'wait' ? 'Ждать рассвета' : n.o.type === 'sacrifice' ? 'Отдать память' : 'Осмотреть', altar: 'Узел: память', node: 'Узел: память', npc: 'Говорить', door: 'Войти', chest: 'Открыть сундук', stairs: n.o.type === 'stairs_down' ? 'Спуститься' : 'Подняться', sign: 'Читать' }[n.kind];
+  if (n) $('hint').textContent = { fire: 'Отдохнуть у костра', grave: 'Прочесть надпись', call: 'Позвать по имени', marker: n.o.type === 'night' ? 'Ждать ночи' : n.o.type === 'wait' ? 'Ждать рассвета' : n.o.type === 'sacrifice' ? 'Отдать память' : 'Осмотреть', altar: 'Узел: память', node: 'Узел: память', npc: 'Говорить', door: 'Войти', chest: 'Открыть сундук', stairs: n.o.type === 'stairs_down' ? 'Спуститься' : 'Подняться', sign: 'Читать' }[n.kind];
 }
 function drawEnt(x, e) {
   const sc = e.scale || 1;
   x.fillStyle = 'rgba(0,0,0,.25)'; x.beginPath(); x.ellipse(e.x, e.y, 10 * sc, 3.5 * sc, 0, 0, 7); x.fill();
   if (e.kind === 'player' && e.inv > 0 && !e.dash && !(e.dodgeT > 0) && Math.floor(now * 20) % 2) x.globalAlpha = .45;
-  if ((e.kind === 'enemy' || e.kind === 'ally') && e.dead) x.globalAlpha = Math.max(0, 1 - Math.max(0, e.dead - (e.kind === 'ally' ? .6 : 1.2)));
-  const anim = e.dead ? 'hurt' : e.anim;
+  if ((e.kind === 'enemy' || e.kind === 'ally') && e.dead) x.globalAlpha = e.released ? Math.max(0, 1 - e.dead / 2) : Math.max(0, 1 - Math.max(0, e.dead - (e.kind === 'ally' ? .6 : 1.2)));
+  const anim = e.dead ? (e.released ? 'walk' : 'hurt') : e.anim;
   const tf = e.kind === 'player' ? SK.playerTint() : e.tint ? { tint: e.tint, alpha: e.alpha } : null;
   if (e.kind === 'player' && SK.isInvis()) x.globalAlpha = .35;
   if (tf && tf.alpha) x.globalAlpha *= tf.alpha;
@@ -1680,6 +1742,7 @@ function drawEnt(x, e) {
     if (e.heavy) { x.lineWidth = 2; x.strokeStyle = `rgba(255,50,30,${.35 + .4 * b})`; x.beginPath(); x.ellipse(e.x, e.y, 17 * sc, 6 * sc, 0, 0, 7); x.stroke(); x.lineWidth = 1; } // тяжёлый: земля под ним тлеет
     x.font = `bold ${e.heavy ? 17 : 15}px monospace`; x.fillStyle = 'rgba(20,8,8,.85)'; x.fillText(mark, e.x - (e.heavy ? 6 : 3), hy + 1); x.fillStyle = e.heavy ? `rgba(255,40,30,${b})` : `rgba(255,86,70,${b})`; x.fillText(mark, e.x - (e.heavy ? 7 : 4), hy);
   }
+  if (e.kind === 'enemy' && e.enraged > 0 && !e.dead) { x.fillStyle = `rgba(255,60,40,${.2 + .1 * Math.sin(now * 10)})`; x.beginPath(); x.ellipse(e.x, e.y, 15 * sc, 5 * sc, 0, 0, 7); x.fill(); } // разозлён чужим именем
   // выносливость: маленькое кольцо у плеча, видно, пока не полное
   if (e.kind === 'player' && !e.dead && ((e.stam ?? STAM.max) < STAM.max || e.stamFlash > 0)) {
     const v = (e.stam ?? STAM.max) / STAM.max, cx0 = e.x + 15, cy0 = e.y - 46;
@@ -1778,6 +1841,8 @@ function drawLight(cx, cy) {
   hole(player.x - cx, player.y - 20 - cy, world.infinite ? 200 : 150, 1);
   for (const p of visibleProps) if (p.type === 'torch' || p.type === 'campfire' || p.type === 'lamppost') hole(p.x - cx, p.y - 26 - cy, 90 + Math.sin(now * 9 + p.x) * 4, .9);
   for (const p of projs) if (p.type !== 'arrow' && p.type !== 'earrow') hole(p.x - cx, p.y - cy, 46, .85);
+  const wisp = (p) => p.type === 'grave' && p.epi && p.epi.intact && !p.released; // синие огоньки на непроводенных могилах
+  for (const p of visibleProps) if (wisp(p)) hole(p.x + 12 - cx, p.y - 9 - cy, 30 + Math.sin(now * 7 + p.x) * 2, .75);
   for (const f of fx) if (f.type === 'boom' || f.type === 'pillar' || f.type === 'frost' || f.type === 'meteor') hole(f.x - cx, f.y - 20 - cy, 110, .8);
   for (const f of fx) if (f.type === 'nova') hole(f.x - cx, f.y - cy, 120, .8);
   for (const f of fx) if (f.type === 'anim' && /fire|flam|lightning|holy|spirit|ice/.test(f.key)) hole(f.x - cx, f.y - 20 - cy, 90, .75);
@@ -1785,6 +1850,7 @@ function drawLight(cx, cy) {
   // warm glow on top
   ctx.globalCompositeOperation = 'lighter';
   for (const p of visibleProps) if (p.type === 'torch' || p.type === 'campfire' || p.type === 'lamppost') { const X = p.x - cx, Y = p.y - 26 - cy; if (X < -60 || Y < -60 || X > view.w + 60 || Y > view.h + 60) continue; const g = ctx.createRadialGradient(X, Y, 0, X, Y, 60); g.addColorStop(0, 'rgba(255,140,40,.18)'); g.addColorStop(1, 'rgba(255,140,40,0)'); ctx.fillStyle = g; ctx.fillRect(X - 60, Y - 60, 120, 120); }
+  for (const p of visibleProps) if (wisp(p)) { const X = p.x + 12 - cx, Y = p.y - 9 - cy; if (X < -30 || Y < -30 || X > view.w + 30 || Y > view.h + 30) continue; const g = ctx.createRadialGradient(X, Y, 0, X, Y, 18); g.addColorStop(0, `rgba(120,180,255,${.3 * world.dark + .05})`); g.addColorStop(1, 'rgba(120,180,255,0)'); ctx.fillStyle = g; ctx.fillRect(X - 18, Y - 18, 36, 36); }
   ctx.globalCompositeOperation = 'source-over';
 }
 
@@ -1884,8 +1950,10 @@ $('modalBody').addEventListener('click', (e) => {
 
 let STORY = null;
 function questsHtml() {
-  if (STORY) { const rows = STORY.journalRows(); const act = rows.filter((r) => r.active), done = rows.filter((r) => r.done); const nx = STORY.nextMain(); let h = act.length ? `<ul class="qlist">${act.map(({ q, s }) => `<li class="${q.chain === 'main' ? 'main' : ''}"><b>${GEN.esc(q.title)}</b><span>${GEN.esc(q.summary)}</span><small>Сейчас: ${GEN.esc(s.text)}</small></li>`).join('')}</ul>` : `<p class="aside">Сейчас нет начатых историй.${nx ? ` Следующую главную расскажет ${GEN.esc(STORY.npcName(STORY.qById[nx].giver))}.` : ''}</p>`; const failed = rows.filter((r) => r.failed); if (failed.length) h += `<p class="aside">Не сложилось:</p><ul class="qlist">${failed.map(({ q }) => `<li class="done"><b>${GEN.esc(q.title)}</b><span>${GEN.esc((q.fail && q.fail.text) || 'Время ушло.')}</span></li>`).join('')}</ul>`; h = `<p class="aside">Глава ${WS.chapter(G)}${CHAPTER_INFO(WS.chapter(G)).title ? ' — «' + GEN.esc(CHAPTER_INFO(WS.chapter(G)).title) + '»' : ''}. День ${MEM.dayOf(G) + 1}.</p>` + h; if (done.length) h += `<p class="aside">Завершено:</p><ul class="qlist">${done.map(({ q, o }) => `<li class="done"><b>${GEN.esc(q.title)}</b><span>${(G.memory.sacrificed || []).some((x) => x.id === 'q_' + q.id) ? '〰〰〰 (ты это забыл)' : GEN.esc(o ? o.text : '')}</span></li>`).join('')}</ul>`; const old = activeQuests().filter((q) => !q.rewarded); if (old.length) h += `<p class="aside">Поручения жителей:</p><ul class="qlist">${old.map((q) => `<li class="${q.done ? 'done' : ''}"><b>${GEN.esc(q.title)}</b><small>${q.done ? 'выполнено — вернитесь за наградой' : q.type === 'kill' ? `${q.progress || 0} из ${q.count}` : 'найти в сундуке'}</small></li>`).join('')}</ul>`; return h + `<p class="aside">Убито врагов: ${G.stats.kills}. Падений: ${G.stats.deaths}.</p>`; }
+  if (STORY) { const rows = STORY.journalRows(); const act = rows.filter((r) => r.active), done = rows.filter((r) => r.done); const nx = STORY.nextMain(); let h = act.length ? `<ul class="qlist">${act.map(({ q, s }) => `<li class="${q.chain === 'main' ? 'main' : ''}"><b>${GEN.esc(q.title)}</b><span>${GEN.esc(q.summary)}</span><small>Сейчас: ${GEN.esc(s.text)}</small></li>`).join('')}</ul>` : `<p class="aside">Сейчас нет начатых историй.${nx ? ` Следующую главную расскажет ${GEN.esc(STORY.npcName(STORY.qById[nx].giver))}.` : ''}</p>`; const failed = rows.filter((r) => r.failed); if (failed.length) h += `<p class="aside">Не сложилось:</p><ul class="qlist">${failed.map(({ q }) => `<li class="done"><b>${GEN.esc(q.title)}</b><span>${GEN.esc((q.fail && q.fail.text) || 'Время ушло.')}</span></li>`).join('')}</ul>`; h = `<p class="aside">Глава ${WS.chapter(G)}${CHAPTER_INFO(WS.chapter(G)).title ? ' — «' + GEN.esc(CHAPTER_INFO(WS.chapter(G)).title) + '»' : ''}. День ${MEM.dayOf(G) + 1}.</p>` + h; if (done.length) h += `<p class="aside">Завершено:</p><ul class="qlist">${done.map(({ q, o }) => `<li class="done"><b>${GEN.esc(q.title)}</b><span>${(G.memory.sacrificed || []).some((x) => x.id === 'q_' + q.id) ? '〰〰〰 (ты это забыл)' : GEN.esc(o ? o.text : '')}</span></li>`).join('')}</ul>`; const old = activeQuests().filter((q) => !q.rewarded); if (old.length) h += `<p class="aside">Поручения жителей:</p><ul class="qlist">${old.map((q) => `<li class="${q.done ? 'done' : ''}"><b>${GEN.esc(q.title)}</b><small>${q.done ? 'выполнено — вернитесь за наградой' : q.type === 'kill' ? `${q.progress || 0} из ${q.count}` : 'найти в сундуке'}</small></li>`).join('')}</ul>`; h += namesHtml(); return h + `<p class="aside">Убито врагов: ${G.stats.kills}. Падений: ${G.stats.deaths}.${G.stats.released ? ` Названо по имени: ${G.stats.released}.` : ''}</p>`; }
   const qs = activeQuests(); let body = qs.length ? `<ul class="qlist">${qs.map((q) => `<li class="${q.done ? 'done' : ''}"><b>${GEN.esc(q.title)}</b><span>${GEN.esc(q.text || (q.type === 'kill' ? `Убить ${q.count}: ${q.plural}.` : `Найти «${q.relic}» в сундуке.`))}</span><small>${q.done ? 'Выполнено. Вернитесь за наградой.' : q.type === 'kill' ? `${q.progress || 0} из ${q.count}` : ''}</small></li>`).join('')}</ul>` : '<p>Заданий нет.</p>'; return body + `<p class="aside">Убито врагов: ${G.stats.kills}. Открыто сундуков: ${G.stats.chests}. Падений: ${G.stats.deaths}.</p>`; }
+// имена с камней, которых ещё не назвали: чтобы не держать в голове
+function namesHtml() { const left = (G.names || []).filter((n) => !(G.graves && G.graves[n.gk])); return left.length ? `<p class="aside">Имена с камней (не названы):</p><ul class="qlist">${left.map((n) => `<li><b>${GEN.esc(n.name)}</b><span>${GEN.esc(n.role)}${n.yard ? ' · ' + GEN.esc(n.yard) : ''}</span></li>`).join('')}</ul>` : ''; }
 let menuTab = 'hero', nodeSel = null, cardSel = null, offerRoll = 0, atNode = null;
 const STAT_RU = { 'dmg%': 'урон', crit: 'шанс крита', critDmg: 'сила крита', hp: 'здоровье', 'hp%': 'здоровье', mp: 'мана', 'mp%': 'мана', armor: 'броня', 'armor%': 'броня', 'speed%': 'скорость', 'atkSpeed%': 'скорость атаки', 'castSpeed%': 'скорость чар', regen: 'восстановление здоровья', 'mpRegen%': 'восстановление маны', lifesteal: 'похищение жизни', dodge: 'уклонение', block: 'блок', cdr: 'перезарядка', 'fire%': 'урон огнём', 'ice%': 'урон льдом', 'shadow%': 'урон тьмой', 'holy%': 'урон светом', 'memory%': 'урон памятью', 'echoFind%': 'Отголоски', 'summonDmg%': 'урон слуг', 'summonHp%': 'здоровье слуг', thorns: 'шипы', 'burnDmg%': 'урон горения', 'healPower%': 'сила лечения', 'resist:all': 'сопротивление', 'imprint%': 'шанс Отпечатка', slowResist: 'стойкость к замедлению', freezeDur: 'длительность заморозки' };
 const pctStat = (k) => k.endsWith('%') || ['crit', 'critDmg', 'lifesteal', 'dodge', 'block', 'cdr', 'resist:all', 'slowResist', 'freezeDur'].includes(k);
@@ -1912,7 +1980,7 @@ function openMenu(tab) {
   if (name === 'chron') body = chronHtml();
   if (name === 'quests') body = questsHtml();
   if (name === 'ties') body = tiesHtml();
-  if (name === 'help') body = `<dl class="mini"><dt>Движение</dt><dd>WASD или стрелки; на телефоне — палец в левой части экрана</dd><dt>Атака</dt><dd>J; кнопка ⚔</dd><dt>Отскок</dt><dd>Пробел; кнопка ↷. Короткий прыжок, во время которого удары проходят мимо. С места — назад.</dd><dt>Парирование</dt><dd>H; кнопка ⛨. Нажми, когда над врагом вспыхнет «!»: удар отбит, враг оглушён, следующий твой удар вдвое сильнее. Впустую — короткая заминка.</dd><dt>Навыки</dt><dd>K, L, U, I (или Shift, Q, R, T); на телефоне — четыре кнопки у атаки</dd><dt>Действие</dt><dd>E или Enter; кнопка ◉</dd><dt>Захват цели</dt><dd>F или ◎ — захватить и отпустить; G или долгое нажатие ◎ — следующий враг; можно нажать на врага</dd><dt>Зелья</dt><dd>1 — здоровье, 2 — мана</dd><dt>Костры</dt><dd>Редкие, у деревни и мест истории, в подземельях — перед последним залом. Отдых возвращает здоровье и ману, пополняет зелья и сохраняет игру; «Продолжить» и пробуждение после гибели — у последнего костра. Враги вокруг при отдыхе возвращаются.</dd><dt>Выносливость</dt><dd>Кольцо у героя: отскок и парирование тратят дыхание, оно возвращается за пару секунд. Точное парирование возвращает часть.</dd><dt>Меню</dt><dd>Esc или Tab; Навыки — N, Клубок — B, Летопись — J в меню</dd><dt>Звук</dt><dd>M</dd></dl>
+  if (name === 'help') body = `<dl class="mini"><dt>Движение</dt><dd>WASD или стрелки; на телефоне — палец в левой части экрана</dd><dt>Атака</dt><dd>J; кнопка ⚔</dd><dt>Отскок</dt><dd>Пробел; кнопка ↷. Короткий прыжок, во время которого удары проходят мимо. С места — назад.</dd><dt>Парирование</dt><dd>H; кнопка ⛨. Нажми, когда над врагом вспыхнет «!»: удар отбит, враг оглушён, следующий твой удар вдвое сильнее. Впустую — короткая заминка.</dd><dt>Навыки</dt><dd>K, L, U, I (или Shift, Q, R, T); на телефоне — четыре кнопки у атаки</dd><dt>Действие</dt><dd>E или Enter; кнопка ◉</dd><dt>Захват цели</dt><dd>F или ◎ — захватить и отпустить; G или долгое нажатие ◎ — следующий враг; можно нажать на врага</dd><dt>Зелья</dt><dd>1 — здоровье, 2 — мана</dd><dt>Костры</dt><dd>Редкие, у деревни и мест истории, в подземельях — перед последним залом. Отдых возвращает здоровье и ману, пополняет зелья и сохраняет игру; «Продолжить» и пробуждение после гибели — у последнего костра. Враги вокруг при отдыхе возвращаются.</dd><dt>Выносливость</dt><dd>Кольцо у героя: отскок и парирование тратят дыхание, оно возвращается за пару секунд. Точное парирование возвращает часть.</dd><dt>Имена</dt><dd>На кладбищах у могил с синим огоньком имя на камне цело — покойника не проводили. Прочти надпись (E), подойди к мертвецу и позови его по имени: верное имя отпустит его навсегда, чужое разозлит.</dd><dt>Меню</dt><dd>Esc или Tab; Навыки — N, Клубок — B, Летопись — J в меню</dd><dt>Звук</dt><dd>M</dd></dl>
     <p class="aside"><b>Отголоски ✶</b> — осколки памяти: падают с врагов, мест и разговоров. Ими вплетают ранги навыков, закрепляют Отпечатки, платят ткачам. Больше предела носить нельзя — лишнее выцветает.</p>
     <p class="aside"><b>Забвение</b> — на Узле (алтарь, менгир, колодец) можно отдать своё воспоминание ради постоянного дара. Цена настоящая: люди перестают узнаваться, края уходят в туман, строки Летописи осыпаются.</p>`;
   modal(`<div class="tabs">${TABS.map(([id, n]) => `<button class="tab ${id === name ? 'on' : ''}" data-a="t_${id}">${n}</button>`).join('')}</div>${body}<div class="row">${name === 'help' ? `<button class="btn" data-a="sound">${audio.on ? 'Выключить звук' : 'Включить звук'}</button><button class="btn" data-a="life">${LIFE.on ? 'Выключить анимации мира' : 'Включить анимации мира'}</button><button class="btn" data-a="export">Сохранить в файл</button><button class="btn" data-a="import">Загрузить из файла</button><button class="btn" data-a="title">В главное меню</button>` : ''}<button class="btn primary" data-close>Продолжить</button></div>`, () => { atNode = null; sacrificeReq = null; }, () => { if ($('menuFace')) drawFace($('menuFace'), player.look); });

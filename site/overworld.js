@@ -3,6 +3,7 @@
 // into whichever chunks they overlap.
 import { mulberry } from './gen.js';
 import { T, TILE, SOLID, SLOW } from './world.js';
+import { planYard } from './graves.js';
 
 export const CS = 16;          // chunk size, tiles
 export const RT = 64;          // region size, tiles (one structure at most per region)
@@ -204,7 +205,7 @@ export class Overworld {
     const R = mulberry(Math.imul(rx, 92821) ^ Math.imul(ry, 68917) ^ (key === '0,0' ? START.seed : this.seed));
     if (forced) {
       s = this.makeStructure(forced.type, rx * RT + 32, ry * RT + 32, R, key);
-      s.story = forced.loc; if (forced.name) s.name = forced.name;
+      s.story = forced.loc; if (forced.name) { s.name = forced.name; for (const p of s.props) if (p.gkey) p.yard = s.name; }
       if (forced.biome === 'snow' && s.grid) { s.ground = TILE.SNOW; for (let i = 0; i < s.grid.length; i++) if (s.grid[i] === TILE.SWAMP || s.grid[i] === TILE.MOSS) s.grid[i] = TILE.GRAVEL; } if (forced.peaceful) s.spawns = s.spawns.filter((sp) => sp[3] === 'boss' && forced.keepBoss);
       if (forced.tags) for (const p of s.props) if (p.dun) { p.dun.tags = forced.tags; p.dun.name = s.name; }
     }
@@ -276,7 +277,8 @@ export class Overworld {
     else if (type === 'graveyard' || type === 'oldgrave') {
       box(18, 14); s.name = type === 'oldgrave' ? 'Старое кладбище' : pick(GRAVE_NAMES); s.ground = TILE.MOSS;
       rect(0, 0, 18, 14, TILE.MOSS); rect(8, 0, 2, 14, TILE.DIRT);
-      for (let y = -5; y <= 4; y += 3) for (let x = -7; x <= 7; x += 3) if (Math.abs(x) > 1) prop({ type: 'grave', x: W(x), y: H(y) + 8 });
+      const graves = [];
+      for (let y = -5; y <= 4; y += 3) for (let x = -7; x <= 7; x += 3) if (Math.abs(x) > 1) graves.push(prop({ type: 'grave', x: W(x), y: H(y) + 8, gx: x, gy: y, gkey: `${key}:g${graves.length}`, yard: s.name }));
       prop({ type: 'gate', x: W(0), y: H(-6) + 8 });
       const dun = { base: 'dun:' + key, floors: type === 'oldgrave' ? 3 : 2, boss: type === 'oldgrave', name: s.name, bossRoom: 'зал Лича', spawn: 'crypt', tags: type === 'oldgrave' ? ['crypt1', 'crypt2', 'crypt3'] : null, level: 1 + s.dist * .05 };
       prop({ type: 'mausoleum', x: W(0), y: H(4) + 20 });
@@ -284,6 +286,13 @@ export class Overworld {
       prop({ type: 'lamppost', x: W(-2), y: H(5), light: true });
       if (type !== 'oldgrave') s.spawns.push(['zombie', -4, 0], ['zombie', 4, 2], ['skeleton', 0, -2]);
       else s.spawns.push(['zombie', 5, -2]);
+      // мертвец встаёт из ближайшей могилы и носит её имя; на Старом кладбище имена сбиты все — там его не назвать
+      const risen = [];
+      if (type !== 'oldgrave') for (const sp of s.spawns) {
+        let bi = -1, bd = 1e9; graves.forEach((g, i) => { const d = Math.hypot(g.gx - sp[1], g.gy - sp[2]); if (d < bd && !risen.includes(i)) { bd = d; bi = i; } });
+        if (bi >= 0) { risen.push(bi); sp[4] = graves[bi].gkey; }
+      }
+      planYard(key, graves.length, risen, { old: type === 'oldgrave' }).forEach((epi, i) => { graves[i].epi = epi; });
     }
     else if (type === 'tower') {
       box(12, 12); s.name = pick(TOWER_NAMES); s.ground = TILE.STONE;

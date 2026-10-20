@@ -6,7 +6,8 @@ const ROOT = path.resolve(path.dirname(new URL(import.meta.url).pathname), '..')
 const SITE = path.join(ROOT, 'site'), NARR = path.join(SITE, 'narrative');
 const story = JSON.parse(fs.readFileSync(path.join(SITE, 'story.json'), 'utf8'));
 const cons = JSON.parse(fs.readFileSync(path.join(NARR, 'consequences.json'), 'utf8'));
-const inkFiles = fs.readdirSync(NARR).filter((f) => f.endsWith('.ink') && !f.startsWith('main') && f !== 'common.ink');
+// только то, что игра собирает (INCLUDE в main.ink): черновики глав, которые ещё пишутся, в документы не попадают
+const inkFiles = [...fs.readFileSync(path.join(NARR, 'main.ink'), 'utf8').matchAll(/^INCLUDE\s+(\S+)/gm)].map((m) => m[1]).filter((f) => f !== 'common.ink');
 const esc = (s) => String(s ?? '').replace(/\|/g, '/').replace(/\n/g, ' ');
 const NPC = Object.fromEntries(story.npcs.map((n) => [n.id, n.name]));
 const QT = Object.fromEntries(story.quests.map((q) => [q.id, q.title]));

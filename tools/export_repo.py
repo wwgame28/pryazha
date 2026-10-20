@@ -51,7 +51,7 @@ shutil.copy2(os.path.join(SRC, 'mktest.sh'), os.path.join(DST, 'mktest.sh'))
 # тесты: без путей песочницы — Playwright из npm, скриншоты в ./out/
 os.makedirs(os.path.join(DST, 'tests'), exist_ok=True)
 shutil.copy2(os.path.join(SRC, 'tests', 'world_state.test.mjs'), os.path.join(DST, 'tests', 'world_state.test.mjs'))
-for t in ('t10.mjs', 't24.mjs', 't25.mjs', 't26.mjs', 't27.mjs', 't28.mjs'):
+for t in ('t10.mjs', 't24.mjs', 't25.mjs', 't26.mjs', 't27.mjs', 't28.mjs', 't29.mjs'):
     p = os.path.join(SRC, t)
     if not os.path.exists(p): continue
     s = open(p, encoding='utf-8').read()
@@ -109,14 +109,17 @@ open(os.path.join(DST, 'sw.js'), 'w', encoding='utf-8').write(sw)
 for f in os.listdir(os.path.join(SRC, 'repo_files')): shutil.copy2(os.path.join(SRC, 'repo_files', f), os.path.join(DST, f))  # README, CREDITS
 open(os.path.join(DST, '.gitignore'), 'w').write('node_modules/\nout/\n*.log\nsite/test.html\nwork/\n')
 
-# главы 2–6 ещё пишутся: их правки в старых сценах (legacy_chN.ink) не выкладываем, пока главы не слиты и не проверены —
+# главы 2–6 ещё пишутся: их правки в старых сценах (legacy_chN.ink) и отметки «реализовано» в CHAPTER_0N.md не выкладываем, пока главы не слиты и не проверены —
 # в репозитории остаётся последняя выложенная версия этих файлов
 import subprocess
-KEEP_FROM_REPO = [f'site/narrative/legacy_ch{n}.ink' for n in range(2, 7)]
+KEEP_FROM_REPO = [f'site/narrative/legacy_ch{n}.ink' for n in range(2, 7)] + [f'docs/CHAPTERS/CHAPTER_0{n}.md' for n in range(2, 7)]
 if os.path.isdir(os.path.join(DST, '.git')):
     for rel in KEEP_FROM_REPO:
         r = subprocess.run(['git', '-C', DST, 'show', f'HEAD:{rel}'], capture_output=True)
         if r.returncode == 0: open(os.path.join(DST, rel), 'wb').write(r.stdout)
+
+# документы о флагах, квестах и связях глав — заново из того, что реально выложено (без черновиков глав)
+subprocess.run(['node', os.path.join(DST, 'tools', 'gen_docs.mjs')], check=True)
 
 # проверка: ни секретов, ни локальных путей
 bad = []
