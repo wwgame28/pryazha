@@ -1,4 +1,4 @@
-<!doctype html><html lang="ru"><head><meta charset="utf-8"><base href="site/"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#0f0d16"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><title>Пряжа</title><meta name="description" content="Пряжа — браузерная сюжетная RPG о памяти, нитях и долгах."></head><body>
+<!doctype html><html lang="ru"><head><meta charset="utf-8"><base href="site/"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#0f0d16"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><title>Пряжа</title><meta name="description" content="Пряжа — браузерная сюжетная RPG о памяти, нитях и долгах."><link rel="manifest" href="manifest.webmanifest"><link rel="apple-touch-icon" href="icons/apple-touch-icon.png"><script>if ("serviceWorker" in navigator && location.protocol === "https:") addEventListener("load", () => navigator.serviceWorker.register(location.href.split("#")[0].split("?")[0].replace(/[^/]*$/, "") + "sw.js").catch(() => {}));</script></head><body>
 <title>Пряжа</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -254,6 +254,8 @@ body.touch #actbar { display: none; }
 @keyframes lowpulse { 0%, 100% { opacity: .5; } 50% { opacity: 1; } }
 #restfade { position: absolute; inset: 0; pointer-events: none; background: #120a06; opacity: 0; transition: opacity .2s ease-in; }
 #restfade.on { opacity: .85; transition: opacity .18s cubic-bezier(.2,.8,.2,1); }
+.installTip { max-width: 420px; margin: 14px auto 0; padding: 10px 12px; font-size: 14px; line-height: 1.4; color: var(--linen, #e9dcc0); background: rgba(42,30,24,.85); border: 1px dashed rgba(233,220,192,.35); border-radius: 8px; }
+.installTip .btn { margin-left: 6px; padding: 4px 10px; font-size: 13px; }
 </style>
 
 <div id="loading">Загрузка…</div>
@@ -266,7 +268,10 @@ body.touch #actbar { display: none; }
     <div class="menu">
       <button class="btn primary" id="newGame">Новая игра</button>
       <button class="btn" id="continue" hidden>Продолжить</button>
+      <button class="btn" id="loadSave">Загрузить из файла</button>
+      <input type="file" id="saveFile" accept=".json,application/json" hidden>
     </div>
+    <p class="installTip" id="installTip" hidden>Чтобы играть как в приложении, на весь экран и без интернета: <b>Поделиться</b> → <b>На экран «Домой»</b>. <button class="btn" id="installOk">Понятно</button></p>
     <details id="credits"><summary>Авторы графики, звука и музыки</summary><p id="creditText"></p></details>
   </div>
 </section>

@@ -1915,8 +1915,8 @@ function openMenu(tab) {
   if (name === 'help') body = `<dl class="mini"><dt>Движение</dt><dd>WASD или стрелки; на телефоне — палец в левой части экрана</dd><dt>Атака</dt><dd>J; кнопка ⚔</dd><dt>Отскок</dt><dd>Пробел; кнопка ↷. Короткий прыжок, во время которого удары проходят мимо. С места — назад.</dd><dt>Парирование</dt><dd>H; кнопка ⛨. Нажми, когда над врагом вспыхнет «!»: удар отбит, враг оглушён, следующий твой удар вдвое сильнее. Впустую — короткая заминка.</dd><dt>Навыки</dt><dd>K, L, U, I (или Shift, Q, R, T); на телефоне — четыре кнопки у атаки</dd><dt>Действие</dt><dd>E или Enter; кнопка ◉</dd><dt>Захват цели</dt><dd>F или ◎ — захватить и отпустить; G или долгое нажатие ◎ — следующий враг; можно нажать на врага</dd><dt>Зелья</dt><dd>1 — здоровье, 2 — мана</dd><dt>Костры</dt><dd>Редкие, у деревни и мест истории, в подземельях — перед последним залом. Отдых возвращает здоровье и ману, пополняет зелья и сохраняет игру; «Продолжить» и пробуждение после гибели — у последнего костра. Враги вокруг при отдыхе возвращаются.</dd><dt>Выносливость</dt><dd>Кольцо у героя: отскок и парирование тратят дыхание, оно возвращается за пару секунд. Точное парирование возвращает часть.</dd><dt>Меню</dt><dd>Esc или Tab; Навыки — N, Клубок — B, Летопись — J в меню</dd><dt>Звук</dt><dd>M</dd></dl>
     <p class="aside"><b>Отголоски ✶</b> — осколки памяти: падают с врагов, мест и разговоров. Ими вплетают ранги навыков, закрепляют Отпечатки, платят ткачам. Больше предела носить нельзя — лишнее выцветает.</p>
     <p class="aside"><b>Забвение</b> — на Узле (алтарь, менгир, колодец) можно отдать своё воспоминание ради постоянного дара. Цена настоящая: люди перестают узнаваться, края уходят в туман, строки Летописи осыпаются.</p>`;
-  modal(`<div class="tabs">${TABS.map(([id, n]) => `<button class="tab ${id === name ? 'on' : ''}" data-a="t_${id}">${n}</button>`).join('')}</div>${body}<div class="row">${name === 'help' ? `<button class="btn" data-a="sound">${audio.on ? 'Выключить звук' : 'Включить звук'}</button><button class="btn" data-a="life">${LIFE.on ? 'Выключить анимации мира' : 'Включить анимации мира'}</button><button class="btn" data-a="title">В главное меню</button>` : ''}<button class="btn primary" data-close>Продолжить</button></div>`, () => { atNode = null; sacrificeReq = null; }, () => { if ($('menuFace')) drawFace($('menuFace'), player.look); });
-  modalHandlers = { sound: () => { music.toggle(); openMenu(name); }, life: () => { setLife(!LIFE.on); openMenu(name); }, title: () => { save(); closeModal(); showTitle(); } };
+  modal(`<div class="tabs">${TABS.map(([id, n]) => `<button class="tab ${id === name ? 'on' : ''}" data-a="t_${id}">${n}</button>`).join('')}</div>${body}<div class="row">${name === 'help' ? `<button class="btn" data-a="sound">${audio.on ? 'Выключить звук' : 'Включить звук'}</button><button class="btn" data-a="life">${LIFE.on ? 'Выключить анимации мира' : 'Включить анимации мира'}</button><button class="btn" data-a="export">Сохранить в файл</button><button class="btn" data-a="import">Загрузить из файла</button><button class="btn" data-a="title">В главное меню</button>` : ''}<button class="btn primary" data-close>Продолжить</button></div>`, () => { atNode = null; sacrificeReq = null; }, () => { if ($('menuFace')) drawFace($('menuFace'), player.look); });
+  modalHandlers = { sound: () => { music.toggle(); openMenu(name); }, life: () => { setLife(!LIFE.on); openMenu(name); }, export: () => exportSave(), import: () => $('saveFile').click(), title: () => { save(); closeModal(); showTitle(); } };
   for (const [id] of TABS) modalHandlers['t_' + id] = () => { nodeSel = null; cardSel = null; openMenu(id); };
   Object.assign(modalHandlers, menuHandlers);
 }
@@ -2082,6 +2082,37 @@ $('cards').addEventListener('click', (e) => {
 });
 $('rerollAll').addEventListener('click', () => { candidates = [0, 1, 2].map(rollHero); candClass = []; renderCreate(); });
 $('newGame').addEventListener('click', () => { audio.unlock(); showCreate(); });
+// ---------- сохранение в файл: на случай, если браузер сотрёт данные, и чтобы перенести игру на другое устройство ----------
+function exportSave() {
+  if (G) save();
+  const data = store.get(SAVE_KEY); if (!data) { toast('Сохранения пока нет', 1800); return; }
+  const blob = new Blob([JSON.stringify({ game: 'pryazha', v: 1, at: new Date().toISOString(), save: data })], { type: 'application/json' });
+  const a = document.createElement('a'), d = new Date();
+  a.href = URL.createObjectURL(blob); a.download = `pryazha-${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}.json`;
+  document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 2000);
+  toast('Сохранение выгружено в файл', 2200);
+}
+function importSave(file) {
+  if (!file) return;
+  const r = new FileReader();
+  r.onload = () => {
+    let d = null; try { d = JSON.parse(r.result); } catch (e) { /* не JSON */ }
+    if (!d || d.game !== 'pryazha' || !d.save || !d.save.cls) { toast('Это не сохранение «Пряжи»', 2400); return; }
+    const when = d.at ? new Date(d.at).toLocaleString('ru-RU') : 'неизвестно когда';
+    modal(`<h2>Загрузить сохранение?</h2><p class="line">${GEN.esc((d.save.memory && d.save.memory.name) || (d.save.char && d.save.char.name && d.save.char.name.first) || 'Герой')}, уровень ${d.save.lvl || 1}, глава ${(d.save.ws && d.save.ws.chapter) || 1}. Сохранено: ${GEN.esc(when)}.</p><p class="aside">Текущая игра в этом браузере будет заменена.</p><div class="row"><button class="btn primary" data-a="yes">Загрузить</button><button class="btn" data-close>Отмена</button></div>`);
+    modalHandlers = { yes: () => { store.set(SAVE_KEY, d.save); closeModal(); location.reload(); } };
+  };
+  r.readAsText(file);
+}
+$('loadSave').addEventListener('click', () => $('saveFile').click());
+$('saveFile').addEventListener('change', (e) => { importSave(e.target.files[0]); e.target.value = ''; });
+// подсказка «на экран Домой» — только в Safari на iPhone/iPad и только когда игра открыта сама по себе (не во встроенном окне)
+try {
+  const ios = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  const standalone = navigator.standalone || matchMedia('(display-mode: standalone)').matches;
+  if (ios && !standalone && window.top === window && !localStorage.getItem('pryazha.installTip')) $('installTip').hidden = false;
+} catch (e) { /* без подсказки */ }
+$('installOk').addEventListener('click', () => { $('installTip').hidden = true; try { localStorage.setItem('pryazha.installTip', '1'); } catch (e) { /* ignore */ } });
 $('continue').addEventListener('click', () => { audio.unlock(); G = store.get(SAVE_KEY); if (G) { migrate(G); MEM.initMemory(G); for (const it of [...(G.bag || []), ...Object.values(G.gear || {})]) if (it) IT.finish(it); } if (G && !(G.zone === 'world' || String(G.zone).startsWith('dun:'))) { G.zone = 'world'; G.pos = null; } if (G) startGame(false); });
 $('backTitle').addEventListener('click', showTitle);
 

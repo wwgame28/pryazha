@@ -253,6 +253,8 @@ body.touch #actbar { display: none; }
 @keyframes lowpulse { 0%, 100% { opacity: .5; } 50% { opacity: 1; } }
 #restfade { position: absolute; inset: 0; pointer-events: none; background: #120a06; opacity: 0; transition: opacity .2s ease-in; }
 #restfade.on { opacity: .85; transition: opacity .18s cubic-bezier(.2,.8,.2,1); }
+.installTip { max-width: 420px; margin: 14px auto 0; padding: 10px 12px; font-size: 14px; line-height: 1.4; color: var(--linen, #e9dcc0); background: rgba(42,30,24,.85); border: 1px dashed rgba(233,220,192,.35); border-radius: 8px; }
+.installTip .btn { margin-left: 6px; padding: 4px 10px; font-size: 13px; }
 </style>
 
 <div id="loading">Загрузка…</div>
@@ -265,7 +267,10 @@ body.touch #actbar { display: none; }
     <div class="menu">
       <button class="btn primary" id="newGame">Новая игра</button>
       <button class="btn" id="continue" hidden>Продолжить</button>
+      <button class="btn" id="loadSave">Загрузить из файла</button>
+      <input type="file" id="saveFile" accept=".json,application/json" hidden>
     </div>
+    <p class="installTip" id="installTip" hidden>Чтобы играть как в приложении, на весь экран и без интернета: <b>Поделиться</b> → <b>На экран «Домой»</b>. <button class="btn" id="installOk">Понятно</button></p>
     <details id="credits"><summary>Авторы графики, звука и музыки</summary><p id="creditText"></p></details>
   </div>
 </section>

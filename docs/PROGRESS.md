@@ -19,6 +19,10 @@
 9. [ ] Сквозные последствия
 10. [ ] Финальный QA, `STORY_TEST_PLAN.md`, `CHANGELOG.md`, ZIP + инструкция для iPhone
 
+## Репозиторий
+- https://github.com/wwgame28/pryazha (ветка `main`), GitHub Pages — из корня `main`: https://wwgame28.github.io/pryazha/
+- Выгрузка: `python3 -I tools/export_repo.py <клон репозитория> ../assets_dl`, затем коммит и `git push` из `<клон репозитория>`. Черновики глав в работе не выгружаются.
+
 ## Команды
 - `node tools/build_ink.mjs` — сборка ink (основная); `node tools/build_ink.mjs main_chN.ink work/build_chN` — сборка автора главы
 - `node tools/validate_story.mjs` — проверка связей (0 ошибок обязательно)

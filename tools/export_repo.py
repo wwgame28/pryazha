@@ -37,7 +37,7 @@ for root, _, files in os.walk(os.path.join(DST, 'docs')):
     for f in files:
         if not f.endswith('.md'): continue
         fp = os.path.join(root, f); s = open(fp, encoding='utf-8').read()
-        s = s.replace('`scratchpad/game/`', 'корень репозитория').replace(' (`/home/user/Www`)', '')
+        s = s.replace('/home/user/pryazha', '<клон репозитория>').replace('`scratchpad/game/`', 'корень репозитория').replace(' (`/home/user/Www`)', '')
         s = re.sub(r'`scratchpad/backup/[^`]*`', 'резервная копия вне репозитория', s).replace('scratchpad/', '')
         open(fp, 'w', encoding='utf-8').write(s)
 os.makedirs(os.path.join(DST, 'tools', 'node'), exist_ok=True)
@@ -75,11 +75,48 @@ head = ('<!doctype html><html lang="ru"><head><meta charset="utf-8"><base href="
         '<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">'
         '<meta name="theme-color" content="#0f0d16"><meta name="apple-mobile-web-app-capable" content="yes">'
         '<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><title>Пряжа</title>'
-        '<meta name="description" content="Пряжа — браузерная сюжетная RPG о памяти, нитях и долгах."></head><body>\n')
+        '<meta name="description" content="Пряжа — браузерная сюжетная RPG о памяти, нитях и долгах.">'
+        # установка на телефон: манифест и значок (пути — от site/ из-за <base>), офлайн-кэш — sw.js в корне
+        '<link rel="manifest" href="manifest.webmanifest"><link rel="apple-touch-icon" href="icons/apple-touch-icon.png">'
+        '<script>if ("serviceWorker" in navigator && location.protocol === "https:") addEventListener("load", () => '
+        'navigator.serviceWorker.register(location.href.split("#")[0].split("?")[0].replace(/[^/]*$/, "") + "sw.js").catch(() => {}));</script>'
+        '</head><body>\n')
 open(os.path.join(DST, 'index.html'), 'w', encoding='utf-8').write(head + frag + '\n</body></html>\n')
 open(os.path.join(DST, '.nojekyll'), 'w').write('')  # GitHub Pages отдаёт файлы как есть
+# офлайн: service worker кэширует игру целиком при установке и потом отдаёт из кэша, обновляясь из сети
+import hashlib
+files = ['index.html']
+for root, _, fs in os.walk(os.path.join(DST, 'site')):
+    for f in fs:
+        rel = os.path.relpath(os.path.join(root, f), DST).replace(os.sep, '/')
+        if not rel.endswith('.ink'): files.append(rel)
+files.sort()
+ver = hashlib.sha1(''.join(f + str(os.path.getsize(os.path.join(DST, f))) for f in files).encode()).hexdigest()[:10]
+sw = '''// Офлайн-кэш «Пряжи» (собирается tools/export_repo.py). Версия меняется вместе с файлами игры.
+const VERSION = 'pryazha-%s';
+const FILES = %s;
+self.addEventListener('install', (e) => { e.waitUntil(caches.open(VERSION).then((c) => c.addAll(['./', ...FILES])).then(() => self.skipWaiting())); });
+self.addEventListener('activate', (e) => { e.waitUntil(caches.keys().then((ks) => Promise.all(ks.filter((k) => k !== VERSION).map((k) => caches.delete(k)))).then(() => self.clients.claim())); });
+self.addEventListener('fetch', (e) => {
+  const req = e.request; if (req.method !== 'GET' || new URL(req.url).origin !== location.origin) return; // шрифты — из сети как есть
+  e.respondWith(caches.match(req, { ignoreSearch: true }).then((hit) => {
+    const net = fetch(req).then((res) => { if (res.ok) { const copy = res.clone(); caches.open(VERSION).then((c) => c.put(req, copy)); } return res; });
+    return hit || net.catch(() => (req.mode === 'navigate' ? caches.match('./') : Response.error()));
+  }));
+});
+''' % (ver, json.dumps(files, ensure_ascii=False))
+open(os.path.join(DST, 'sw.js'), 'w', encoding='utf-8').write(sw)
 for f in os.listdir(os.path.join(SRC, 'repo_files')): shutil.copy2(os.path.join(SRC, 'repo_files', f), os.path.join(DST, f))  # README, CREDITS
 open(os.path.join(DST, '.gitignore'), 'w').write('node_modules/\nout/\n*.log\nsite/test.html\nwork/\n')
+
+# главы 2–6 ещё пишутся: их правки в старых сценах (legacy_chN.ink) не выкладываем, пока главы не слиты и не проверены —
+# в репозитории остаётся последняя выложенная версия этих файлов
+import subprocess
+KEEP_FROM_REPO = [f'site/narrative/legacy_ch{n}.ink' for n in range(2, 7)]
+if os.path.isdir(os.path.join(DST, '.git')):
+    for rel in KEEP_FROM_REPO:
+        r = subprocess.run(['git', '-C', DST, 'show', f'HEAD:{rel}'], capture_output=True)
+        if r.returncode == 0: open(os.path.join(DST, rel), 'wb').write(r.stdout)
 
 # проверка: ни секретов, ни локальных путей
 bad = []
