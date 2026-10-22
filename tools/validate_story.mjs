@@ -14,7 +14,10 @@ const LOOSE = argv.includes('--loose');
 const fragFiles = [...new Set([...opt('--story'), ...(argv.includes('--all-fragments') ? fs.readdirSync(path.join(ROOT, 'work')).filter((f) => /^story_ch\d\.json$/.test(f)).map((f) => path.join(ROOT, 'work', f)) : [])])];
 for (const f of fragFiles) { let x; try { x = JSON.parse(fs.readFileSync(path.resolve(f), 'utf8')); } catch (e) { console.log('WARN  fragment unreadable', f, e.message); continue; } const ids = new Set((x.quests || []).map((q) => q.id)); story.quests = story.quests.filter((q) => !ids.has(q.id)); story.quests.push(...(x.quests || [])); const nids = new Set((x.npcs || []).map((n) => n.id)); story.npcs = story.npcs.filter((n) => !nids.has(n.id)); story.npcs.push(...(x.npcs || [])); Object.assign(story.places = story.places || {}, x.places || {}); for (const [qid, fields] of Object.entries(x.modify || {})) { const q = story.quests.find((y) => y.id === qid); if (q) Object.assign(q, fields); } }
 for (const f of opt('--cons')) { const x = JSON.parse(fs.readFileSync(path.resolve(f), 'utf8')); for (const [k, v] of Object.entries(x)) { if (Array.isArray(v)) cons[k] = [...(cons[k] || []), ...v]; else if (v && typeof v === 'object') cons[k] = { ...(cons[k] || {}), ...v }; } }
-const inkFiles = fs.readdirSync(path.join(SITE, 'narrative')).filter((f) => f.endsWith('.ink'));
+// какие ink-файлы проверять: без --index — только то, что собирает игра (INCLUDE в main.ink, или в файле из --main);
+// с --index (сборка автора главы) — все файлы папки, как раньше
+const mainInk = opt('--main')[0] || (opt('--index')[0] ? null : 'main.ink');
+const inkFiles = mainInk ? ['common.ink', ...[...fs.readFileSync(path.join(SITE, 'narrative', mainInk), 'utf8').matchAll(/^INCLUDE\s+(\S+)/gm)].map((m) => m[1]).filter((f) => f !== 'common.ink')] : fs.readdirSync(path.join(SITE, 'narrative')).filter((f) => f.endsWith('.ink'));
 const inkSrc = Object.fromEntries(inkFiles.map((f) => [f, fs.readFileSync(path.join(SITE, 'narrative', f), 'utf8')]));
 const bridge = fs.readFileSync(path.join(SITE, 'narrative.js'), 'utf8');
 const errors = [], warns = [];

@@ -1,6 +1,6 @@
 # Глава 3. «Печать изнутри»
 
-**Статус:** проект для реализации.
+**Статус:** реализована в черновиках (`site/narrative/ch3.ink`, `// [гл.3]` в `legacy_ch3.ink`, `work/story_ch3.json`, `work/cons_ch3.json`); ждёт слияния. Подробно — раздел «Реализовано» в конце.
 
 | | |
 |---|---|
@@ -87,3 +87,97 @@
 - Факты: `f_seal_cut`, `f_four_in_soot`, `f_ugar_cord`, `f_sych_seal`, `f_stitched`, `f_wrong_self`.
 - Слухи: `r_hero_leads_dead`, `r_hero_held_the_fence`.
 - Обещание: `p_khrustalina_watch`.
+
+## Реализовано
+
+Файлы: `site/narrative/ch3.ink` (≈2,5 тыс. строк, 67 узлов), дополнения с пометкой `// [гл.3]` в `site/narrative/legacy_ch3.ink`
+(старые реплики не удалены), `work/story_ch3.json`, `work/cons_ch3.json`. Проверки: сборка ink, валидатор (0 ошибок по файлам главы 3;
+при слиянии фрагментов глав 2+3 на копии через `merge_fragments.py` — 0 ошибок во всём проекте), прогон всех 88 сцен главы в inkjs
+со случайными выборами и четырьмя наборами флагов (ошибок времени выполнения нет). Бот и браузер не запускались.
+
+### Крючок, выборы, клиффхэнгер
+- **Крючок** `chapter_3_start`: утро после Проводов, мокрые босые следы с инеем от Тихой Стороны до лавки героя, размер — его;
+  в кулаке мокрая береста с Проводов, читается одна буква «П» (предмет `pakhom_birch`). Разгадка в склепе: у старика Пахома пустые
+  руки — «Ты ночью приходил. Взял — и ушёл. Ноги твои помнят». Отдать бересту или оставить себе.
+- **Клиффхэнгер** `c3_deadnight_s10`: после Ночи недопетых на лавке героя новые мокрые следы — детские, ведут из избы на юг, в степь;
+  издалека трижды свистит ивовый свисток (флаг `c3_child_tracks`; задел для гл.4: Сухой Лог, Сенька, `c4_whistle`).
+- Видимые последствия: всплывающие строки (`toast`) при ключевых решениях, разовые реакции в хабах, слухи у Весны.
+
+### Квесты и сцены
+| Квест | Тип | Шаги и сцены | Решения → последствия |
+|---|---|---|---|
+| `m5` «Печать изнутри» [К+Н] | основной, `auto` | `s1` печать (`m5_s1` + Шуршок у ограды, если `shurshok` guide/freed и Гурдым жив) → `s1b` необязательная метка: надрез в шве (`m5_s1b`) → `s2` первый ярус (`m5_s2`: именованные мёртвые, без боя) → `s3` Остап на посту у входа (пропускается, если `npc_ostap: gone`) → `s4` второй ярус → `s5`/`s6` Морвен | Провожали ли имена (`provody`): spoken — спокойные, sold — пустые («нас нет ни тут, ни там»), taken — «мы в нём». Береста Пахома: отдать/оставить. Остап: «четверо в саже» (`f_four_in_soot`). Морвен предупреждает о Ночи недопетых (`morven_warned`) |
+| `m6` «Три неправды» [К+Н] | основной, `auto`, `endsChapter: null` | `s1` Ясна → испытание `s6`; `s2` Угар → `c3_bonfire`; `s3` Кудель → `s11`; `s3t` (count `trials_done` ≥ 2 или `trials_skip` у Морвена); `s4` крен `lean` (канон) | Итог испытаний перед выбором крена; разовые реакции лидеров на `lean` |
+| `s6` «Опись» [К+Н] | испытание Архива | + Хрусталина выдаёт перо; узелок на горлышке склянки Угара; `s2b` дверь крыла с печатью Сыча (`s6_wing`) | `f_sych_seal`; исходы канона + `trials_done`, `trial_archive` |
+| `s11` «Прореха» [К+Н] | испытание Ткачей, `after: m5` | + `s2b` недопетые лезут из дыры (2 wraith, `s11_wraiths`); в `s11_s4` «Ровно затянуто. Хорошая рука вязала» | `f_good_hand`; `trials_done`, `trial_weavers` |
+| `c3_bonfire` «Ночь костров» [Н] | испытание Круга | `s1` Угар (ожоги до локтя) → `s2` три помощи в стане: Искра, Чад, новичок Ждан → `s3` ночь у костра: Чад цитирует Тлена, пустой шнурок Угара → `s4` (если жжёт) отдать лёгкое воспоминание → `s5` держать круг (2 wraith), Искра назначает крещение → `s6` рассвет: Угар плачет во сне | Чад: спросить/поспорить/согласиться/промолчать (`bonfire_chad`); сжечь или нет (`bonfire_burned` → бесплатный «Уголёк» у Угара); судьба Ждана (`zhdan`, отзывается в Стане и у сирот); `iskra_baptism_planned`, обещание `p_iskra_witness`; `f_chad_tlen`, `f_ugar_cord` |
+| `c3_orphans` «Детские склянки» [Н] | побочный (Ткачи), после `s6`, если склянки остались в Архиве | `s1` Кудель → `s2` согласие детей: Ласка у Башни, Кузька в Стане → `s3` полка 32: слово Ясны / выкуп 50 / забрать силой / оставить → `s4` Хрусталина ставит на заметку → `s5` открыть склянки вместе с детьми | `orphans_jars`; `p_khrustalina_watch` (или `khrustalina_watching`); Архив −, Ткачи +; Хрусталина приходит в Брод (`ev_c3_khrustalina_visit`) |
+| `c3_truth` «Сложи враньё» [Н] | основной, `auto` после `m6` | `s1` Агафья даёт бересту; пятый голос — Агафья («глаза не те… будто вас много») или Гурдым (`s2`, «семь, кажется») → `s3` три булавки: печать, брод, колодец-Узел → `s4` метка «доска»: три вопроса (можно отложить) | Верно → `f_stitched` («сшит из тех, кого держали»), `truth_board: stitched`; неверно → `f_wrong_self`, `truth_board: wrong_mitya / wrong_morven / wrong_released / wrong` |
+| `c3_deadnight` «Ночь недопетых» [Н] | основной, кульминация, `endsChapter: 3` | `s1` ночь у колодца: Ивар просит защиты, Федот с мужиками, Агафья заперлась. **Меч**: `s2`–`s4` три волны у околицы (2 скелета, 2 утопленника, 2 безымянных) с передышками. **Имена**: `s5` навстречу на кладбищенской дороге → `s6` безымянные (если имён мало) → `s7` довести до склепа. **Узелок Агафьи** (если её тайна не выдана): `s8` уговорить → `s9` проводить к околице → остаток у тына (`s4`). `s10` утро | `deadnight_way` sword/names/knot; число имён (`c3_names()`: Ефим, береста Пахома и Мавры, Проводы); Ефим в волне: отдать Федоту / не пустить (`efim_deadnight`); передать Федоту слова Ефима (`efim_message_delivered`). Слух: `r_hero_held_the_fence` или `r_hero_leads_dead`; при узелке — `r_agafya_led_dead` |
+| `c3_path_pyro` «Первый уголь» [Н] | путь, на Ночи костров или после | выбрать учителя (Угар/Искра) → три урока → 2 волка в степи → учитель | `mentor_pyro` ugar / iskra, предмет `first_coal` |
+| `c3_path_priest` «Возврат» [Н] | путь, доверие Кудели ≥ 3 | Кудель → три лампадки (спасибо, песня без последнего куплета, имя) → 2 мертвеца на свет → Кудель | `mentor_priest: kudel`, `weaver_lamp`; `priest_song_hint` |
+| `c3_path_warrior_ostap` «Стойка» [Н] | путь (запасной воин) | Остап → первый ярус → 2 скелета → Остап | `mentor_warrior: ostap`, `ostap_spear` |
+
+Во всех путях последний шаг — «стать …» / «подумать ещё» (`go` на свой шаг), предупреждение, если `cls() != "human"`.
+Хабы главы: `talk_agafya_ch3`, `talk_ivar_ch3`, `talk_vesna_ch3`, `talk_federot_ch3`, `talk_yasna_ch3`, `talk_khrustalina_ch3`,
+`talk_ugar_ch3`, `talk_chad_ch3`, `talk_iskra_ch3`, `talk_kudel_ch3`, `talk_ostap_ch3`, `talk_morven_ch3`,
+`talk_dead_efim_ch3`, `talk_dead_pakhom_ch3`, `talk_dead_mavra_ch3`, `talk_dead_scroll_ch3` (особые реакции — по разу, затем
+`talk_<npc>.topics` из гл.1). Вспомогательные узлы: `m6_s1_trial`, `m6_s2_trial`, `m6_s3_trial`.
+
+### NPC и места [Н]
+- `khrustalina` (tower), `chad` (camp) — внешность по LPC в `work/story_ch3.json`.
+- Мёртвые первого яруса (home `crypt1`, `showIf: chapter ≤ 3 и m5 начат`): `dead_efim` «Утопленник», `dead_pakhom` «Старик с веслом»
+  (Пахом, перевозчик), `dead_mavra` «Женщина в переднике» (Мавра, гусятница), `dead_scroll` «Скелет со свитком» (не назван; зацепка [Б]
+  к отцу Ивара). Настоящие имена узнаются только с бересты.
+- Места: `archive_wing` (tower), `bonfire` (camp), `okolitsa` (village, восточная околица), `grave_road` (кладбищенская дорога).
+
+### Переменные
+- **Флаги для следующих глав:** `truth_board`, `deadnight_way`, `efim_deadnight`, `agafya_knot_seen`, `bonfire_burned`,
+  `bonfire_chad`, `iskra_baptism_planned`, `orphans_jars`, `khrustalina_watching`, `mentor_pyro`, `mentor_priest`, `mentor_warrior`,
+  `pyro_teacher`, `c3_child_tracks`, `seal_cut_seen`, `seal_cut_wool`, `kudel_asked_cut`, `kudel_dodged_hand`, `priest_song_hint`,
+  `priest_thanked_thread`, `chad_child_hand`, `chad_counts_on_hero`, `federot_listens_chad`, `ugar_jar_knot_seen`,
+  `ugar_cord_matches_jar`, `scroll_matches_scrap`, `scroll_bogdan_hand`, `ivar_scroll_hint`, `agafya_dodged_soot`,
+  `wing_brod_night_hint`, `zhdan`, `trial_archive`, `trial_ash`, `trial_weavers`, `trials_done`, `trials_skip`.
+- **Прочие флаги сцен:** `c3_footprint_matched`, `kept_pakhom_birch`, `crypt_dead_mood`, `crypt_dead_said_outside`, `crypt_scroll_seen`,
+  `crypt_names_read`, `name_pakhom`, `name_mavra`, `morven_warned`, `efim_message`, `efim_message_delivered`, `efim_forgiven_try`,
+  `mavra_heard_scratch`, `pakhom_red_winter_hint`, `ostap_many`, `asked_sych`, `asked_ugar_burns`, `bonfire_burn`, `bonfire_night`,
+  `chad_named_tlen`, `woke_ugar`, `ugar_on_tlen`, `truth_fifth`, `truth_q1`, `truth_wrong`, `pin_leak`, `pin_splinter`, `pin_seam`,
+  `gurdym_counted`, `orphan_lasko_consent`, `orphan_kuzka_consent`, `kudel_banned_tower`, `yasna_on_sych`, `yasna_fire_fear_seen`,
+  `khr_fears_for_yasna`, `agafya_needle_proverb`, `vesna_stitched_mirror`, `federot_knew_pakhom`.
+- **Поступки:** `d_burned_at_bonfire`, `d_argued_chad`, `d_held_circle`, `d_freed_orphan_jars`, `d_bought_orphan_jars`,
+  `d_asked_yasna_word`, `d_held_the_fence`, `d_led_dead_names`, `d_brought_agafya_out`.
+- **Слухи:** `r_hero_held_the_fence`, `r_hero_leads_dead`, `r_agafya_led_dead`, `r_hero_burned_at_bonfire`, `r_jars_opened`,
+  `r_tlen_was_right` (Чад в Броде у Федота — подготовка гл.5).
+- **Факты:** `f_seal_cut` [В], `f_four_in_soot` [Б], `f_ugar_cord` [Б], `f_sych_seal` [Б], `f_stitched`, `f_wrong_self`,
+  `f_good_hand` [В] («хорошая рука вязала» — для `c5_thread`), `f_chad_tlen` [Б], `f_scroll_skeleton` [Б].
+- **Обещания:** `p_khrustalina_watch` (не подходить к крылу Сыча без слова Старшей хранительницы — может нарушиться в гл.5),
+  `p_iskra_witness` (быть свидетелем крещения — сдержать в `s7`, гл.4).
+- **События:** `ev_c3_chad_federot` (через 2 дня после спора с Чадом), `ev_c3_snow_girl`, `ev_c3_khrustalina_visit` (сцена в Броде),
+  `ev_c3_efim_oar`.
+- **Предметы:** `pakhom_birch`, `orphan_jars`, `first_coal`, `weaver_lamp`, `ostap_spear`; зарегистрирован канонический `ugar_jar`.
+- **Торговцы** (`merchantRules`/`merchantSpecials`): Угар — бесплатный «Уголёк с Ночи костров» после сожжённого, скидка ученику;
+  Ясна — закрыта после `d_stole_jars`, пока репутация Архива < 0, наценка после `d_freed_orphan_jars`, «Склянка Стыни — писарю»;
+  Кудель — скидка ученику, «Нитка от Ласки». `worldRumors["3"]` — шесть деревенских строк.
+
+### Связи с другими главами
+- Читаются флаги гл.1–2 (всегда с нейтральной веткой): `provody`, `mitya_hidden`, `efim`, `village_verdict`, `shurshok`, `gurdym`,
+  `council_agafya_exposed`, `p_agafya_knots`, `p_agafya_teach`, `federot_suspects_agafya`, `gordey`, `opis`; факты гл.2 из
+  `cons_ch2.json`: `f_needle_knock`, `f_bogdan_hand`, `f_brod_sold_night`, `f_spindle_smell`, `f_vesna_gordey`.
+- Гл.4: `chapter_4_start` открывается сам после `c3_deadnight` (Ивар в `s10`: «утром к тебе гостья. С менгиров»);
+  `f_stitched`/`f_wrong_self` + `truth_board` — для `m8`; `c3_child_tracks` — детские следы в степь и ивовый свисток;
+  `iskra_baptism_planned` + `p_iskra_witness` — для `s7` (сейчас `s7` в `story.json` ещё глава 3 у Искры — его стоит перенести в гл.4
+  с `offerIf: {iskra_baptism_planned: true}`).
+- Гл.5: `f_seal_cut` + `f_good_hand` (+ `kudel_asked_cut`, `priest_song_hint`) → признание Кудели; `f_ugar_cord`,
+  `ugar_cord_matches_jar` → «Поступок»; `f_sych_seal`, `p_khrustalina_watch` → запечатанное крыло; `f_scroll_skeleton`,
+  `scroll_bogdan_hand` → список Богдана; `r_tlen_was_right`, `federot_listens_chad`, `agafya_knot_seen` → Чад и Федот идут к Агафье.
+  Правда Красной зимы и признание Кудели в главе 3 **не раскрыты**.
+
+### Не сделано и оговорки
+- `s10` (встреча Улиты с Остапом), `s2`, `s14` не трогались — это главы 2 и 1.
+- Остап и Морвен по данным живут на кладбище наверху (`home: oldgrave`), поэтому разговоры шагов `m5_s3/s5/s6` идут у входа; в сцене
+  `m5_s2` мёртвые прямо говорят, что Остап «наверху, у двери, на посту».
+- Официальная сборка `node tools/build_ink.mjs main_ch3.ink work/build_ch3` сейчас падает не из-за главы 3: `legacy_ch2.ink` (правки
+  автора гл.2) зовёт туннелем `-> m3_s2_ch2 ->` узел из `ch2.ink`, которого нет в `main_ch3.ink`. Глава 3 проверялась сборкой с тем же
+  набором файлов плюс `ch2.ink`.
+- Время прохождения ботом не замерено (браузер не запускался). Объём: основная линия — 7 + 5 + 4 + 10 шагов плюс два испытания из трёх
+  (4–6 шагов каждое), боёв по 2 врага за раз; во всех сценах главы ≈10 тыс. слов (за одно прохождение читается примерно половина).

@@ -76,7 +76,7 @@ const res = await p.evaluate(async ([STYLE, UNTIL, SEED, PATH]) => {
       if (side) main = side;
       else { const q = S.data.quests.find(q => q.giver && q.chain !== 'main' && q.chain !== 'path' && !q.auto && S.available(q) && !asked.has(q.id)); if (q) { asked.add(q.id); log('side offer', q.id, 'from', q.giver); await goTalk(q.giver); continue; } }
     }
-    if (!main) main = act.find(x => x.q.chain === 'main' && !(x.s.type === 'count'));
+    if (!main) main = act.find(x => x.q.chain === 'main' && !(x.s.type === 'count' && !x.s.ask));
     const cnt = act.find(x => x.q.chain === 'main' && x.s.type === 'count');
     if (!main && cnt) {
       // the main line waits for small quests: help the yards
@@ -100,6 +100,7 @@ const res = await p.evaluate(async ([STYLE, UNTIL, SEED, PATH]) => {
       else if (s.type === 'enter') { await enterDun(t); }
       else if (s.type === 'collect' && t === 'echo') { g.drops.push({ type: 'echo', x: g.player.x, y: g.player.y, v: 1, t: 1 }); await sleep(100); }
       else if (s.type === 'cast') { await goto(S.stepWhere(s)); for (let i = 0; i < 4; i++) { g.player.sk.cds = {}; g.player.mp = 999; g.player.atk = 0; g.useSkill(0); await sleep(150); } }
+      else if (s.type === 'count' && s.ask) { for (const [npc, path] of Object.entries(s.ask)) { if (g.NARR.visited(path)) continue; await goTalk(npc, s.where); while (modalOpen()) { await handleModal(); await sleep(70); } g.NARR.run(path); await sleep(200); while (modalOpen()) { await handleModal(); await sleep(70); } } await sleep(300); }
       else if (s.type === 'count') { log('count step', s.target, a.counter, '/', s.count); await sleep(300); }
       else if (s.spots) { const ms = S.markers.filter(m => m.qid === q.id); if (!ms.length) { await sleep(600); } for (const m of ms) { walkTo(m.x, m.y); T().clues++; g.player.x = m.x + 10; g.player.y = m.y; await sleep(150); S.useMarker(m); await sleep(200); while (modalOpen()) { await handleModal(); await sleep(70); } } }
       else if (s.type === 'night' && !g.world.dark) { await goto(S.stepWhere(s)); g.skipTo('night'); await sleep(900); }

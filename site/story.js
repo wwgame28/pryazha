@@ -276,7 +276,9 @@ export class Story {
   fill(t) { return String(t || '').replace(/\$hero/g, this.A.heroName()).replace(/\$faction_leader/g, this.npcName(this.resolve('$faction_leader'))); }
   // world events
   onKill(type) { for (const { q, s, a } of this.activeSteps()) if (s.type === 'defeat' && s.target === type && this.here(s.where === 'wild:forest' ? 'any' : this.stepWhere(s))) { a.counter++; if (a.counter >= (s.count || 1)) { this.done(q, s); } else this.A.toast(`${s.text}: ${a.counter} из ${s.count}`, 1200); } }
-  onEcho(n) { for (const { q, s, a } of this.activeSteps()) if (s.type === 'collect' && s.target === 'echo') { a.counter += n; if (a.counter >= (s.count || 1)) this.done(q, s); } }
+  onEcho(n) { for (const { q, s, a } of this.activeSteps()) if (s.type === 'collect' && s.target === 'echo') { a.counter += n; this.ambush(q, s, a); if (a.counter >= (s.count || 1)) this.done(q, s); } }
+  // засада на шаге сбора/расследования: "ambush": {"at": 2, "enemy": "slime", "n": 1, "hp": .6, "say": "…"} — враги выходят рядом, когда счётчик дойдёт до at
+  ambush(q, s, a) { const m = s.ambush; if (!m || a.ambushed || (a.counter || 0) < (m.at || 1)) return; a.ambushed = true; this.A.raid(m.enemy, m.n || 1, { near: true, quiet: true, hp: m.hp, name: m.name }); if (m.say) this.A.toast(m.say, 3400); }
   onEnter(tag) { for (const { q, s } of this.activeSteps()) if (s.type === 'enter' && this.resolve(s.target) === tag) this.done(q, s); }
   onCast(school) { for (const { q, s, a } of this.activeSteps()) if (s.type === 'cast' && this.here(s.where) && (s.target === school || !this.A.hasSchool(s.target))) { a.counter++; if (a.counter >= (s.count || 1)) this.done(q, s); else this.A.toast(`${s.text}: ${a.counter} из ${s.count}`, 1000); } }
   onSacrifice(card) { /* handled through askSacrifice */ }
@@ -314,6 +316,10 @@ export class Story {
       if (s.type === 'wait' && night) a.sawNight = true;
       if (s.type === 'enter' && A.world().tag === this.resolve(s.target)) { this.done(q, s); return; }
       if (s.type === 'collect' && s.target !== 'echo' && here) this.ensureMarkers(q, s, 1);
+      if (s.type === 'collect' && s.target === 'echo' && typeof s.spots === 'string' && here && A.placeEchoes) { // Отголоски лежат там, где о них говорит сцена (после загрузки — снова)
+        const key = q.id + ':' + s.id; this.echoPlaced = this.echoPlaced || new Set();
+        if (!this.echoPlaced.has(key)) { this.echoPlaced.add(key); A.placeEchoes(s.spots, Math.max(0, (s.count || 1) - (a.counter || 0)), key); }
+      }
       if (s.type === 'investigate' && (here || s.spots)) this.ensureMarkers(q, s, s.count || 1);
       if ((s.type === 'use' || s.type === 'sacrifice' || s.type === 'cast') && here && s.target !== 'name_input') this.ensureMarkers(q, s, 1);
       if ((s.type === 'night' || s.type === 'wait') && here && !night) this.ensureMarkers(q, s, 1);
@@ -344,7 +350,7 @@ export class Story {
     if (s.type === 'wait') { this.A.dialog({ title: q.title, lines: [{ who: 'narr', line: 'Ночь долгая. Можно просто сидеть и смотреть на воду.' }], options: [{ text: 'Дождаться рассвета', cls: 'gold', go: () => { this.A.close(); this.A.skipTo('dawn'); a.dawn = true; this.markers = this.markers.filter((x) => x !== m); } }, { text: 'Позже', go: () => this.A.close() }] }); return; }
     if (s.type === 'cast') { this.A.toast(`${s.text}: примените заклинание здесь (${a.counter}/${s.count || 1})`, 2400); return; }
     this.markers = this.markers.filter((x) => x !== m);
-    a.counter++;
+    a.counter++; this.ambush(q, s, a);
     // new-style investigations: every clue has its own scene (.c1, .c2 …) by place; the step's scene sums them up
     if (s.clues || s.spots) {
       a.found = [...(a.found || []), m.i]; a.counter = a.found.length;
@@ -367,11 +373,22 @@ export class Story {
   // guidance: where the hero should go for the main step
   target() {
     const list = this.activeSteps(); list.sort((a, b) => (a.q.chain === 'main' ? -1 : 1) - (b.q.chain === 'main' ? -1 : 1));
+    const live = (id) => (this.A.npcPos ? this.A.npcPos(id) : null); // персонаж уже стоит в этом мире — ведём прямо к нему
     for (const { q, s } of list) {
+      const id = this.resolve(s.target), lp = (s.type === 'talk' || s.type === 'choose') && this.npcById[id] ? live(id) : null;
+      if (lp) return { pos: lp, q, s, npc: id };
+      if (s.type === 'count' && s.ask && this.A.visited) { // обход: к ближайшему, кого ещё не спросили
+        const P = this.A.player(); let best = null, bd = 1e9;
+        for (const [npc, path] of Object.entries(s.ask)) { if (this.A.visited(path)) continue; const p = live(npc) || this.A.locPos(this.npcHome(npc)); if (!p) continue; const d = Math.hypot(p[0] - P.x, p[1] - P.y); if (d < bd) { bd = d; best = { pos: p, q, s, npc }; } }
+        if (best) return best;
+      }
+      const mk = this.markers.filter((m) => m.qid === q.id && m.sid === s.id); // улики уже разложены — к ближайшей
+      if (mk.length) { const P = this.A.player(); mk.sort((u, v) => Math.hypot(u.x - P.x, u.y - P.y) - Math.hypot(v.x - P.x, v.y - P.y)); return { pos: [mk[0].x, mk[0].y], q, s }; }
+      if (s.spots && s.type === 'collect') { const p = this.A.locPos(Array.isArray(s.spots) ? s.spots[0] : s.spots); if (p) return { pos: p, q, s }; }
       const w = (s.type === 'talk' || s.type === 'choose' || s.type === 'escort') && this.npcById[this.resolve(s.target)] ? (s.type === 'escort' && this.npcState(this.resolve(s.target)) === 'follower' ? s.where : this.npcHome(this.resolve(s.target))) : this.stepWhere(s);
       const p = this.A.locPos(w); if (p) return { pos: p, q, s };
     }
-    const nx = this.nextMain(); if (nx && this.qById[nx].giver) { const p = this.A.locPos(this.npcHome(this.qById[nx].giver)); if (p) return { pos: p, q: this.qById[nx], s: null, offer: true }; }
+    const nx = this.nextMain(); if (nx && this.qById[nx].giver) { const g = this.qById[nx].giver, p = live(g) || this.A.locPos(this.npcHome(g)); if (p) return { pos: p, q: this.qById[nx], s: null, offer: true }; }
     return null;
   }
   // npcs that want something from the hero: '!' for offers, '?' for active steps

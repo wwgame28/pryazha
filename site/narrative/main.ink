@@ -7,5 +7,7 @@ INCLUDE legacy_ch4.ink
 INCLUDE legacy_ch5.ink
 INCLUDE legacy_ch6.ink
 INCLUDE ch1.ink
+INCLUDE ch2.ink
+INCLUDE ch3.ink
 
 -> DONE

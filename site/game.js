@@ -537,6 +537,7 @@ function parried(from, melee) {
   fx.push({ type: 'parry', x: P.x + Math.cos(a) * 18, y: P.y - 24 + Math.sin(a) * 10, a, t: 0, life: .5 });
   fx.push({ type: 'num', x: P.x, y: P.y - 56, text: 'парировано', small: true, gold: true, t: 0, life: .9 });
   hitStop = .1; sfx.parry();
+  if (melee && from.kind === 'enemy' && from.hp > 0) addPosture(from, postMax(from) * (from.E.boss ? .3 : .5));
   if (melee && from.kind === 'enemy' && from.hp > 0) { from.stun = Math.max(from.stun || 0, from.E.boss ? PARRY.stun * .35 : PARRY.stun); from.atk = 0; from.anim = 'hurt'; from.frame = 1; from.kx = Math.cos(a) * 170; from.ky = Math.sin(a) * 170; }
   if (P.sk) P.sk.buffs.push({ kind: 'riposte', dur: PARRY.riposte, mods: [{ stat: 'nextHitDmg%', value: 1 }] }); // ответный удар вдвое сильнее
   P.stam = Math.min(STAM.max, (P.stam ?? STAM.max) + 12); // точное парирование возвращает дыхание
@@ -721,11 +722,24 @@ function applyDamage(e, dmg, dv, school, crit, ctx = {}) {
   if (e.shielded) { if (!ctx.dot) fx.push({ type: 'num', x: e.x, y: e.y - 44 * e.scale, text: 'щит', small: true, t: 0, life: .6 }); return 0; }
   if (e.vuln > 0) dmg = Math.round(dmg * 1.5);
   e.hp -= dmg; e.hurtT = .18;
+  if (e.hp > 0 && !ctx.summon) addPosture(e, dmg * (ctx.dot ? .25 : 1) * (crit ? 1.4 : 1));
   if (e.state !== 'chase' && !(e.forget > 0)) { e.state = 'chase'; if (e.E.boss) bossIntro(e); }
   if (!e.E.boss && dv && !ctx.dot && !ctx.summon) { e.kx = (e.kx || 0) + (dv[0] || 0) * 70; e.ky = (e.ky || 0) + (dv[1] || 0) * 70; }
   fx.push({ type: 'num', x: e.x + (ctx.dot ? 8 : 0), y: e.y - 44 * e.scale, text: dmg, crit, school, small: !!ctx.dot, t: 0, life: .8 });
   if (e.hp <= 0) killEnemy(e);
   return dmg;
+}
+// ---------- стойка: удары и парирования копят напряжение врага; полная — враг пробит (оглушён, уязвим) ----------
+const postMax = (e) => Math.max(8, e.maxHp * (e.E.boss ? .22 : .6));
+function addPosture(e, n) {
+  if (!(n > 0) || e.dead || e.hp <= 0 || e.breakCd > 0) return;
+  e.post = (e.post || 0) + n; e.postT = 1.4;
+  if (e.post < postMax(e)) return;
+  e.post = 0; e.breakCd = e.E.boss ? 6 : 3; e.stun = Math.max(e.stun || 0, e.E.boss ? .9 : 1.6); e.vuln = Math.max(e.vuln || 0, e.E.boss ? 2.5 : 2); e.atk = 0; e.anim = 'hurt'; e.frame = 1;
+  fx.push({ type: 'parry', x: e.x, y: e.y - 26 * (e.scale || 1), a: 0, t: 0, life: .55 });
+  fx.push({ type: 'num', x: e.x - 12, y: e.y - 58 * (e.scale || 1), text: 'пробит!', small: true, gold: true, t: 0, life: 1 });
+  hitStop = Math.max(hitStop, .08); sfx.parry();
+  tipLater('posture', 'Стойка', 'Жёлтая полоска под здоровьем врага — его стойка. Удары и особенно парирования её копят. Полная — враг пробит: на миг оглушён и получает больше урона. Не давай ему отдышаться: без ударов стойка восстанавливается.');
 }
 function damageEnemy(e, dmg, dv, school) { return applyDamage(e, Math.round(dmg), dv, school, false, {}); }
 function killEnemy(e) {
@@ -1214,14 +1228,15 @@ function initStory() {
     cardById: (id) => G.memory.cards.find((c) => c.id === id), addCard: (c) => { const r = MEM.addCard(G, c); if (r) { toast(`${MEM.CARD_TYPES[c.type].icon} Новое воспоминание: «${c.title}»`, 2400); clarityCache.t = -1; } return r; }, removeCard: (id) => MEM.removeCard(G, id),
     questDone: (q, o) => { sfx.level(); modal(`<h2>${GEN.esc(q.title)}</h2><p class="line">${GEN.esc(o.text)}</p><p class="aside">${[o.rewards?.xp && `опыт +${o.rewards.xp}`, o.rewards?.gold && `золото +${o.rewards.gold}`, o.rewards?.echoes && `Отголоски +${o.rewards.echoes}`].filter(Boolean).join(' · ')}</p>${pendingDreams.length ? '<p class="aside">☾ Что-то всплывает из глубины. Чужое воспоминание.</p>' : ''}<div class="row"><button class="btn primary" data-close>Дальше</button></div>`, () => setTimeout(playNextDream, 200)); },
     dream: (id) => { if (!pendingDreams.includes(id)) pendingDreams.push(id); },
-    respawnNpcs, raid: (type, n, o = {}) => { for (let i = 0; i < n; i++) { const p = freeSpot([player.x, player.y], o.near ? 60 : 140, o.near ? 110 : 220); if (p) { const e = addEnemy(type, p[0], p[1], 1); e.state = 'chase'; if (o.name) e.E = { ...e.E, name: o.name }; if (o.tint) e.tint = o.tint; } } toast('Нападение!', 1400); },
+    respawnNpcs, raid: (type, n, o = {}) => { for (let i = 0; i < n; i++) { const c = [player.x, player.y], p = freeSpot(c, o.near ? 60 : 140, o.near ? 110 : 220) || freeSpot(c, 30, 240) || freeSpot(c, 0, 360); if (p) { const e = addEnemy(type, p[0], p[1], 1); e.state = 'chase'; if (o.name) e.E = { ...e.E, name: o.name }; if (o.tint) e.tint = o.tint; if (o.hp) e.hp = e.maxHp = Math.max(1, Math.round(e.maxHp * o.hp)); } } if (!o.quiet) toast('Нападение!', 1400); },
+    placeEchoes: (where, n, seed) => { for (const [x, y] of markerSpots(where, n, seed)) drops.push({ type: 'echo', x, y, v: 1, t: 1, story: true }); },
     fog: (where, mode) => { if (mode === 'clear') { const c = locPos(where.replace(/^wild:.*/, '')) || [player.x, player.y]; const cx = Math.floor(c[0] / T / CS), cy = Math.floor(c[1] / T / CS); for (let y = -3; y <= 3; y++) for (let x = -3; x <= 3; x++) maps.world && maps.world.seen.add((cx + x) + ',' + (cy + y)); } },
     forceForget: (spec) => { const [type, id] = spec.split(':'); const c = MEM.allCards(G, SK.node).find((x) => x.id === id); if (c) MEM.sacrifice(G, c, 'strong_thread', { onSkill: (sid) => { delete G.tree[sid]; } }); },
     restoreLast: () => { const M = G.memory, last = M.sacrificed.pop(); if (last) { MEM.addCard(G, { id: last.id, type: last.type, title: last.title, weight: Math.max(1, (last.weight || 1) - 1), links: last.links, journal: last.journal }); toast(`Вернулось: «${last.title}»`, 2400); } },
     removeLastGift: () => { const M = G.memory, last = M.sacrificed[M.sacrificed.length - 1]; if (last && M.gifts[last.gift]) { M.gifts[last.gift] = Math.max(0, M.gifts[last.gift] - (last.weight || 1)); } },
     ending: showEnding, biome: () => world.infinite ? world.biomeAt(player.x, player.y) : '', nearWater: () => { for (let a = 0; a < 6.28; a += .8) if (world.infinite && world.tile(Math.floor((player.x + Math.cos(a) * 96) / T), Math.floor((player.y + Math.sin(a) * 96) / T)) === 4) return true; return world.infinite && world.biomeAt(player.x, player.y) === 'lake'; },
     ensureBoss: (type) => { if (ents.some((e) => e.kind === 'enemy' && e.type === type && !e.dead)) return; const npcId = { troll: 'gurdym', minotaur: 'korney', lich: 'morven' }[type], n = ents.find((e) => e.storyId === npcId); const p = n ? [n.x, n.y] : (world.infinite ? (freeSpot([player.x, player.y], 90, 140) || [player.x + 100, player.y]) : (world.spots.boss || [player.x + 100, player.y])); if (n) ents = ents.filter((e) => e !== n); const e = addEnemy(type, p[0], p[1], world.level || 1); e.state = 'chase'; bossIntro(e); },
-    locPos, modalOpen, dialog: storyDialog, close: closeModal, askName, sacrificeFor, skipTo, ensureWildNpc, markerSpots, isNight, heroName,
+    locPos, visited: (path) => !!(NARR && NARR.visited(path)), npcPos: (id) => { const n = ents.find((e) => e.storyId === id); return n ? [n.x, n.y] : null; }, modalOpen, dialog: storyDialog, close: closeModal, askName, sacrificeFor, skipTo, ensureWildNpc, markerSpots, isNight, heroName,
     locRadius: (w) => ((STORY_DATA.places || {})[w] ? ((STORY_DATA.places[w] || {}).r || 220) : PLACES[w] ? 200 : (w === 'ford' || w === 'tavern_cellar' ? 160 : 560)),
     sceneIndex: () => INK_INDEX, hub: (id) => hubFor(id), learnPath: (c) => learnPath(c), hasScene: (k) => !!(NARR && NARR.has(k)), scene: (k, o) => NARR && NARR.run(k, o), witnesses: witnessesNear, chapterTo, questFailed, queueScene, takeItem: (id) => { G.questItems = (G.questItems || []).filter((x) => x !== id); },
     hasSchool: (sc) => CLS().school === sc || CLS().tree.some((b) => b.nodes.some((n) => G.tree[n.id] && (n.effects || []).some((e) => e.school === sc))),
@@ -1285,10 +1300,32 @@ function chapterCard(n, after) {
 function chapterTo(n) {
   if (!G || !WS.setChapter(G, n)) return;
   save();
-  const go = () => chapterCard(n, () => { if (NARR && NARR.has(`chapter_${n}_start`)) queueScene(`chapter_${n}_start`); for (const ev of WS.dueEvents(G, (q) => STORY.isDone(q))) fireEvent(ev); });
+  const go = () => chapterSummary(n - 1, () => chapterCard(n, () => { if (NARR && NARR.has(`chapter_${n}_start`)) queueScene(`chapter_${n}_start`); for (const ev of WS.dueEvents(G, (q) => STORY.isDone(q))) fireEvent(ev); }));
   if (modalOpen()) pendingChapter = go; else go();
 }
 let pendingChapter = null;
+// ---------- итоги главы: что ты сделал, как к тебе относятся, что дальше ----------
+const REL_PHRASE = { trust: 'доверяет тебе', fear: 'боится тебя', respect: 'уважает тебя', hostility: 'держит на тебя зло' };
+function chapterSummary(n, after) {
+  if (!G || !G.ws || n < 1) { after(); return; }
+  const W = G.ws, log = W.log || [], C = CHAPTER_INFO(n), next = CHAPTER_INFO(n + 1);
+  let a = 0, b = log.length; // записи между отметками «Глава n» и «Глава n+1»
+  for (let i = log.length - 1; i >= 0; i--) { if (log[i].kind !== 'chapter') continue; if (log[i].text === `Глава ${n + 1}` && b === log.length) b = i; else if (log[i].text === `Глава ${n}`) { a = i + 1; break; } }
+  const part = log.slice(a, b), pick = (k) => part.filter((l) => l.kind === k).map((l) => l.text);
+  const deeds = [...pick('deed'), ...pick('betray')].slice(-6), words = pick('promise').slice(-4), facts = pick('fact').length;
+  const people = Object.entries(W.rel || {}).map(([id, r]) => { const [k, v] = Object.entries(r || {}).sort((x, y) => y[1] - x[1])[0] || []; return { id, k, v: v || 0 }; }).filter((x) => x.v >= 2 && REL_PHRASE[x.k]).sort((x, y) => y.v - x.v).slice(0, 5);
+  const facs = Object.entries(W.rep || {}).filter(([, v]) => WS.tierOf(v).id !== 'stranger').sort((x, y) => Math.abs(y[1]) - Math.abs(x[1])).slice(0, 4);
+  const li = (arr) => `<ul class="qlist">${arr.map((t) => `<li><span>${GEN.esc(t)}</span></li>`).join('')}</ul>`;
+  modal(`<h2>Итоги главы ${n}${C.title ? ' — «' + GEN.esc(C.title) + '»' : ''}</h2>
+    ${deeds.length ? `<p class="aside">Что ты сделал:</p>${li(deeds)}` : ''}
+    ${words.length ? `<p class="aside">Твоё слово:</p>${li(words)}` : ''}
+    ${people.length ? `<p class="aside">Люди запомнили:</p>${li(people.map((x) => `${STORY ? STORY.npcName(x.id) : x.id} ${REL_PHRASE[x.k]}`))}` : ''}
+    ${facs.length ? `<p class="aside">Как о тебе говорят:</p>${li(facs.map(([f, v]) => `${(WS.data().factions[f] || {}).name || f}: ${WS.tierOf(v).name.toLowerCase()}`))}` : ''}
+    ${facts ? `<p class="aside">Узнано тайн: ${facts}.</p>` : ''}
+    ${next.title ? `<p class="line">Дальше — глава ${n + 1}, «${GEN.esc(next.title)}». ${GEN.esc(next.epigraph || '')}</p>` : ''}
+    <div class="row"><button class="btn primary" data-a="go">Дальше</button></div>`);
+  modalHandlers = { go: () => { closeModal(); after(); } };
+}
 function questFailed(q) { toast(`«${q.title}» — не сложилось. ${(q.fail && q.fail.text) || ''}`, 3200); }
 // ---------- scenes queued by the world (deferred consequences, chapter openings) ----------
 const pendingScenes = [];
@@ -1518,6 +1555,8 @@ function updEnemy(e, dt) {
   if (st) { e.frame = 0; if (st === 'frozen') e.atk = 0; return; }
   e.slow = Math.max(0, (e.slow || 0) - dt);
   if (e.enraged > 0) e.enraged -= dt;
+  if (e.breakCd > 0) e.breakCd -= dt;
+  if (e.post > 0) { e.postT -= dt; if (e.postT <= 0) e.post = Math.max(0, e.post - postMax(e) * .3 * dt); }
   // мертвец с целым именем бормочет о своём ремесле — по этому и узнают, как его звали
   if (e.grave && !P.dead) { e.mutT = (e.mutT ?? 1 + rand() * 3) - dt; if (e.mutT <= 0) { e.mutT = 5 + rand() * 4; if (dist(e, P) < 190) { const ms = e.grave.epi.mutter, m = ms[(e.mutN = (e.mutN || 0) + 1) % ms.length]; fx.push({ type: 'num', x: e.x - m.length * 2, y: e.y - 60 * e.scale, text: m, small: true, school: 'ice', t: 0, life: 2.4 }); } } }
   const spd = e.speed * SK.enemySpeedMul(e) * (world.dark > .3 && UNDEAD.has(e.type) ? 1.1 : 1) * (e.enraged > 0 ? 1.15 : 1);
@@ -1717,11 +1756,41 @@ function render() {
   drawWeather(x, view.w, view.h, now);
   if (world.dark > .01) drawLight(cx, cy);
   drawFireflies(x, world, cx, cy, view.w, view.h, now, biomeHere);
+  try { drawGuide(x, cx, cy); } catch (err) { guideA = 0; } // подсказка не должна останавливать игру
   if (world.infinite) drawMinimap();
   // interaction hint
   const n = player && !player.dead && !modalOpen() ? nearestInteract() : null;
   $('hint').hidden = !n;
   if (n) $('hint').textContent = { fire: 'Отдохнуть у костра', grave: 'Прочесть надпись', call: 'Позвать по имени', marker: n.o.type === 'night' ? 'Ждать ночи' : n.o.type === 'wait' ? 'Ждать рассвета' : n.o.type === 'sacrifice' ? 'Отдать память' : 'Осмотреть', altar: 'Узел: память', node: 'Узел: память', npc: 'Говорить', door: 'Войти', chest: 'Открыть сундук', stairs: n.o.type === 'stairs_down' ? 'Спуститься' : 'Подняться', sign: 'Читать' }[n.kind];
+}
+// ---------- красная нить: ведёт к цели истории ----------
+// Тянется от руки героя в сторону цели и тает рядом с ней; если цель на экране — над ней покачивается узелок.
+// В бою и в окнах прячется, в подземельях не нужна. Выключается в «Управлении».
+let guideA = 0, guideT = 0;
+function drawGuide(x, cx, cy) {
+  const P = player, rt = performance.now() / 1000, dt = Math.min(.1, rt - guideT); guideT = rt;
+  let tg = null; try { tg = P && !P.dead && world.infinite && STORY && !(G.opts && G.opts.guide === false) ? STORY.target() : null; } catch (err) { tg = null; } // подсказка не должна ронять кадр
+  const d = tg ? Math.hypot(tg.pos[0] - P.x, tg.pos[1] - P.y) : 0;
+  const fight = ents.some((e) => e.kind === 'enemy' && e.hp > 0 && !e.dead && e.state === 'chase' && dist(e, P) < 320);
+  const want = tg && d > 70 && !fight && !modalOpen() ? 1 : 0;
+  guideA += Math.sign(want - guideA) * Math.min(Math.abs(want - guideA), dt * (want ? 1.5 : 3)); if (guideA <= .01 || !tg) { if (!tg) guideA = 0; return; }
+  const tx = tg.pos[0] - cx, ty = tg.pos[1] - cy, onScreen = tx > 16 && ty > 30 && tx < view.w - 16 && ty < view.h - 10;
+  const a = Math.atan2(tg.pos[1] - P.y, tg.pos[0] - P.x), ux = Math.cos(a), uy = Math.sin(a), sx = P.x - cx + ux * 10, sy = P.y - 18 - cy + uy * 6;
+  const L = Math.min(120, d - 40), n = 18, near = Math.min(1, (d - 70) / 90);
+  x.save(); x.globalAlpha = guideA * (.55 + .45 * near); x.lineCap = 'round';
+  for (const [w, c] of [[3.5, 'rgba(40,6,6,.55)'], [2, '#d0443a']]) { // тень и сама нить
+    x.lineWidth = w; x.strokeStyle = c; x.beginPath();
+    for (let i = 0; i <= n; i++) { const k = i / n, o = Math.sin(k * 7 - now * 3.8) * 3.2 * k, px = sx + ux * L * k - uy * o, py = sy + uy * L * k + ux * o; i ? x.lineTo(px, py) : x.moveTo(px, py); }
+    x.stroke();
+  }
+  const ex = sx + ux * L, ey = sy + uy * L; x.fillStyle = '#e8605a'; x.fillRect(Math.round(ex) - 2, Math.round(ey) - 2, 4, 4); // узелок на конце
+  if (onScreen) { // узелок над целью
+    const bx = Math.round(tx), by = Math.round(ty - 50 + Math.sin(now * 3.3) * 3);
+    x.strokeStyle = '#d0443a'; x.lineWidth = 1.5; x.beginPath(); x.moveTo(bx, by + 4); x.quadraticCurveTo(bx + 3, by + 10, bx, by + 15); x.stroke();
+    x.fillStyle = 'rgba(40,6,6,.6)'; x.beginPath(); x.arc(bx, by + 1, 5.5, 0, 7); x.fill();
+    x.fillStyle = '#d0443a'; x.beginPath(); x.arc(bx, by, 4.5, 0, 7); x.fill(); x.fillStyle = '#ff9a8a'; x.fillRect(bx - 2, by - 2, 2, 2);
+  }
+  x.restore();
 }
 function drawEnt(x, e) {
   const sc = e.scale || 1;
@@ -1763,6 +1832,7 @@ function drawEnt(x, e) {
   if (e.kind === 'player' && e.shield > 0) { x.strokeStyle = `rgba(191,232,255,${.5 + Math.sin(now * 8) * .2})`; x.lineWidth = 2; x.beginPath(); x.ellipse(e.x, e.y - 22, 16, 26, 0, 0, 7); x.stroke(); }
   if (e.kind === 'player' && e.buff > 0) { x.fillStyle = 'rgba(255,210,90,.6)'; x.fillRect(e.x - 12 + ((now * 40) % 24), e.y - 4, 2, 2); }
   if (e.kind === 'ally' && !e.dead) { x.fillStyle = 'rgba(0,0,0,.6)'; x.fillRect(Math.round(e.x - 10), Math.round(e.y - 52), 20, 2); x.fillStyle = '#7dff9a'; x.fillRect(Math.round(e.x - 10), Math.round(e.y - 52), Math.max(0, 20 * e.hp / e.maxHp), 2); }
+  if (e.kind === 'enemy' && !e.dead && e.post > .5) { const w = e.E.boss ? 40 : 22, k = Math.min(1, e.post / postMax(e)); x.fillStyle = 'rgba(0,0,0,.6)'; x.fillRect(Math.round(e.x - w / 2), Math.round(e.y - 52 * sc) + 4, w, 2); x.fillStyle = k > .75 ? '#ffe08a' : '#d9a83a'; x.fillRect(Math.round(e.x - w / 2), Math.round(e.y - 52 * sc) + 4, Math.round(w * k), 2); }
   if (e.kind === 'enemy' && !e.dead && e.hp < e.maxHp) {
     const w = e.E.boss ? 40 : 22; x.fillStyle = 'rgba(0,0,0,.6)'; x.fillRect(Math.round(e.x - w / 2), Math.round(e.y - 52 * sc), w, 3); x.fillStyle = e.E.boss ? '#c84af0' : '#e0464e'; x.fillRect(Math.round(e.x - w / 2), Math.round(e.y - 52 * sc), Math.max(0, w * e.hp / e.maxHp), 3);
   }
@@ -1980,11 +2050,11 @@ function openMenu(tab) {
   if (name === 'chron') body = chronHtml();
   if (name === 'quests') body = questsHtml();
   if (name === 'ties') body = tiesHtml();
-  if (name === 'help') body = `<dl class="mini"><dt>Движение</dt><dd>WASD или стрелки; на телефоне — палец в левой части экрана</dd><dt>Атака</dt><dd>J; кнопка ⚔</dd><dt>Отскок</dt><dd>Пробел; кнопка ↷. Короткий прыжок, во время которого удары проходят мимо. С места — назад.</dd><dt>Парирование</dt><dd>H; кнопка ⛨. Нажми, когда над врагом вспыхнет «!»: удар отбит, враг оглушён, следующий твой удар вдвое сильнее. Впустую — короткая заминка.</dd><dt>Навыки</dt><dd>K, L, U, I (или Shift, Q, R, T); на телефоне — четыре кнопки у атаки</dd><dt>Действие</dt><dd>E или Enter; кнопка ◉</dd><dt>Захват цели</dt><dd>F или ◎ — захватить и отпустить; G или долгое нажатие ◎ — следующий враг; можно нажать на врага</dd><dt>Зелья</dt><dd>1 — здоровье, 2 — мана</dd><dt>Костры</dt><dd>Редкие, у деревни и мест истории, в подземельях — перед последним залом. Отдых возвращает здоровье и ману, пополняет зелья и сохраняет игру; «Продолжить» и пробуждение после гибели — у последнего костра. Враги вокруг при отдыхе возвращаются.</dd><dt>Выносливость</dt><dd>Кольцо у героя: отскок и парирование тратят дыхание, оно возвращается за пару секунд. Точное парирование возвращает часть.</dd><dt>Имена</dt><dd>На кладбищах у могил с синим огоньком имя на камне цело — покойника не проводили. Прочти надпись (E), подойди к мертвецу и позови его по имени: верное имя отпустит его навсегда, чужое разозлит.</dd><dt>Меню</dt><dd>Esc или Tab; Навыки — N, Клубок — B, Летопись — J в меню</dd><dt>Звук</dt><dd>M</dd></dl>
+  if (name === 'help') body = `<dl class="mini"><dt>Движение</dt><dd>WASD или стрелки; на телефоне — палец в левой части экрана</dd><dt>Атака</dt><dd>J; кнопка ⚔</dd><dt>Отскок</dt><dd>Пробел; кнопка ↷. Короткий прыжок, во время которого удары проходят мимо. С места — назад.</dd><dt>Парирование</dt><dd>H; кнопка ⛨. Нажми, когда над врагом вспыхнет «!»: удар отбит, враг оглушён, следующий твой удар вдвое сильнее. Впустую — короткая заминка.</dd><dt>Навыки</dt><dd>K, L, U, I (или Shift, Q, R, T); на телефоне — четыре кнопки у атаки</dd><dt>Действие</dt><dd>E или Enter; кнопка ◉</dd><dt>Захват цели</dt><dd>F или ◎ — захватить и отпустить; G или долгое нажатие ◎ — следующий враг; можно нажать на врага</dd><dt>Зелья</dt><dd>1 — здоровье, 2 — мана</dd><dt>Костры</dt><dd>Редкие, у деревни и мест истории, в подземельях — перед последним залом. Отдых возвращает здоровье и ману, пополняет зелья и сохраняет игру; «Продолжить» и пробуждение после гибели — у последнего костра. Враги вокруг при отдыхе возвращаются.</dd><dt>Стойка</dt><dd>Жёлтая полоска под здоровьем врага. Удары и парирования копят её; полная — враг пробит: оглушён и получает в полтора раза больше урона.</dd><dt>Выносливость</dt><dd>Кольцо у героя: отскок и парирование тратят дыхание, оно возвращается за пару секунд. Точное парирование возвращает часть.</dd><dt>Имена</dt><dd>На кладбищах у могил с синим огоньком имя на камне цело — покойника не проводили. Прочти надпись (E), подойди к мертвецу и позови его по имени: верное имя отпустит его навсегда, чужое разозлит.</dd><dt>Меню</dt><dd>Esc или Tab; Навыки — N, Клубок — B, Летопись — J в меню</dd><dt>Звук</dt><dd>M</dd></dl>
     <p class="aside"><b>Отголоски ✶</b> — осколки памяти: падают с врагов, мест и разговоров. Ими вплетают ранги навыков, закрепляют Отпечатки, платят ткачам. Больше предела носить нельзя — лишнее выцветает.</p>
     <p class="aside"><b>Забвение</b> — на Узле (алтарь, менгир, колодец) можно отдать своё воспоминание ради постоянного дара. Цена настоящая: люди перестают узнаваться, края уходят в туман, строки Летописи осыпаются.</p>`;
-  modal(`<div class="tabs">${TABS.map(([id, n]) => `<button class="tab ${id === name ? 'on' : ''}" data-a="t_${id}">${n}</button>`).join('')}</div>${body}<div class="row">${name === 'help' ? `<button class="btn" data-a="sound">${audio.on ? 'Выключить звук' : 'Включить звук'}</button><button class="btn" data-a="life">${LIFE.on ? 'Выключить анимации мира' : 'Включить анимации мира'}</button><button class="btn" data-a="export">Сохранить в файл</button><button class="btn" data-a="import">Загрузить из файла</button><button class="btn" data-a="title">В главное меню</button>` : ''}<button class="btn primary" data-close>Продолжить</button></div>`, () => { atNode = null; sacrificeReq = null; }, () => { if ($('menuFace')) drawFace($('menuFace'), player.look); });
-  modalHandlers = { sound: () => { music.toggle(); openMenu(name); }, life: () => { setLife(!LIFE.on); openMenu(name); }, export: () => exportSave(), import: () => $('saveFile').click(), title: () => { save(); closeModal(); showTitle(); } };
+  modal(`<div class="tabs">${TABS.map(([id, n]) => `<button class="tab ${id === name ? 'on' : ''}" data-a="t_${id}">${n}</button>`).join('')}</div>${body}<div class="row">${name === 'help' ? `<button class="btn" data-a="sound">${audio.on ? 'Выключить звук' : 'Включить звук'}</button><button class="btn" data-a="life">${LIFE.on ? 'Выключить анимации мира' : 'Включить анимации мира'}</button><button class="btn" data-a="guide">${G.opts && G.opts.guide === false ? 'Показывать красную нить к цели' : 'Скрыть красную нить к цели'}</button><button class="btn" data-a="export">Сохранить в файл</button><button class="btn" data-a="import">Загрузить из файла</button><button class="btn" data-a="title">В главное меню</button>` : ''}<button class="btn primary" data-close>Продолжить</button></div>`, () => { atNode = null; sacrificeReq = null; }, () => { if ($('menuFace')) drawFace($('menuFace'), player.look); });
+  modalHandlers = { sound: () => { music.toggle(); openMenu(name); }, life: () => { setLife(!LIFE.on); openMenu(name); }, guide: () => { G.opts = G.opts || {}; G.opts.guide = G.opts.guide === false; save(); openMenu(name); }, export: () => exportSave(), import: () => $('saveFile').click(), title: () => { save(); closeModal(); showTitle(); } };
   for (const [id] of TABS) modalHandlers['t_' + id] = () => { nodeSel = null; cardSel = null; openMenu(id); };
   Object.assign(modalHandlers, menuHandlers);
 }
@@ -2112,7 +2182,7 @@ function showCreate() {
   renderCreate();
 }
 function rollHero() {
-  const c = GEN.generate(null, new Set(), { genre: 'fantasy', gender: 'any', age: rand() < .85 ? 'adult' : 'any', race: 'any' }, (rand() * 2 ** 31) | 0);
+  const c = GEN.generate(null, new Set(), { genre: 'fantasy', gender: 'any', age: rand() < .85 ? 'adult' : 'any', race: 'human' }, (rand() * 2 ** 31) | 0);
   return c;
 }
 let candClass = [];
@@ -2124,7 +2194,7 @@ function renderCreate() {
     const el = document.createElement('article'); el.className = 'card';
     el.innerHTML = `<canvas width="128" height="128" aria-label="Портрет"></canvas><h3>${GEN.esc(GEN.fullName(c.name, c.race))}</h3><p class="sub">${GEN.esc(GEN.RACES[c.race].n[F ? 1 : 0])}, ${GEN.esc(GEN.years(c.ageN))} · бывш${F ? 'ая' : 'ий'} ${GEN.esc(GEN.G(GEN.JOBS.fantasy[c.job].n, F))}</p>
       <p class="cls"><b>Человек</b>. Ни ремесла, ни магии. Руки помнят: ${GEN.esc(GEN.G(GEN.JOBS.fantasy[c.job].n, F))}${CLASSES2[CLASS_OF[c.job]] ? ` — из ${F ? 'неё' : 'него'} легче выйдет ${GEN.esc(CLASSES2[CLASS_OF[c.job]].name.toLowerCase())}` : ''}.</p><div class="stats">${GEN.STATS.map((s) => `<div class="${s === C.main ? 'main' : ''}"><small>${s}</small><b>${st[s]}</b></div>`).join('')}</div>
-      <p class="sub">${GEN.esc(GEN.cap(d.traits.slice(0, 3).join(', ')))}. ${GEN.esc(GEN.G(c.drive.fear, F))}.</p>
+      <p class="sub persona">${GEN.esc(GEN.cap(d.traits.slice(0, 3).join(', ')))}. ${GEN.esc(GEN.G(c.drive.fear, F))}.</p>
       <div class="row"><button class="btn" data-re="${i}">Другой</button><button class="btn primary" data-pick="${i}">Играть</button></div>`;
     box.append(el);
     const look = new Look({ ...heroSpec({ char: c, cls, equip: { weapon: 1, armor: 0, helm: 0 }, gear: {} }) });
@@ -2196,17 +2266,32 @@ function startGame(fresh) {
   // test hook: automated tests may start with a path already learned
   if (fresh && window.__wantCls && window.__wantCls !== 'human') learnPath(window.__wantCls);
   if (fresh) { WS.initWS(G); chapterCard(1, () => { STORY.start('m1', true); STORY.markerT = 0; STORY.tick(1); }); }
+  else recap();
+}
+// «В прошлый раз…»: вернувшемуся — где он, что недавно сделал и пообещал, куда идти дальше
+function recap() {
+  if (!STORY || !G.ws) return;
+  const log = (G.ws.log || []).filter((l) => ['deed', 'promise', 'fact', 'betray'].includes(l.kind)).slice(-4);
+  const rows = STORY.journalRows().filter((r) => r.active), main = rows.find((r) => r.q.chain === 'main') || rows[0];
+  const ch = WS.chapter(G), info = CHAPTER_INFO(ch);
+  const open = Object.values(G.ws.promises || {}).filter((p) => p.state === 'open' || p.open).length;
+  modal(`<h2>В прошлый раз</h2><p class="aside">Глава ${ch}${info.title ? ' — «' + GEN.esc(info.title) + '»' : ''}. День ${MEM.dayOf(G) + 1}.${G.rest ? ' Ты очнулся у костра: ' + GEN.esc(G.rest.name) + '.' : ''}</p>${log.length ? `<ul class="qlist">${log.map((l) => `<li><span>${GEN.esc(l.text)}</span></li>`).join('')}</ul>` : ''}${main ? `<p class="line">Дальше: <b>${GEN.esc(main.q.title)}</b> — ${GEN.esc(main.s.text)}.</p>` : ''}${open ? `<p class="aside">Данных слов, которые ещё ждут: ${open}. Их помнят.</p>` : ''}<div class="row"><button class="btn primary" data-close>В путь</button></div>`);
+  modalHandlers = {};
 }
 
 // =====================================================================================
 // Boot
 // =====================================================================================
 let last = 0;
+// следующий кадр заказывается первым: ошибка в одном кадре не должна заморозить игру (она пишется в консоль, раз в 5 с)
+let loopErrT = -1e9;
 function loop(t) {
-  const dt = Math.min(.05, (t - last) / 1000 || 0); last = t;
-  if (screenNow === 'game' && world && player) { if (!paused) { let sdt = dt; if (hitStop > 0) { hitStop -= dt; sdt = dt * .15; } now += sdt; update(sdt); } render(); }
-  if (screenNow === 'create') previewTick(t);
   requestAnimationFrame(loop);
+  const dt = Math.min(.05, (t - last) / 1000 || 0); last = t;
+  try {
+    if (screenNow === 'game' && world && player) { if (!paused) { let sdt = dt; if (hitStop > 0) { hitStop -= dt; sdt = dt * .15; } now += sdt; update(sdt); } render(); }
+    if (screenNow === 'create') previewTick(t);
+  } catch (err) { if (t - loopErrT > 5000) { loopErrT = t; console.error('[кадр]', err); } }
 }
 async function boot() {
   resize();

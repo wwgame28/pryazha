@@ -51,6 +51,27 @@ button:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
 .stats b { font: 700 16px var(--pixel); }
 .card .row, .modal .row { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; margin-top: 4px; }
 .create-actions { display: flex; gap: 10px; justify-content: center; margin-top: 16px; }
+/* низкий экран (телефон лёжа): всё главное — без прокрутки */
+@media (max-height: 520px) {
+  .screen { padding-top: calc(8px + env(safe-area-inset-top, 0px)); padding-bottom: calc(8px + env(safe-area-inset-bottom, 0px)); }
+  .moon { width: 44px; height: 44px; margin: 0 auto 6px; box-shadow: 0 0 30px rgba(233,226,200,.35); }
+  .moon::after { inset: 0 0 0 13px; transform: translateX(5px); }
+  #title h1 { font-size: 44px; }
+  #title .sub1 { margin: 4px 0 0; }
+  #title .tag { margin: 6px auto 10px; font-size: 13.5px; line-height: 1.35; max-width: 62ch; }
+  #title .menu { gap: 6px; }
+  #title .menu .btn { padding: 7px; font-size: 16px; }
+  #title details { margin-top: 6px; font-size: 12px; }
+  #create h2 { font-size: 22px; }
+  #create .lead { font-size: 13px; margin-bottom: 8px; }
+  #cards { gap: 10px; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
+  .card { padding: 8px; gap: 4px; }
+  .card canvas { width: 72px; height: 72px; }
+  .card h3 { font-size: 15px; }
+  .card .sub, .card .cls { font-size: 12px; }
+  .card .stats, .card .persona { display: none; }
+  .create-actions { margin-top: 8px; }
+}
 
 #play { position: fixed; inset: 0; }
 #game { position: absolute; inset: 0; image-rendering: pixelated; }
@@ -263,7 +284,7 @@ body.touch #actbar { display: none; }
   <div>
     <div class="moon" aria-hidden="true"></div>
     <h1>Пряжа</h1><p class="sub1">Тот, кого вытащили из реки</p>
-    <p class="tag">Мир сшит из памяти. Магия оплачивается воспоминаниями: чтобы стать сильнее, ты будешь отдавать то, что только что пережил, — друзей, дороги, победы, даже своё имя. Люди перестанут тебя узнавать, края уйдут в туман, строки Летописи осыплются. Восемь классов, от пироманта до Беспамятного, бесконечная Перевязь и история с семью концовками.</p>
+    <p class="tag">Без имени, без памяти, с чужой ниткой на запястье. Здесь за силу платят воспоминаниями, мёртвые ждут, чтобы их назвали, а каждый твой выбор кто-нибудь запомнит. Шесть глав, семь концовок.</p>
     <div class="menu">
       <button class="btn primary" id="newGame">Новая игра</button>
       <button class="btn" id="continue" hidden>Продолжить</button>
@@ -277,7 +298,7 @@ body.touch #actbar { display: none; }
 
 <section id="create" class="screen" hidden>
   <h2>Создай героя</h2>
-  <p class="lead">Три тела, сшитых Пряжей. Выбери, кем проснёшься. Класса нет: ты очнёшься в реке обычным человеком, с ножом и чужими руками. Кем станешь — воином, лучником, магом огня, льда, тени или света, ткачом или Беспамятным, — решится по дороге: у тех, кто согласится тебя учить.</p>
+  <p class="lead">Три тела, сшитых Пряжей. Выбери, кем проснёшься. Класса нет: ты очнёшься в реке обычным человеком с ножом. Кем станешь — воином, лучником, магом, ткачом или Беспамятным, — решится в пути, у тех, кто согласится учить.</p>
   <div id="cards"></div>
   <div class="create-actions"><button class="btn" id="backTitle">Назад</button><button class="btn" id="rerollAll">Новые три героя</button></div>
 </section>

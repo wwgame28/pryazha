@@ -17,6 +17,7 @@ export class Narrative {
   }
   get G() { return this.A.G(); }
   has(path) { if (!path) return false; const [k, s] = path.split('.'); const K = this.index.knots[k]; return !!K && (!s || (K.stitches || []).includes(s)); }
+  visited(path) { try { return this.ink.state.VisitCountAtPathString(path) > 0; } catch (e) { return false; } }
   tags(knot) { return (this.index.knots[knot] && this.index.knots[knot].tags) || {}; }
   save() { try { return this.ink.state.toJson(); } catch (e) { return null; } }
   load(json) { if (!json) return; try { this.ink.state.LoadJson(json); } catch (e) { console.warn('[ink] state reset:', e.message); this.ink.ResetState(); } }

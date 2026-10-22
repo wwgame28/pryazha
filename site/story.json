@@ -930,6 +930,329 @@
    },
    "greeting": "Тесно…",
    "bio": "Рыбак Ефим, брат Федота. Отпущен прошлой весной."
+  },
+  {
+   "id": "pochtar",
+   "name": "Почтарь",
+   "role": "гоблин-почтальон Улиты",
+   "home": "hoard",
+   "showIf": {
+    "q_s10": "active"
+   },
+   "look": {
+    "body": "teen",
+    "skin": "#7a9a52",
+    "hair": "plain",
+    "hairColor": "#2a2a1a",
+    "head": "goblin",
+    "layers": [
+     [
+      "pants",
+      "#5a4a3a"
+     ],
+     [
+      "vest",
+      "#4a3a2a"
+     ],
+     [
+      "scarf",
+      "#8a6a3a"
+     ],
+     [
+      "cap_feather",
+      "#6a5a3a"
+     ]
+    ]
+   },
+   "greeting": "Письма нет. То есть есть. То есть я не несу.",
+   "bio": "Пятый почтарь на дороге от Улиты к Остапу: гоблины истираются, письма — нет. С той ночи, как треснула печать, боится к ней подходить."
+  },
+  {
+   "id": "krivoy",
+   "name": "Кривой",
+   "role": "подручный Стаха",
+   "home": "wild:forest",
+   "look": {
+    "body": "male",
+    "skin": "#b89070",
+    "hair": "messy1",
+    "hairColor": "#3a3a30",
+    "layers": [
+     [
+      "ls_laced",
+      "#5a5040"
+     ],
+     [
+      "vest",
+      "#3a3028"
+     ],
+     [
+      "pants",
+      "#3b3f46"
+     ],
+     [
+      "boots",
+      "#24201c"
+     ],
+     [
+      "dagger",
+      "#9aa3ad"
+     ]
+    ]
+   },
+   "greeting": "Почём нынче мокрые?",
+   "bio": "Подручный атамана Безродных. Считает всех вокруг товаром, а себя — купцом."
+  },
+  {
+   "id": "khrustalina",
+   "name": "Хрусталина",
+   "role": "ледяная ведьма Архива, заместительница Ясны",
+   "home": "tower",
+   "look": {
+    "body": "female",
+    "skin": "#d8dee6",
+    "hair": "bob",
+    "hairColor": "#e6ecf2",
+    "layers": [
+     [
+      "robe",
+      "#24385a"
+     ],
+     [
+      "cape_trim",
+      "#9fc8e8"
+     ],
+     [
+      "belt_robe",
+      "#bfe8ff"
+     ],
+     [
+      "gloves",
+      "#e8eef4"
+     ],
+     [
+      "shoes",
+      "#1f2a3a"
+     ],
+     [
+      "tiara",
+      "#bfe8ff"
+     ],
+     [
+      "brows_thin",
+      "#c8d4e0"
+     ],
+     [
+      "staff",
+      "#bfe8ff"
+     ]
+    ]
+   },
+   "greeting": "Назовитесь. Цель визита. Порядок — это когда ничего не пропадает.",
+   "bio": "Заместительница Ясны, доктринёрка. Верит в устав больше, чем в людей: устав хотя бы не забывает. Стережёт запечатанное крыло Башни."
+  },
+  {
+   "id": "chad",
+   "name": "Брат Чад",
+   "role": "ревнитель Пепельного Круга",
+   "home": "camp",
+   "look": {
+    "body": "male",
+    "skin": "#b8906a",
+    "hair": "buzzcut",
+    "hairColor": "#2a1a10",
+    "layers": [
+     [
+      "robe",
+      "#3a1410"
+     ],
+     [
+      "cape_tattered",
+      "#1a1a1a"
+     ],
+     [
+      "belt_robe",
+      "#5a1a14"
+     ],
+     [
+      "sandals",
+      "#2a1a14"
+     ],
+     [
+      "hood",
+      "#3a1410"
+     ],
+     [
+      "brows_thick",
+      "#2a1a10"
+     ],
+     [
+      "beard_5oclock_shadow",
+      "#2a1a10"
+     ],
+     [
+      "staff",
+      "#5a2a10"
+     ]
+    ]
+   },
+   "greeting": "Тш-ш. Огонь слушает. Говори тише — и правду.",
+   "bio": "Ревнитель старого обычая Круга. Говорит шёпотом и чужими словами — словами какого-то брата Тлена. Угар его терпит. Искра его не любит."
+  },
+  {
+   "id": "dead_efim",
+   "name": "Утопленник",
+   "role": "отпущенный на Проводах, стоит у стены склепа",
+   "home": "crypt1",
+   "showIf": {
+    "chapter_lte": 3,
+    "q_m5_in": [
+     "active",
+     "done"
+    ]
+   },
+   "look": {
+    "body": "male",
+    "skin": "#9ab0b8",
+    "hair": "messy1",
+    "hairColor": "#2a3a3a",
+    "layers": [
+     [
+      "ls2",
+      "#4a5a5a"
+     ],
+     [
+      "pants",
+      "#3a4a4a"
+     ],
+     [
+      "belt",
+      "#2a3434"
+     ]
+    ]
+   },
+   "greeting": "Сухо тут. А сеть не дают.",
+   "bio": "Рыбак, брат Федота. Утонул прошлой весной. Теперь стоит в первом ярусе склепа с берестой в руках."
+  },
+  {
+   "id": "dead_pakhom",
+   "name": "Старик с веслом",
+   "role": "отпущенный на Проводах, стоит у стены склепа",
+   "home": "crypt1",
+   "showIf": {
+    "chapter_lte": 3,
+    "q_m5_in": [
+     "active",
+     "done"
+    ]
+   },
+   "look": {
+    "body": "male",
+    "skin": "#a8b4b8",
+    "hair": "plain",
+    "hairColor": "#c8ccd0",
+    "head": "m_old",
+    "layers": [
+     [
+      "ls_laced",
+      "#5a6a6a"
+     ],
+     [
+      "pants",
+      "#3a4444"
+     ],
+     [
+      "boots",
+      "#2a2e30"
+     ],
+     [
+      "beard_winter",
+      "#c8ccd0"
+     ]
+    ]
+   },
+   "greeting": "Перевезти? Некуда уже.",
+   "bio": "Сорок лет перевозил людей через брод. Умер летом. Береста с его именем у него в руках."
+  },
+  {
+   "id": "dead_mavra",
+   "name": "Женщина в переднике",
+   "role": "отпущенная на Проводах, стоит у стены склепа",
+   "home": "crypt1",
+   "showIf": {
+    "chapter_lte": 3,
+    "q_m5_in": [
+     "active",
+     "done"
+    ]
+   },
+   "look": {
+    "body": "female",
+    "skin": "#b4bcc0",
+    "hair": "braid",
+    "hairColor": "#8a8a8a",
+    "layers": [
+     [
+      "blouse_ls",
+      "#6a7070"
+     ],
+     [
+      "apron_full",
+      "#9aa0a0"
+     ],
+     [
+      "skirt",
+      "#4a5050"
+     ],
+     [
+      "shoes",
+      "#3a3a3a"
+     ],
+     [
+      "scarf",
+      "#5a6060"
+     ]
+    ]
+   },
+   "greeting": "Гусей моих кто кормит?",
+   "bio": "Гусятница из Брода. Умерла весной. Береста с её именем — внучкиной рукой."
+  },
+  {
+   "id": "dead_scroll",
+   "name": "Скелет со свитком",
+   "role": "давний мертвец склепа, не выпускает бересту",
+   "home": "crypt1",
+   "showIf": {
+    "chapter_lte": 3,
+    "q_m5_in": [
+     "active",
+     "done"
+    ]
+   },
+   "look": {
+    "body": "male",
+    "skin": "#e8e2cf",
+    "hair": "plain",
+    "hairColor": "#e8e2cf",
+    "head": "skeleton",
+    "base": "body_skeleton",
+    "layers": [
+     [
+      "tabard",
+      "#3a4a3a"
+     ],
+     [
+      "belt",
+      "#3a2a20"
+     ],
+     [
+      "cape_tattered",
+      "#4a4a3a"
+     ]
+    ]
+   },
+   "greeting": "Не дам.",
+   "bio": "Старый скелет в первом ярусе. Сжимает свиток бересты так, что бечёвка ушла в кость. Кем был — не помнит."
   }
  ],
  "quests": [
@@ -963,7 +1286,15 @@
      "count": 3,
      "where": "village",
      "text": "Подобрать три Отголоска на отмели",
-     "scene": "m1_s3"
+     "scene": "m1_s3",
+     "spots": "ford",
+     "ambush": {
+      "at": 2,
+      "enemy": "goblin",
+      "n": 1,
+      "hp": 0.7,
+      "say": "Из камышей выскакивает гоблин — он тоже пришёл за светящимися нитями. Отбейся!"
+     }
     },
     {
      "id": "s4",
@@ -2034,6 +2365,19 @@
      "scene": "m3_s1"
     },
     {
+     "id": "s1g",
+     "type": "defeat",
+     "target": "goblin",
+     "count": 2,
+     "spawn": 2,
+     "where": "trollcamp",
+     "requires": {
+      "shurshok_not": "guide"
+     },
+     "scene": "m3_s1g",
+     "text": "Гоблины не пускают к Камню: отбиться (если Шуршок не ведёт)"
+    },
+    {
      "id": "s2",
      "type": "talk",
      "target": "gurdym",
@@ -2079,6 +2423,17 @@
      },
      "text": "Получить ключ",
      "scene": "m3_s6"
+    },
+    {
+     "id": "s7",
+     "type": "talk",
+     "target": "gurdym",
+     "where": "trollcamp",
+     "requires": {
+      "gurdym_word": "agafya"
+     },
+     "scene": "m3_s7",
+     "text": "Получить ключ за слово, данное Агафье"
     }
    ],
    "outcomes": [
@@ -2099,7 +2454,9 @@
       "bond:shurshok:-3",
       "spawn:goblin:wild:forest:x1.5",
       "deed:d_killed_gurdym",
-      "later:2:ev_goblin_raid"
+      "later:2:ev_goblin_raid",
+      "break:p_agafya_gurdym",
+      "flag:gurdym_pebbles_missing=false"
      ]
     },
     {
@@ -2117,7 +2474,8 @@
       "card+:foreign:f_red_winter:3",
       "bond:gurdym:+2",
       "deed:d_eased_gurdym",
-      "learn:f_red_winter_gurdym"
+      "learn:f_red_winter_gurdym",
+      "keep:p_agafya_gurdym"
      ]
     },
     {
@@ -2134,7 +2492,8 @@
       "card+:quest:q_m3:4",
       "bond:gurdym:+2",
       "bond:shurshok:+1",
-      "deed:d_spared_gurdym"
+      "deed:d_spared_gurdym",
+      "keep:p_agafya_gurdym"
      ]
     }
    ],
@@ -2171,7 +2530,8 @@
      "type": "night",
      "target": "ford",
      "where": "village",
-     "text": "Дождаться ночи у брода"
+     "text": "Дождаться ночи у брода: Проводы",
+     "scene": "m4_s3"
     },
     {
      "id": "s4",
@@ -2219,7 +2579,10 @@
       "bond:ivar:-1",
       "flag:mitya_kept=true",
       "deed:d_read_names",
-      "deed:d_hid_mitya"
+      "deed:d_hid_mitya",
+      "keep:p_mitya_list",
+      "npc:yasna:home",
+      "npc:ivar:home"
      ]
     },
     {
@@ -2236,7 +2599,9 @@
       "card+:quest:q_m4:4",
       "bond:ivar:+2",
       "flag:mitya_kept=false",
-      "line:agafya:forgot_mitya"
+      "line:agafya:forgot_mitya",
+      "npc:yasna:home",
+      "npc:ivar:home"
      ]
     },
     {
@@ -2255,7 +2620,10 @@
       "bond:agafya:-2",
       "flag:mitya_kept=archive",
       "shop:tower:discount10",
-      "deed:d_sold_names"
+      "deed:d_sold_names",
+      "flag:provody_jars=archive_wing",
+      "npc:yasna:home",
+      "npc:ivar:home"
      ]
     },
     {
@@ -2273,13 +2641,19 @@
       "bond:agafya:+3",
       "bond:ivar:-2",
       "flag:mitya_kept=hero",
-      "deed:d_took_names"
+      "deed:d_took_names",
+      "keep:p_mitya_list",
+      "npc:yasna:home",
+      "npc:ivar:home",
+      "scene:m4_dawn"
      ]
     }
    ],
    "chapter": 2,
    "after": [
-    "m3"
+    "m3",
+    "c2_birch",
+    "c2_buyer"
    ],
    "endsChapter": 2
   },
@@ -2300,18 +2674,31 @@
      "scene": "m5_s1"
     },
     {
+     "id": "s1b",
+     "type": "investigate",
+     "target": "seal_seam",
+     "count": 1,
+     "where": "oldgrave",
+     "text": "Присмотреться к шву печати",
+     "scene": "m5_s1b"
+    },
+    {
      "id": "s2",
      "type": "enter",
      "target": "crypt1",
      "where": "oldgrave",
-     "text": "Спуститься в склеп"
+     "text": "Спуститься в склеп",
+     "scene": "m5_s2"
     },
     {
      "id": "s3",
      "type": "talk",
      "target": "ostap",
      "where": "crypt1",
-     "text": "Скелет, который не нападает",
+     "requires": {
+      "npc_ostap_not": "gone"
+     },
+     "text": "Скелет, который не нападает: Остап на посту у входа",
      "scene": "m5_s3"
     },
     {
@@ -2356,7 +2743,8 @@
    "chapter": 3,
    "after": [
     "m4"
-   ]
+   ],
+   "auto": true
   },
   {
    "id": "m6",
@@ -2390,6 +2778,17 @@
      "scene": "m6_s3"
     },
     {
+     "id": "s3t",
+     "type": "count",
+     "target": "trials_done",
+     "count": 2,
+     "orIf": {
+      "trials_skip": true
+     },
+     "where": "any",
+     "text": "Пройти испытания фракций — хотя бы два из трёх: «Опись» в Башне, «Ночь костров» в Стане, «Прореха» у менгира. Или сказать Морвену, что хватит"
+    },
+    {
      "id": "s4",
      "type": "choose",
      "target": "self",
@@ -2420,7 +2819,8 @@
    "after": [
     "m5"
    ],
-   "endsChapter": 3
+   "endsChapter": null,
+   "auto": true
   },
   {
    "id": "m7",
@@ -3115,9 +3515,36 @@
      "where": "trollcamp",
      "text": "Что делать с Малым",
      "scene": "s1_s5"
+    },
+    {
+     "id": "s6",
+     "type": "escort",
+     "target": "mal",
+     "where": "village",
+     "requires": {
+      "mal": "shirt"
+     },
+     "scene": "s1_s6",
+     "text": "Отвести Малого в рубашке с «М» к Пелагее"
     }
    ],
    "outcomes": [
+    {
+     "if": {
+      "mal": "shirt"
+     },
+     "text": "Пелагея не вспомнила сына. Но узнала свою строчку на его рубашке — и пустила в дом. Рубашки ему впору: она шила на вырост.",
+     "rewards": {
+      "xp": 110,
+      "echoes": 15
+     },
+     "worldEffects": [
+      "card+:quest:q_s1:3",
+      "npc:mal:moved:village",
+      "rel:pelageya:trust:3",
+      "bond:shurshok:+1"
+     ]
+    },
     {
      "if": {
       "mal": "returned_holy"
@@ -3187,7 +3614,7 @@
    "title": "Выкуп",
    "giver": "stakh",
    "chain": "bezrodnye",
-   "summary": "Атаман Безродных хочет ограбить обоз Архива: там едет память о его жене. Жену зовут Пелагея.",
+   "summary": "Атаман Безродных хочет ограбить обоз Архива: там едет память о его жене. Жену зовут Пелагея. Обоз ждать не будет.",
    "steps": [
     {
      "id": "s1",
@@ -3195,7 +3622,10 @@
      "target": "bandit",
      "count": 3,
      "where": "wild:forest",
-     "text": "Отбиться от засады"
+     "text": "Отбиться от засады",
+     "spawn": 3,
+     "spawnName": "Безродный",
+     "scene": "s2_s1"
     },
     {
      "id": "s2",
@@ -3224,14 +3654,29 @@
     },
     {
      "id": "s5",
-     "type": "defeat",
-     "target": "witch",
-     "count": 2,
-     "where": "wild:forest",
+     "type": "goto",
+     "target": "convoy_road",
+     "where": "convoy_road",
      "requires": {
       "stakh": "robbed"
      },
-     "text": "Разбить охрану обоза"
+     "scene": "s2_s5",
+     "text": "Выйти к обозу Архива на лесной дороге — до срока"
+    },
+    {
+     "id": "s6",
+     "type": "defeat",
+     "target": "witch",
+     "count": 2,
+     "where": "wild:any",
+     "requires": {
+      "stakh": "robbed"
+     },
+     "text": "Разбить охрану обоза",
+     "spawn": 2,
+     "spawnName": "Ведьма Архива",
+     "tint": "#bfe8ff",
+     "scene": "s2_s6"
     }
    ],
    "outcomes": [
@@ -3250,7 +3695,9 @@
       "bond:stakh:+2",
       "bond:yasna:-3",
       "shop:tower:hostile",
-      "deed:d_robbed_caravan"
+      "deed:d_robbed_caravan",
+      "keep:p_stakh_convoy",
+      "npc:stakh:moved:rootless_camp"
      ]
     },
     {
@@ -3266,7 +3713,8 @@
      "worldEffects": [
       "card+:quest:q_s2:3",
       "bond:stakh:+2",
-      "deed:d_bought_wife"
+      "deed:d_bought_wife",
+      "npc:stakh:moved:rootless_camp"
      ]
     },
     {
@@ -3303,7 +3751,27 @@
      ]
     }
    ],
-   "chapter": 2
+   "chapter": 2,
+   "auto": true,
+   "after": [
+    "m3"
+   ],
+   "autoIf": {
+    "day_gte": 4
+   },
+   "fail": {
+    "if": {
+     "s2_convoy_gone": true
+    },
+    "text": "Обоз прошёл без тебя. Стах взял его сам — с кровью.",
+    "effects": [
+     "break:p_stakh_convoy",
+     "npc:stakh:moved:rootless_camp",
+     "rel:stakh:hostility:1",
+     "spawn:witch:wild:forest:x0.5",
+     "scene:s2_late"
+    ]
+   }
   },
   {
    "id": "s3",
@@ -3645,6 +4113,15 @@
      "scene": "s6_s2"
     },
     {
+     "id": "s2b",
+     "type": "investigate",
+     "target": "archive_wing",
+     "count": 1,
+     "where": "archive_wing",
+     "text": "Номера описи уходят за дверь в конце коридора: подойти к запечатанному крылу",
+     "scene": "s6_wing"
+    },
+    {
      "id": "s3",
      "type": "choose",
      "target": "yasna",
@@ -3678,7 +4155,9 @@
      "worldEffects": [
       "card+:quest:q_s6:3",
       "bond:yasna:+2",
-      "unlock:s6b_yasna_shelf"
+      "unlock:s6b_yasna_shelf",
+      "inc:trials_done:1",
+      "flag:trial_archive=true"
      ]
     },
     {
@@ -3695,7 +4174,9 @@
       "bond:kudel:+2",
       "bond:yasna:-3",
       "shop:tower:hostile",
-      "deed:d_stole_jars"
+      "deed:d_stole_jars",
+      "inc:trials_done:1",
+      "flag:trial_archive=true"
      ]
     },
     {
@@ -3712,7 +4193,9 @@
       "card+:quest:q_s6:3",
       "bond:yasna:-1",
       "unlock:s7b_ugar_jar",
-      "deed:d_took_ugar_jar"
+      "deed:d_took_ugar_jar",
+      "inc:trials_done:1",
+      "flag:trial_archive=true"
      ]
     },
     {
@@ -3727,7 +4210,9 @@
      },
      "worldEffects": [
       "card+:quest:q_s6:2",
-      "bond:yasna:+1"
+      "bond:yasna:+1",
+      "inc:trials_done:1",
+      "flag:trial_archive=true"
      ]
     }
    ],
@@ -4063,23 +4548,31 @@
    "title": "Два письма",
    "giver": "ulita",
    "chain": "pisma",
-   "summary": "Старушка шестьдесят лет переписывается с солдатом. Солдат — скелет в склепе. Почтальоны — гоблины.",
+   "summary": "Старушка шестьдесят лет переписывается с солдатом. Солдат — скелет в склепе. Почтальоны — гоблины. Этой осенью печать треснула, и почтальон боится к ней подходить.",
    "steps": [
     {
      "id": "s1",
      "type": "talk",
      "target": "ulita",
      "where": "village",
-     "text": "Письмо задерживается",
+     "text": "Улита: почтальон пропал, письма не доходят",
      "scene": "s10_s1"
     },
     {
-     "id": "s2",
+     "id": "post",
      "type": "talk",
-     "target": "ostap",
-     "where": "crypt1",
-     "text": "Доставить письмо",
-     "scene": "s10_s2"
+     "target": "pochtar",
+     "where": "hoard",
+     "scene": "s10_post",
+     "text": "Найти почтальона на гоблинской свалке за Гурдымовым Камнем"
+    },
+    {
+     "id": "crack",
+     "type": "use",
+     "target": "seal_crack",
+     "where": "oldgrave",
+     "scene": "s10_crack",
+     "text": "Просунуть письма в трещину печати склепа"
     },
     {
      "id": "s3",
@@ -4087,10 +4580,24 @@
      "target": "ulita",
      "where": "village",
      "text": "Отдать ответ",
-     "scene": "s10_s3"
+     "scene": "s10_answer"
     },
     {
      "id": "s4",
+     "type": "count",
+     "target": "never",
+     "count": 1,
+     "orIf": {
+      "q_m5": "done"
+     },
+     "where": "village",
+     "requires": {
+      "pisma": "meet"
+     },
+     "text": "Склеп откроют — тогда и сведёшь Улиту с Остапом (после «Печати изнутри»)"
+    },
+    {
+     "id": "s5",
      "type": "escort",
      "target": "ulita",
      "where": "oldgrave",
@@ -4149,9 +4656,9 @@
      ]
     }
    ],
-   "chapter": 3,
+   "chapter": 2,
    "after": [
-    "m5"
+    "c1_council"
    ]
   },
   {
@@ -4176,6 +4683,16 @@
      "where": "wild:meadow",
      "text": "Как латать",
      "scene": "s11_s2"
+    },
+    {
+     "id": "s2b",
+     "type": "defeat",
+     "target": "wraith",
+     "count": 2,
+     "spawn": 2,
+     "where": "menhir",
+     "text": "Из прорехи лезут недопетые: отогнать, пока Кудель шьёт края",
+     "scene": "s11_wraiths"
     },
     {
      "id": "s3",
@@ -4208,13 +4725,15 @@
       "card+:dream:d_weaver:5",
       "card+:craft:c_weaving:2",
       "bond:kudel:+2",
-      "fog:wild:meadow:clear"
+      "fog:wild:meadow:clear",
+      "inc:trials_done:1",
+      "flag:trial_weavers=true"
      ]
     }
    ],
    "chapter": 3,
    "after": [
-    "m6"
+    "m5"
    ]
   },
   {
@@ -4613,6 +5132,1428 @@
    "offerIf": {
     "sacrificed_any": true
    }
+  },
+  {
+   "id": "c2_birch",
+   "title": "Береста",
+   "chain": "main",
+   "chapter": 2,
+   "giver": "ivar",
+   "after": [
+    "c1_council"
+   ],
+   "summary": "Ивар собирает список Проводов: имена всех, кого Брод отпускает в этом году. Шесть дворов — твои. И отдельной строкой — те, кто держит.",
+   "steps": [
+    {
+     "id": "s1",
+     "type": "talk",
+     "target": "ivar",
+     "where": "village",
+     "scene": "c2_birch_s1",
+     "text": "Выслушать Ивара"
+    },
+    {
+     "id": "s2",
+     "type": "count",
+     "target": "birch_names",
+     "count": 6,
+     "orIf": {
+      "all": [
+       {
+        "birch_names_gte": 4
+       },
+       {
+        "day_gte": 6
+       }
+      ]
+     },
+     "where": "village",
+     "text": "Обойти шесть дворов и спросить имена: Весна, Улита, Пелагея, Федот, Дуня, Агафья",
+     "ask": {
+      "vesna": "talk_vesna_ch2.birch",
+      "ulita": "talk_ulita_ch2.birch",
+      "pelageya": "talk_pelageya_ch2.birch",
+      "federot": "talk_federot_ch2.birch",
+      "dunya": "talk_dunya_ch2.birch",
+      "agafya": "talk_agafya_ch2.birch"
+     }
+    },
+    {
+     "id": "s3",
+     "type": "talk",
+     "target": "ivar",
+     "where": "village",
+     "scene": "c2_birch_s3",
+     "text": "Отнести имена Ивару"
+    }
+   ],
+   "outcomes": [
+    {
+     "if": {
+      "birch_holders_torn": true
+     },
+     "text": "Ивар узнал на обгорелом клочке почерк отца и сжёг полосу «держит». На бересте — только имена.",
+     "rewards": {
+      "xp": 110,
+      "echoes": 12
+     },
+     "worldEffects": [
+      "card+:quest:q_c2_birch:3",
+      "rel:ivar:trust:1",
+      "rep:village:3"
+     ]
+    },
+    {
+     "if": {
+      "birch_holders_gte": 1
+     },
+     "text": "Двенадцать имён на бересте и ещё одна полоса — «держит». Ивар обещал поговорить с каждым. Пока по-хорошему.",
+     "rewards": {
+      "xp": 100,
+      "echoes": 8
+     },
+     "worldEffects": [
+      "card+:quest:q_c2_birch:3",
+      "rel:ivar:respect:1"
+     ]
+    },
+    {
+     "if": {},
+     "text": "Двенадцать имён на бересте. Полоса «держит» осталась пустой — так ты решил.",
+     "rewards": {
+      "xp": 100,
+      "echoes": 10
+     },
+     "worldEffects": [
+      "card+:quest:q_c2_birch:3",
+      "rep:village:2"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "c2_buyer",
+   "title": "Купец из башни",
+   "chain": "main",
+   "chapter": 2,
+   "giver": "yasna",
+   "auto": true,
+   "after": [
+    "c1_council"
+   ],
+   "autoIf": {
+    "any": [
+     {
+      "q_m3": "done"
+     },
+     {
+      "q_c2_birch": "done"
+     },
+     {
+      "day_gte": 5
+     }
+    ]
+   },
+   "onStart": [
+    "npc:yasna:moved:yasna_sled"
+   ],
+   "summary": "Перед Проводами в Брод едет Ясна Стынь из Башни Неусыпных. Она покупает память: у кузнеца — последнее, у деревни — бересту с именами.",
+   "steps": [
+    {
+     "id": "s1",
+     "type": "goto",
+     "target": "yasna_sled",
+     "where": "yasna_sled",
+     "scene": "c2_buyer_s1",
+     "text": "Сани Башни встали на Северной тропе"
+    },
+    {
+     "id": "s2",
+     "type": "defeat",
+     "target": "wolf",
+     "count": 2,
+     "spawn": 2,
+     "where": "wild:any",
+     "scene": "c2_buyer_s2",
+     "text": "Отогнать волков от саней"
+    },
+    {
+     "id": "s3",
+     "type": "talk",
+     "target": "tur",
+     "where": "village",
+     "scene": "c2_buyer_s3",
+     "text": "Кузня: Тур собирается продать последнее"
+    },
+    {
+     "id": "s4",
+     "type": "talk",
+     "target": "yasna",
+     "where": "village",
+     "scene": "c2_buyer_s4",
+     "text": "Поговорить с Ясной в «Последней кружке»"
+    }
+   ],
+   "outcomes": [
+    {
+     "if": {
+      "yasna_offer": "promised"
+     },
+     "text": "Ясна записала в книжечку: «Ольховый Брод. Береста Проводов. Обещано». Двадцать серебром задатка звенят у тебя в кармане.",
+     "rewards": {
+      "xp": 110,
+      "echoes": 10
+     },
+     "worldEffects": [
+      "card+:quest:q_c2_buyer:3"
+     ]
+    },
+    {
+     "if": {
+      "yasna_offer": "refused"
+     },
+     "text": "Ясна улыбнулась чуть позже, чем надо: «Мы терпеливы». Она осталась в Броде до Проводов — посмотреть.",
+     "rewards": {
+      "xp": 110,
+      "echoes": 12
+     },
+     "worldEffects": [
+      "card+:quest:q_c2_buyer:3",
+      "rep:village:3"
+     ]
+    },
+    {
+     "if": {},
+     "text": "«Подумайте до Проводов», — сказала Ясна и осталась ночевать в «Последней кружке». Свечу она попросила унести.",
+     "rewards": {
+      "xp": 100,
+      "echoes": 10
+     },
+     "worldEffects": [
+      "card+:quest:q_c2_buyer:3"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "c2_hoard",
+   "title": "Гоблинская свалка",
+   "chain": "forest",
+   "chapter": 2,
+   "giver": "shurshok",
+   "auto": true,
+   "hidden": true,
+   "after": [
+    "c1_council"
+   ],
+   "autoIf": {
+    "any": [
+     {
+      "hoard_seen": true
+     },
+     {
+      "q_s10": "active"
+     },
+     {
+      "q_c2_pebbles": "active"
+     }
+    ]
+   },
+   "summary": "За Гурдымовым Камнем гоблины сносят в одно место всё, что взяли с могил: ложки, гребни, пуговицы. Брод хочет своё назад. Гоблины считают, что найденное — их.",
+   "steps": [
+    {
+     "id": "s1",
+     "type": "goto",
+     "target": "hoard",
+     "where": "hoard",
+     "scene": "c2_hoard_s1",
+     "text": "Найти гоблинскую свалку в овраге за Камнем"
+    },
+    {
+     "id": "s2",
+     "type": "defeat",
+     "target": "goblin",
+     "count": 2,
+     "spawn": 2,
+     "spawnName": "Сторож свалки",
+     "where": "wild:any",
+     "requires": {
+      "rep_forest_lt": 15
+     },
+     "scene": "c2_hoard_s2",
+     "text": "Отогнать сторожей свалки"
+    },
+    {
+     "id": "s3",
+     "type": "use",
+     "target": "hoard_pile",
+     "where": "hoard",
+     "scene": "c2_hoard_s3",
+     "text": "Подойти к куче памяток и решить, чьё это: могил, гоблинов или поровну"
+    },
+    {
+     "id": "s4",
+     "type": "investigate",
+     "count": 3,
+     "clues": true,
+     "where": "oldgrave",
+     "requires": {
+      "hoard": "graves"
+     },
+     "scene": "c2_hoard_s4",
+     "text": "Разложить памятки по могилам Тихой Стороны"
+    },
+    {
+     "id": "s5",
+     "type": "talk",
+     "target": "khrum",
+     "where": "far_bank",
+     "requires": {
+      "hoard": "fair"
+     },
+     "scene": "c2_hoard_s5",
+     "text": "Отнести узел Хруму: пусть поделит по-честному"
+    }
+   ],
+   "fail": {
+    "if": {
+     "day_gte": 8
+    },
+    "text": "Гоблины перетащили кладовую в новое место. Куда — мелкие не скажут даже за пуговицу.",
+    "effects": [
+     "rep:village:-2",
+     "rep:forest:1"
+    ]
+   },
+   "outcomes": [
+    {
+     "if": {
+      "hoard": "graves"
+     },
+     "text": "Памятки вернулись на могилы — наугад, имена-то сбиты. Брод доволен. Овраг за Камнем молчит обиженно.",
+     "rewards": {
+      "xp": 90,
+      "echoes": 12
+     },
+     "worldEffects": [
+      "card+:quest:q_c2_hoard:2",
+      "rep:village:6",
+      "rep:forest:-6",
+      "rel:ivar:respect:1"
+     ]
+    },
+    {
+     "if": {
+      "hoard": "goblins"
+     },
+     "text": "Найденое осталось найденым. Сторожа свалки теперь кланяются тебе издалека. В Броде говорят — с гоблинами заодно.",
+     "rewards": {
+      "xp": 80,
+      "echoes": 10
+     },
+     "worldEffects": [
+      "card+:quest:q_c2_hoard:2",
+      "rep:forest:6",
+      "rep:village:-4"
+     ]
+    },
+    {
+     "if": {},
+     "text": "Хрум поделил по-честному: детское и рыбацкое — могилам, пуговки и свистульки — гоблинам. Всем немного мало. Значит, честно.",
+     "rewards": {
+      "xp": 100,
+      "echoes": 12
+     },
+     "worldEffects": [
+      "card+:quest:q_c2_hoard:2",
+      "rep:village:3",
+      "rep:forest:3",
+      "rel:khrum:trust:1"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "c2_pebbles",
+   "title": "Камешки",
+   "chain": "forest",
+   "chapter": 2,
+   "giver": "gurdym",
+   "after": [
+    "m3"
+   ],
+   "offerIf": {
+    "gurdym_in": [
+     "spared",
+     "eased"
+    ]
+   },
+   "summary": "Гоблины растащили с шеи Гурдыма три камешка. Камешек — зима. Без них старый тролль сбивается со счёта. Один камешек — красный.",
+   "steps": [
+    {
+     "id": "s1",
+     "type": "talk",
+     "target": "gurdym",
+     "where": "trollcamp",
+     "scene": "c2_pebbles_s1",
+     "text": "Выслушать Гурдыма"
+    },
+    {
+     "id": "s2",
+     "type": "investigate",
+     "count": 2,
+     "spots": [
+      "hoard",
+      "far_bank"
+     ],
+     "where": "trollcamp",
+     "scene": "c2_pebbles_s2",
+     "text": "Два серых камешка: в гоблинской кладовой за Камнем и у Хрума на том берегу"
+    },
+    {
+     "id": "s3",
+     "type": "defeat",
+     "target": "goblin",
+     "count": 2,
+     "spawn": 2,
+     "spawnName": "Гоблинёнок с камешком",
+     "where": "wild:forest",
+     "scene": "c2_pebbles_s3",
+     "text": "Отнять красный камешек у шустрых гоблинят (в лесу)"
+    },
+    {
+     "id": "s4",
+     "type": "choose",
+     "target": "gurdym",
+     "where": "trollcamp",
+     "scene": "c2_pebbles_s4",
+     "text": "Вернуть камешки Гурдыму"
+    },
+    {
+     "id": "s5",
+     "type": "use",
+     "target": "river",
+     "where": "ford",
+     "requires": {
+      "red_pebble_not": "kept"
+     },
+     "scene": "c2_pebbles_s5",
+     "text": "Бросить красный камешек в реку у брода"
+    }
+   ],
+   "outcomes": [
+    {
+     "if": {
+      "red_pebble": "river"
+     },
+     "text": "Красный камешек ушёл под воду у брода. Гурдым впервые за двести зим спит. Улика ушла вместе с камешком.",
+     "rewards": {
+      "xp": 100,
+      "echoes": 15
+     },
+     "worldEffects": [
+      "card+:quest:q_c2_pebbles:2",
+      "rel:gurdym:trust:2",
+      "rep:forest:5"
+     ]
+    },
+    {
+     "if": {
+      "red_pebble": "kept"
+     },
+     "text": "Красный камешек греет тебе карман. Чужая зима — тёплая, как печка, и горькая, как дым.",
+     "rewards": {
+      "xp": 100,
+      "echoes": 10
+     },
+     "worldEffects": [
+      "card+:quest:q_c2_pebbles:2",
+      "rep:forest:2"
+     ]
+    },
+    {
+     "if": {},
+     "text": "Гурдым нанизал все двести камешков. Красный тлеет у него на груди. Он досчитал до конца и не сбился.",
+     "rewards": {
+      "xp": 90,
+      "echoes": 12
+     },
+     "worldEffects": [
+      "card+:quest:q_c2_pebbles:2",
+      "rep:forest:4",
+      "rel:gurdym:trust:1"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "c2_path_cryo",
+   "title": "Иней в ладонях",
+   "chain": "path",
+   "chapter": 2,
+   "giver": "yasna",
+   "after": [
+    "c1_council"
+   ],
+   "offerIf": {
+    "all": [
+     {
+      "any": [
+       {
+        "trust_yasna_gte": 3
+       },
+       {
+        "archive_service": true
+       }
+      ]
+     },
+     {
+      "hostility_yasna_lte": 5
+     },
+     {
+      "class_not": "cryo"
+     },
+     {
+      "rep_archive_gt": -50
+     }
+    ]
+   },
+   "summary": "Ясна Стынь умеет то, чему в Броде не учат: держать холодом, ничего не ломая. За услугу Архиву она научит.",
+   "steps": [
+    {
+     "id": "s1",
+     "type": "talk",
+     "target": "yasna",
+     "where": "tower",
+     "scene": "c2_path_cryo_s1",
+     "text": "Выслушать Ясну"
+    },
+    {
+     "id": "s2",
+     "type": "investigate",
+     "count": 3,
+     "clues": true,
+     "where": "witchhut",
+     "scene": "c2_path_cryo_s2",
+     "text": "Три урока у избы Тётки Иней: задержать, сохранить, отпустить"
+    },
+    {
+     "id": "s3",
+     "type": "use",
+     "target": "archive_door",
+     "where": "tower",
+     "scene": "c2_path_cryo_s3",
+     "text": "Отнести опечатанную склянку к ледяной двери Башни (услуга Архиву)"
+    },
+    {
+     "id": "s4",
+     "type": "talk",
+     "target": "yasna",
+     "where": "tower",
+     "scene": "c2_path_cryo_s4",
+     "text": "Вернуться к Ясне"
+    }
+   ],
+   "outcomes": [
+    {
+     "if": {
+      "mentor_cryo": "yasna"
+     },
+     "text": "Стынь слушается. Ясна учила тебя держать, не ломая.",
+     "rewards": {
+      "xp": 60,
+      "echoes": 5
+     },
+     "worldEffects": [
+      "card+:quest:q_c2_path_cryo:2"
+     ]
+    },
+    {
+     "if": {},
+     "text": "Ты прошёл уроки Ясны, но Стынь не взял.",
+     "rewards": {
+      "xp": 40
+     },
+     "worldEffects": []
+    }
+   ]
+  },
+  {
+   "id": "c2_path_warrior_gurdym",
+   "title": "Тяжёлая рука",
+   "chain": "path",
+   "chapter": 2,
+   "giver": "gurdym",
+   "after": [
+    "m3"
+   ],
+   "offerIf": {
+    "gurdym_in": [
+     "spared",
+     "eased"
+    ],
+    "class_not": "warrior"
+   },
+   "summary": "Гурдым не машет — он роняет. Старый тролль может научить бить так, как падает камень. Запасной путь воина, если кузня Тура закрыта.",
+   "steps": [
+    {
+     "id": "s1",
+     "type": "talk",
+     "target": "gurdym",
+     "where": "trollcamp",
+     "scene": "c2_path_warrior_gurdym_s1",
+     "text": "Выслушать Гурдыма"
+    },
+    {
+     "id": "s2",
+     "type": "investigate",
+     "count": 3,
+     "clues": true,
+     "where": "trollcamp",
+     "scene": "c2_path_warrior_gurdym_s2",
+     "text": "Сдвинуть три валуна с зарубками у Камня"
+    },
+    {
+     "id": "s3",
+     "type": "defeat",
+     "target": "wolf",
+     "count": 2,
+     "spawn": 2,
+     "where": "wild:forest",
+     "scene": "c2_path_warrior_gurdym_s3",
+     "text": "Встретить волков, что таскают гоблинят (в лесу)"
+    },
+    {
+     "id": "s4",
+     "type": "talk",
+     "target": "gurdym",
+     "where": "trollcamp",
+     "scene": "c2_path_warrior_gurdym_s4",
+     "text": "Вернуться к Гурдыму"
+    }
+   ],
+   "outcomes": [
+    {
+     "if": {
+      "mentor_warrior": "gurdym"
+     },
+     "text": "Ты больше не машешь — ты роняешь. Тяжёлой руке учил тролль, который помнит всех, кого ударил.",
+     "rewards": {
+      "xp": 60,
+      "echoes": 5
+     },
+     "worldEffects": [
+      "card+:quest:q_c2_path_warrior_gurdym:2"
+     ]
+    },
+    {
+     "if": {},
+     "text": "Ты сдвинул валуны, но тяжёлую руку не взял.",
+     "rewards": {
+      "xp": 40
+     },
+     "worldEffects": []
+    }
+   ]
+  },
+  {
+   "id": "c2_path_ranger_stakh",
+   "title": "Нож Безродных",
+   "chain": "path",
+   "chapter": 2,
+   "giver": "stakh",
+   "offerIf": {
+    "q_s2_in": [
+     "done",
+     "failed"
+    ],
+    "stakh_not": "betrayed",
+    "class_not": "ranger"
+   },
+   "summary": "Безродные стреляют не в зверя — в шум. Стах может научить. Запасной путь следопыта, если лук Ефима не дался.",
+   "steps": [
+    {
+     "id": "s1",
+     "type": "talk",
+     "target": "stakh",
+     "where": "rootless_camp",
+     "scene": "c2_path_ranger_stakh_s1",
+     "text": "Выслушать Стаха"
+    },
+    {
+     "id": "s2",
+     "type": "investigate",
+     "count": 3,
+     "clues": true,
+     "where": "rootless_camp",
+     "scene": "c2_path_ranger_stakh_s2",
+     "text": "Три мишени на стоянке Безродных: нож, стрела, часовой"
+    },
+    {
+     "id": "s3",
+     "type": "defeat",
+     "target": "bandit",
+     "count": 2,
+     "spawn": 2,
+     "spawnName": "Человек Кривого",
+     "where": "wild:any",
+     "scene": "c2_path_ranger_stakh_s3",
+     "text": "Люди Кривого решили проверить ученика"
+    },
+    {
+     "id": "s4",
+     "type": "talk",
+     "target": "stakh",
+     "where": "rootless_camp",
+     "scene": "c2_path_ranger_stakh_s4",
+     "text": "Вернуться к Стаху"
+    }
+   ],
+   "outcomes": [
+    {
+     "if": {
+      "mentor_ranger": "stakh"
+     },
+     "text": "Нож брата Стаха теперь у тебя. Стреляешь в шум, не в сердце.",
+     "rewards": {
+      "xp": 60,
+      "echoes": 5
+     },
+     "worldEffects": [
+      "card+:quest:q_c2_path_ranger_stakh:2"
+     ]
+    },
+    {
+     "if": {},
+     "text": "Ты прошёл мишени Стаха, но нож брата не взял.",
+     "rewards": {
+      "xp": 40
+     },
+     "worldEffects": []
+    }
+   ]
+  },
+  {
+   "id": "c3_bonfire",
+   "title": "Ночь костров",
+   "chain": "ash",
+   "chapter": 3,
+   "giver": "ugar",
+   "after": [
+    "m5"
+   ],
+   "summary": "Новички Пепельного Круга жгут память на большом костре. Угар зовёт посмотреть — и, может быть, сжечь что-нибудь лёгкое. Это испытание Круга.",
+   "steps": [
+    {
+     "id": "s1",
+     "type": "talk",
+     "target": "ugar",
+     "where": "camp",
+     "scene": "c3_bonfire_s1",
+     "text": "Выслушать Угара"
+    },
+    {
+     "id": "s2",
+     "type": "investigate",
+     "count": 3,
+     "clues": true,
+     "where": "camp",
+     "scene": "c3_bonfire_s2",
+     "text": "Помочь в стане: Искре с хворостом, Чаду со смолой, новенькому Ждану"
+    },
+    {
+     "id": "s3",
+     "type": "night",
+     "target": "bonfire",
+     "where": "bonfire",
+     "scene": "c3_bonfire_s3",
+     "text": "Ночью прийти к большому костру"
+    },
+    {
+     "id": "s4",
+     "type": "sacrifice",
+     "target": "any",
+     "count": 1,
+     "where": "bonfire",
+     "requires": {
+      "bonfire_burn": true
+     },
+     "scene": "c3_bonfire_s4",
+     "text": "Отдать огню что-нибудь лёгкое"
+    },
+    {
+     "id": "s5",
+     "type": "defeat",
+     "target": "wraith",
+     "count": 2,
+     "spawn": 2,
+     "where": "bonfire",
+     "scene": "c3_bonfire_s5",
+     "text": "Недопетые тянутся к огню: держать круг"
+    },
+    {
+     "id": "s6",
+     "type": "wait",
+     "target": "bonfire",
+     "where": "bonfire",
+     "scene": "c3_bonfire_s6",
+     "text": "Дождаться рассвета у углей"
+    }
+   ],
+   "outcomes": [
+    {
+     "if": {
+      "bonfire_burned": true
+     },
+     "text": "Ты бросил в огонь лёгкое — и стало легко. Угар обнял тебя как брата. Под утро он плакал во сне и не помнил об этом.",
+     "rewards": {
+      "xp": 120,
+      "echoes": 10
+     },
+     "worldEffects": [
+      "card+:quest:q_c3_bonfire:2",
+      "rep:ash:4",
+      "inc:trials_done:1",
+      "flag:trial_ash=true"
+     ]
+    },
+    {
+     "if": {},
+     "text": "Ты ничего не сжёг, только держал круг. Угар не обиделся: «Огонь не торопит». Под утро он плакал во сне и не помнил об этом.",
+     "rewards": {
+      "xp": 100,
+      "echoes": 12
+     },
+     "worldEffects": [
+      "card+:quest:q_c3_bonfire:2",
+      "rep:ash:2",
+      "inc:trials_done:1",
+      "flag:trial_ash=true"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "c3_path_pyro",
+   "title": "Первый уголь",
+   "chain": "path",
+   "chapter": 3,
+   "giver": "ugar",
+   "after": [
+    "m5"
+   ],
+   "offerIf": {
+    "any": [
+     {
+      "q_c3_bonfire": "done"
+     },
+     {
+      "bonfire_night": true
+     }
+    ]
+   },
+   "summary": "Угар — или Искра — может научить Палу: огню, который берёт, что держишь в кулаке. Можно взяться на «Ночи костров» или после неё.",
+   "steps": [
+    {
+     "id": "s1",
+     "type": "talk",
+     "target": "ugar",
+     "where": "camp",
+     "scene": "c3_path_pyro_s1",
+     "text": "Выбрать, у кого учиться огню: у Угара или у Искры"
+    },
+    {
+     "id": "s2",
+     "type": "investigate",
+     "count": 3,
+     "clues": true,
+     "where": "camp",
+     "scene": "c3_path_pyro_s2",
+     "text": "Три урока у костров: искра, дыхание, уголь"
+    },
+    {
+     "id": "s3",
+     "type": "defeat",
+     "target": "wolf",
+     "count": 2,
+     "spawn": 2,
+     "where": "wild:steppe",
+     "scene": "c3_path_pyro_s3",
+     "text": "Проверить огонь на волках в степи"
+    },
+    {
+     "id": "s4",
+     "type": "talk",
+     "target": "ugar",
+     "where": "camp",
+     "requires": {
+      "pyro_teacher": "ugar"
+     },
+     "scene": "c3_path_pyro_s4",
+     "text": "Вернуться к Угару"
+    },
+    {
+     "id": "s5",
+     "type": "talk",
+     "target": "iskra",
+     "where": "camp",
+     "requires": {
+      "pyro_teacher": "iskra"
+     },
+     "scene": "c3_path_pyro_s5",
+     "text": "Вернуться к Искре"
+    }
+   ],
+   "outcomes": [
+    {
+     "if": {
+      "mentor_pyro": "ugar"
+     },
+     "text": "Угар дал тебе уголь в тёплой тряпице. Огонь слушает тебя — по-доброму, как Угар.",
+     "rewards": {
+      "xp": 60
+     },
+     "worldEffects": [
+      "card+:quest:q_c3_path_pyro:2"
+     ]
+    },
+    {
+     "if": {
+      "mentor_pyro": "iskra"
+     },
+     "text": "Искра дала тебе уголь в выцветшей синей ленте. Огонь слушает тебя — злее, ровнее.",
+     "rewards": {
+      "xp": 60
+     },
+     "worldEffects": [
+      "card+:quest:q_c3_path_pyro:2",
+      "bond:iskra:+1"
+     ]
+    },
+    {
+     "if": {},
+     "text": "Ты прошёл уроки огня, но уголь не взял.",
+     "rewards": {
+      "xp": 40
+     },
+     "worldEffects": []
+    }
+   ]
+  },
+  {
+   "id": "c3_path_priest",
+   "title": "Возврат",
+   "chain": "path",
+   "chapter": 3,
+   "giver": "kudel",
+   "after": [
+    "m5"
+   ],
+   "offerIf": {
+    "trust_kudel_gte": 3
+   },
+   "summary": "Мать Кудель может научить свету Возврата: он лечит живых и жжёт мёртвых, которым нечем отдать в ответ.",
+   "steps": [
+    {
+     "id": "s1",
+     "type": "talk",
+     "target": "kudel",
+     "where": "ruins",
+     "scene": "c3_path_priest_s1",
+     "text": "Выслушать Кудель"
+    },
+    {
+     "id": "s2",
+     "type": "investigate",
+     "count": 3,
+     "clues": true,
+     "where": "ruins",
+     "scene": "c3_path_priest_s2",
+     "text": "Зажечь три погасшие лампадки Перевязчиков: спасибом, песней и именем"
+    },
+    {
+     "id": "s3",
+     "type": "defeat",
+     "target": "zombie",
+     "count": 2,
+     "spawn": 2,
+     "where": "ruins",
+     "scene": "c3_path_priest_s3",
+     "text": "На свет пришли мёртвые: остановить их без злобы"
+    },
+    {
+     "id": "s4",
+     "type": "talk",
+     "target": "kudel",
+     "where": "ruins",
+     "scene": "c3_path_priest_s4",
+     "text": "Вернуться к Кудели"
+    }
+   ],
+   "outcomes": [
+    {
+     "if": {
+      "mentor_priest": "kudel"
+     },
+     "text": "Кудель отдала тебе четвёртую лампадку, сто лет погасшую. У тебя она горит.",
+     "rewards": {
+      "xp": 60
+     },
+     "worldEffects": [
+      "card+:quest:q_c3_path_priest:2"
+     ]
+    },
+    {
+     "if": {},
+     "text": "Ты зажёг три лампадки, но свет не взял.",
+     "rewards": {
+      "xp": 40
+     },
+     "worldEffects": []
+    }
+   ]
+  },
+  {
+   "id": "c3_path_warrior_ostap",
+   "title": "Стойка",
+   "chain": "path",
+   "chapter": 3,
+   "giver": "ostap",
+   "after": [
+    "m5"
+   ],
+   "offerIf": {
+    "npc_ostap_not": "gone"
+   },
+   "summary": "Остап, скелет-солдат на посту у склепа, может поставить живому стойку и дать своё копьё. Запасной путь воина.",
+   "steps": [
+    {
+     "id": "s1",
+     "type": "talk",
+     "target": "ostap",
+     "where": "oldgrave",
+     "scene": "c3_path_warrior_ostap_s1",
+     "text": "Выслушать Остапа"
+    },
+    {
+     "id": "s2",
+     "type": "enter",
+     "target": "crypt1",
+     "where": "oldgrave",
+     "text": "Спуститься в первый ярус склепа"
+    },
+    {
+     "id": "s3",
+     "type": "defeat",
+     "target": "skeleton",
+     "count": 2,
+     "spawn": 2,
+     "where": "crypt1",
+     "scene": "c3_path_warrior_ostap_s3",
+     "text": "Показать стойку двум скелетам без смены"
+    },
+    {
+     "id": "s4",
+     "type": "talk",
+     "target": "ostap",
+     "where": "oldgrave",
+     "scene": "c3_path_warrior_ostap_s4",
+     "text": "Вернуться к Остапу"
+    }
+   ],
+   "outcomes": [
+    {
+     "if": {
+      "mentor_warrior": "ostap"
+     },
+     "text": "Копьё Остапа теперь твоё. Ремень к нему когда-то сшила Улита.",
+     "rewards": {
+      "xp": 60
+     },
+     "worldEffects": [
+      "card+:quest:q_c3_path_warrior_ostap:2",
+      "bond:ostap:+1"
+     ]
+    },
+    {
+     "if": {},
+     "text": "Остап поставил тебе стойку. Копьё ты не взял.",
+     "rewards": {
+      "xp": 40
+     },
+     "worldEffects": []
+    }
+   ]
+  },
+  {
+   "id": "c3_orphans",
+   "title": "Детские склянки",
+   "chain": "weavers",
+   "chapter": 3,
+   "giver": "kudel",
+   "after": [
+    "s6"
+   ],
+   "offerIf": {
+    "opis_in": [
+     "asked",
+     "silent",
+     "ugar_jar"
+    ]
+   },
+   "summary": "В Башне на полке стоят «Первый снег» шестилетней девочки и «Мамин голос» восьмилетнего мальчика, проданные за серебро. Кудель хочет вернуть детям их детство.",
+   "steps": [
+    {
+     "id": "s1",
+     "type": "talk",
+     "target": "kudel",
+     "where": "ruins",
+     "scene": "c3_orphans_s1",
+     "text": "Выслушать Кудель"
+    },
+    {
+     "id": "s2",
+     "type": "investigate",
+     "count": 2,
+     "spots": [
+      "tower",
+      "camp"
+     ],
+     "where": "tower",
+     "scene": "c3_orphans_s2",
+     "text": "Спросить согласия у детей: девочка метёт ступени Башни, мальчик сбежал в Стан"
+    },
+    {
+     "id": "s3",
+     "type": "choose",
+     "target": "yasna",
+     "where": "tower",
+     "scene": "c3_orphans_s3",
+     "text": "Добыть склянки с полки Архива"
+    },
+    {
+     "id": "s4",
+     "type": "talk",
+     "target": "khrustalina",
+     "where": "tower",
+     "requires": {
+      "orphans_jars_in": [
+       "yasna_word",
+       "bought",
+       "taken"
+      ]
+     },
+     "scene": "c3_orphans_s4",
+     "text": "Хрусталина хочет поговорить"
+    },
+    {
+     "id": "s5",
+     "type": "investigate",
+     "count": 2,
+     "spots": [
+      "tower",
+      "camp"
+     ],
+     "where": "tower",
+     "scene": "c3_orphans_s5",
+     "text": "Открыть склянки вместе с детьми"
+    }
+   ],
+   "outcomes": [
+    {
+     "if": {
+      "orphans_jars": "yasna_word"
+     },
+     "text": "Ясна впервые дала слово против Хрусталины. Ласка ловит языком снег, Тишка ревёт над маминым голосом. Хрусталина записала тебя в книгу.",
+     "rewards": {
+      "xp": 140,
+      "echoes": 15
+     },
+     "worldEffects": [
+      "card+:quest:q_c3_orphans:3",
+      "rep:weavers:6",
+      "rep:archive:-4",
+      "bond:yasna:+1"
+     ]
+    },
+    {
+     "if": {
+      "orphans_jars": "bought"
+     },
+     "text": "Ты выкупил детское за пятьдесят серебром. Архив доволен сделкой, Кудель — не очень. Дети вспомнили своё.",
+     "rewards": {
+      "xp": 120,
+      "echoes": 10
+     },
+     "worldEffects": [
+      "card+:quest:q_c3_orphans:3",
+      "rep:weavers:4"
+     ]
+    },
+    {
+     "if": {
+      "orphans_jars": "taken"
+     },
+     "text": "Ты унёс склянки без спроса. Дети вспомнили своё. Хрусталина записала твоё имя медленно и аккуратно.",
+     "rewards": {
+      "xp": 130,
+      "echoes": 15
+     },
+     "worldEffects": [
+      "card+:quest:q_c3_orphans:3"
+     ]
+    },
+    {
+     "if": {},
+     "text": "Склянки остались на полке. «Дети всё равно забудут», — сказала Ясна. Может, и правда.",
+     "rewards": {
+      "xp": 50,
+      "echoes": 5
+     },
+     "worldEffects": [
+      "card+:quest:q_c3_orphans:1"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "c3_truth",
+   "title": "Сложи враньё",
+   "chain": "main",
+   "chapter": 3,
+   "auto": true,
+   "after": [
+    "m6"
+   ],
+   "summary": "Тебе соврали трижды: протечка, щепка, шов. Остап сказал — «похож на нас». Морвен велел сложить враньё: получится правда.",
+   "steps": [
+    {
+     "id": "s1",
+     "type": "talk",
+     "target": "agafya",
+     "where": "village",
+     "scene": "c3_truth_s1",
+     "text": "Взять у Агафьи бересту и уголь: записать, кто что сказал"
+    },
+    {
+     "id": "s2",
+     "type": "talk",
+     "target": "gurdym",
+     "where": "trollcamp",
+     "requires": {
+      "npc_gurdym_not": "gone"
+     },
+     "scene": "c3_truth_s2",
+     "text": "Спросить Гурдыма, чем ты пахнешь"
+    },
+    {
+     "id": "s3",
+     "type": "investigate",
+     "count": 3,
+     "spots": [
+      "oldgrave",
+      "ford",
+      "village_well"
+     ],
+     "where": "village",
+     "scene": "c3_truth_s3",
+     "text": "Проверить враньё на месте: печать склепа, брод, колодец-Узел"
+    },
+    {
+     "id": "s4",
+     "type": "use",
+     "target": "birch_board",
+     "where": "village",
+     "scene": "c3_truth_s4",
+     "text": "Разложить бересту и сложить враньё (метка в Броде)"
+    }
+   ],
+   "outcomes": [
+    {
+     "if": {
+      "truth_board": "stitched"
+     },
+     "text": "Сложил враньё — получилась правда: ты сшит из тех, кого держали. Кто сшил — береста не говорит.",
+     "rewards": {
+      "xp": 160,
+      "echoes": 20
+     },
+     "worldEffects": [
+      "card+:quest:q_c3_truth:4"
+     ]
+    },
+    {
+     "if": {},
+     "text": "Сложил враньё — и вышла ещё одна неправда, твоя собственная. Ты в ней уверен. Это хуже всего.",
+     "rewards": {
+      "xp": 110,
+      "echoes": 10
+     },
+     "worldEffects": [
+      "card+:quest:q_c3_truth:3"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "c3_deadnight",
+   "title": "Ночь недопетых",
+   "chain": "main",
+   "chapter": 3,
+   "auto": true,
+   "after": [
+    "m6"
+   ],
+   "offerIf": {
+    "q_c3_truth": "done"
+   },
+   "endsChapter": 3,
+   "summary": "Печать открыта. Те, кого Брод отпустил, идут ночью в деревню. Ивар просит защиты, Федот с мужиками вооружились, Агафья не выходит из избы.",
+   "steps": [
+    {
+     "id": "s1",
+     "type": "night",
+     "target": "village",
+     "where": "village",
+     "scene": "c3_deadnight_s1",
+     "text": "Ночью быть в Броде"
+    },
+    {
+     "id": "s2",
+     "type": "defeat",
+     "target": "skeleton",
+     "count": 2,
+     "spawn": 2,
+     "where": "okolitsa",
+     "scene": "c3_deadnight_s2",
+     "text": "Держать околицу: первые мёртвые"
+    },
+    {
+     "id": "s3",
+     "type": "defeat",
+     "target": "zombie",
+     "count": 2,
+     "spawn": 2,
+     "where": "okolitsa",
+     "scene": "c3_deadnight_s3",
+     "text": "Держать околицу: утопленники из реки"
+    },
+    {
+     "id": "s4",
+     "type": "defeat",
+     "target": "wraith",
+     "count": 2,
+     "spawn": 2,
+     "where": "okolitsa",
+     "scene": "c3_deadnight_s4",
+     "text": "Держать околицу: безымянные недопетые"
+    },
+    {
+     "id": "s5",
+     "type": "goto",
+     "target": "grave_road",
+     "where": "grave_road",
+     "scene": "c3_deadnight_s5",
+     "text": "Выйти навстречу мёртвым на кладбищенскую дорогу и назвать их"
+    },
+    {
+     "id": "s6",
+     "type": "defeat",
+     "target": "wraith",
+     "count": 2,
+     "spawn": 2,
+     "where": "grave_road",
+     "scene": "c3_deadnight_s6",
+     "text": "Остановить тех, чьих имён ты не знаешь"
+    },
+    {
+     "id": "s7",
+     "type": "goto",
+     "target": "oldgrave",
+     "where": "oldgrave",
+     "scene": "c3_deadnight_s7",
+     "text": "Довести мёртвых до склепа"
+    },
+    {
+     "id": "s8",
+     "type": "talk",
+     "target": "agafya",
+     "where": "village",
+     "scene": "c3_deadnight_s8",
+     "text": "Уговорить Агафью выйти с узелком"
+    },
+    {
+     "id": "s9",
+     "type": "escort",
+     "target": "agafya",
+     "where": "okolitsa",
+     "scene": "c3_deadnight_s9",
+     "text": "Довести Агафью до околицы"
+    },
+    {
+     "id": "s10",
+     "type": "talk",
+     "target": "ivar",
+     "where": "village",
+     "scene": "c3_deadnight_s10",
+     "text": "Утро: поговорить с Иваром"
+    }
+   ],
+   "outcomes": [
+    {
+     "if": {
+      "deadnight_way": "names"
+     },
+     "text": "Ты называл мёртвых по именам, и они уходили. Брод смотрел из-за заборов и закрывал ставни. Недопетые этого не забудут. Брод — тоже.",
+     "rewards": {
+      "xp": 240,
+      "echoes": 25
+     },
+     "worldEffects": [
+      "card+:quest:q_c3_deadnight:4",
+      "rep:undead:5"
+     ]
+    },
+    {
+     "if": {
+      "deadnight_way": "knot"
+     },
+     "text": "Агафья вышла с ниткой и увела тех, кого было за что держать. Остальных ты остановил у тына. Ивар сказал: «Ночью никто ничего не видел».",
+     "rewards": {
+      "xp": 230,
+      "echoes": 20
+     },
+     "worldEffects": [
+      "card+:quest:q_c3_deadnight:4",
+      "bond:agafya:+2"
+     ]
+    },
+    {
+     "if": {
+      "deadnight_way": "sword"
+     },
+     "text": "Ты держал околицу до рассвета. Брод цел. Мёртвые легли обратно — не все целыми.",
+     "rewards": {
+      "xp": 220,
+      "echoes": 20
+     },
+     "worldEffects": [
+      "card+:quest:q_c3_deadnight:4",
+      "rep:village:4"
+     ]
+    },
+    {
+     "if": {},
+     "text": "Ночь недопетых кончилась. Брод цел. Печать открыта.",
+     "rewards": {
+      "xp": 200,
+      "echoes": 15
+     },
+     "worldEffects": [
+      "card+:quest:q_c3_deadnight:3"
+     ]
+    }
+   ]
   }
  ],
  "endings": [
@@ -4726,5 +6667,55 @@
    },
    "text": "Мёртвые вышли из склепа и остались. Стоят у колодцев, сидят на завалинках, ждут, пока их позовут по имени. Брод учится жить с ними рядом: кто-то кормит, кто-то гонит, кто-то зовёт. Остап ходит за Улитой с корзиной. Морвена больше нет, держать некому, и Пряжа тяжелеет. Но это тяжесть дома, где много родни. Ты остаёшься на переправе: показываешь мёртвым дорогу к тем, кто их ещё помнит."
   }
- ]
+ ],
+ "places": {
+  "hoard": {
+   "at": "trollcamp",
+   "dx": -12,
+   "dy": 9,
+   "r": 260
+  },
+  "rootless_camp": {
+   "at": "trollcamp",
+   "dx": -26,
+   "dy": 16,
+   "r": 300
+  },
+  "convoy_road": {
+   "at": "tower",
+   "dx": 22,
+   "dy": 10,
+   "r": 320
+  },
+  "yasna_sled": {
+   "at": "village",
+   "dx": 0,
+   "dy": -24,
+   "r": 260
+  },
+  "archive_wing": {
+   "at": "tower",
+   "dx": 5,
+   "dy": -3,
+   "r": 180
+  },
+  "bonfire": {
+   "at": "camp",
+   "dx": 0,
+   "dy": 4,
+   "r": 280
+  },
+  "okolitsa": {
+   "at": "village",
+   "dx": 24,
+   "dy": -2,
+   "r": 300
+  },
+  "grave_road": {
+   "at": "oldgrave",
+   "dx": -24,
+   "dy": -2,
+   "r": 320
+  }
+ }
 }

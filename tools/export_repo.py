@@ -8,11 +8,15 @@ import os, re, shutil, sys, json
 SRC = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DST = os.path.abspath(sys.argv[1])
 LIC = os.path.abspath(sys.argv[2]) if len(sys.argv) > 2 else None
-# главы 2–6 ещё пишутся: их файлы попадут в репозиторий после слияния и проверки
-WIP = re.compile(r'^narrative/(ch[2-6]\.ink|main_ch[2-6]\.ink)$')
+# в игру входят только главы из INCLUDE в main.ink; остальные ещё пишутся и в репозиторий не попадают
+INCLUDED = set(re.findall(r'^INCLUDE\s+(\S+)', open(os.path.join(SRC, 'site', 'narrative', 'main.ink'), encoding='utf-8').read(), re.M))
+MERGED = sorted(int(m.group(1)) for f in INCLUDED for m in [re.match(r'^ch(\d)\.ink$', f)] if m)
+WIP_CH = [n for n in range(2, 7) if n not in MERGED]
 
 def keep_site(rel):
-    if rel in ('test.html',) or WIP.match(rel): return False
+    if rel in ('test.html',) or re.match(r'^narrative/main_ch\d\.ink$', rel): return False  # точки сборки для авторов глав
+    m = re.match(r'^narrative/ch(\d)\.ink$', rel)
+    if m and int(m.group(1)) in WIP_CH: return False
     return not rel.endswith(('.log', '.tmp'))
 
 def copytree(src, dst, keep=lambda rel: True):
@@ -109,10 +113,10 @@ open(os.path.join(DST, 'sw.js'), 'w', encoding='utf-8').write(sw)
 for f in os.listdir(os.path.join(SRC, 'repo_files')): shutil.copy2(os.path.join(SRC, 'repo_files', f), os.path.join(DST, f))  # README, CREDITS
 open(os.path.join(DST, '.gitignore'), 'w').write('node_modules/\nout/\n*.log\nsite/test.html\nwork/\n')
 
-# главы 2–6 ещё пишутся: их правки в старых сценах (legacy_chN.ink) и отметки «реализовано» в CHAPTER_0N.md не выкладываем, пока главы не слиты и не проверены —
+# главы, которые ещё пишутся (WIP_CH): их правки в старых сценах (legacy_chN.ink) и отметки «реализовано» в CHAPTER_0N.md не выкладываем, пока главы не слиты и не проверены —
 # в репозитории остаётся последняя выложенная версия этих файлов
 import subprocess
-KEEP_FROM_REPO = [f'site/narrative/legacy_ch{n}.ink' for n in range(2, 7)] + [f'docs/CHAPTERS/CHAPTER_0{n}.md' for n in range(2, 7)]
+KEEP_FROM_REPO = [f'site/narrative/legacy_ch{n}.ink' for n in WIP_CH] + [f'docs/CHAPTERS/CHAPTER_0{n}.md' for n in WIP_CH]
 if os.path.isdir(os.path.join(DST, '.git')):
     for rel in KEEP_FROM_REPO:
         r = subprocess.run(['git', '-C', DST, 'show', f'HEAD:{rel}'], capture_output=True)
